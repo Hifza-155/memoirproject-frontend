@@ -25,6 +25,9 @@ can guess where things go in the other.
 Every directory under `src/` also has its own `README.md` explaining what belongs in it. If you are
 exploring the tree, read those — they are written for the moment you are standing in the folder.
 
+**New to the repo?** Start with [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — the guided tour, in reading
+order, with the rules and the recipe for adding a feature.
+
 ## Architecture
 
 The backend's layering has a direct equivalent here:
@@ -36,7 +39,8 @@ The backend's layering has a direct equivalent here:
 | `src/models/example_models.py` | `features/<feature>/schemas.ts` | The contract. Zod is the twin of Pydantic. |
 | `src/integrations/llm_client.py` | `src/lib/api/client.ts` | The only code that talks to the outside world. |
 | `src/core/` | `src/lib/config/`, `src/app/providers.tsx` | App-wide setup: env validation, providers. |
-| `src/utils/` | `src/utils/` | Generic helpers, not tied to a feature. Create when needed. |
+| `src/utils/` | `src/utils/` | Generic helpers, not tied to a feature. Pure functions, no dependencies. |
+| — | `src/hooks/` | Shared React hooks. No domain knowledge, no fetching. |
 
 Requests flow the same direction they do on the backend:
 
@@ -81,6 +85,10 @@ src/
     config/env.ts               # Zod-validated environment, fails fast at boot
     query/client.ts             # TanStack Query defaults
     utils.ts                    # shadcn's `cn` helper (managed by the shadcn CLI)
+  hooks/
+    README.md                   # Shared React hooks. Empty until a second feature needs one.
+  utils/
+    README.md                   # Pure generic helpers. Empty until a second caller needs one.
 ```
 
 ## The two data paths

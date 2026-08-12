@@ -16,6 +16,21 @@ order, it belongs in `src/features/` instead.
 | `query/client.ts` | TanStack Query defaults: stale time, retry policy. | — |
 | `utils.ts` | shadcn's `cn` helper. Managed by the shadcn CLI — leave it alone. | — |
 
+## lib vs. utils vs. hooks
+
+Three directories hold code no single feature owns. The line between them is dependencies:
+
+| Directory | Holds | Test |
+| --- | --- | --- |
+| `lib/` | Infrastructure — dependencies, configuration, state, I/O | You mock it in tests |
+| `utils/` | Pure functions — no dependencies, no I/O | You just call it |
+| `hooks/` | Generic React hooks — state, effects, browser APIs, no fetching | It starts with `"use client"` |
+
+Rule of thumb: if it has to be configured, awaited, or mocked, it belongs here in `lib/`.
+
+Note that `utils.ts` in this directory is shadcn's `cn` helper and is unrelated to `src/utils/`. Leave
+it where it is.
+
 ## Adding to this directory
 
 Ask first whether it is really app-wide. A helper used by one feature belongs in that feature.

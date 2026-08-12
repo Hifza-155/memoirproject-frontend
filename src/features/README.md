@@ -43,4 +43,6 @@ backend does the same thing inside `domain/<feature>/`.
 | A component only this feature uses | `<feature>/components/` |
 | A component two features use | `src/components/` |
 | A helper only this feature uses | `<feature>/utils.ts` |
-| A helper the whole app uses | `src/lib/` |
+| A pure helper two features use | `src/utils/` |
+| A React hook two features use, with no domain knowledge | `src/hooks/` |
+| App-wide infrastructure: a client, config, a provider | `src/lib/` |

@@ -19,6 +19,10 @@ update it when you change what that directory holds. The short version:
 - Never deep-import another feature's internals — use its `index.ts` or `server.ts`.
 - `src/components/ui/` holds shadcn primitives with no domain knowledge. Feature-aware components
   live in the feature folder.
+- `src/utils/` is pure generic functions, `src/hooks/` is generic React hooks, `src/lib/` is
+  infrastructure (dependencies, config, I/O). `utils/` and `hooks/` are empty by design — add a file
+  only when a second caller needs it. Data-fetching hooks belong in `features/<name>/hooks.ts`, never
+  in `src/hooks/`.
 - Default to fetching on the server. Use TanStack Query only when data changes in response to the
   user (mutations, polling, refetch).
 - Every API response is validated by a Zod schema at the boundary. No unvalidated data enters the app.
