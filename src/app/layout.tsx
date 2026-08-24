@@ -1,6 +1,6 @@
 // A wrapper file that defines layout elements shared accross webpages
 import type { Metadata } from "next";
-import { Playfair_Display, Caveat, Inter } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import AnnouncementBar from "../components/ui/AnnouncementBar";
 import Navbar from "../components/ui/Navbar";
@@ -21,11 +21,6 @@ export const metadata: Metadata = {
   title: "Memoir Archive",
   description: "Preserve your life's legacy.",
 };
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-caveat",
-});
 
 export default function RootLayout({
   children,
