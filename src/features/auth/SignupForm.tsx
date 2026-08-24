@@ -61,8 +61,7 @@ export default function SignupForm() {
         ]);
 
         if (dbError) {
-          console.error("Database profile save error:", dbError);
-          // Non-fatal, but good to log or notify
+          throw new Error("Database profile save error: " + dbError.message);
         }
 
         // 4. Handle email confirmation state properly
