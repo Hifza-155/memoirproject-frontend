@@ -1,5 +1,5 @@
 "use client";
-import { signupSchema, SignupInput } from './schemas';
+import { signupSchema, SignupInput } from "./schemas";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/api/client";
@@ -18,15 +18,14 @@ export default function SignupForm() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Inside your handleSignup function:
-    const rawInput: SignupInput = {
+    // 1. Validate input data using Zod schema first
+    const formData: SignupInput = {
       full_name,
       email,
       password,
     };
 
-    // Zod validates an object that is strictly typed as a SignupInput
-    const validationResult = signupSchema.safeParse(rawInput);
+    const validationResult = signupSchema.safeParse(formData);
 
     if (!validationResult.success) {
       alert(validationResult.error.issues[0].message);
@@ -39,34 +38,51 @@ export default function SignupForm() {
     }
 
     setLoading(true);
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
 
-    if (authError) {
-      alert("Sign up failed: " + authError.message);
-      setLoading(false);
-      return;
-    }
+    try {
+      // 2. Sign up via Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (authData.user) {
-      const { error: dbError } = await supabase.from("user_account").insert([
-        {
-          id: authData.user.id,
-          email: authData.user.email,
-          full_name: full_name,
-        },
-      ]);
+      if (authError) {
+        throw new Error(authError.message);
+      }
 
-      if (dbError) {
-        alert("Account created, but failed to save profile name.");
-        console.error(dbError);
-      } else {
+      if (authData.user) {
+        // 3. Insert profile into user_account table
+        const { error: dbError } = await supabase.from("user_account").insert([
+          {
+            id: authData.user.id,
+            email: authData.user.email,
+            full_name: full_name,
+          },
+        ]);
+
+        if (dbError) {
+          console.error("Database profile save error:", dbError);
+          // Non-fatal, but good to log or notify
+        }
+
+        // 4. Handle email confirmation state properly
+        if (!authData.session) {
+          alert(
+            "Account created! Please check your email to confirm your account before logging in.",
+          );
+          router.push("/login");
+          return;
+        }
+
         router.push("/small-personal-context");
       }
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      alert("Failed: " + errorMessage);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

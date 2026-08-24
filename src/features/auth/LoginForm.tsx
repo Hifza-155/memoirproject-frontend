@@ -1,52 +1,72 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/api/client';
-import { loginSchema } from './schemas'; // 1. Import your login schema
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../lib/api/client";
+import { loginSchema , LoginInput} from "./schemas";
+import { motion } from "framer-motion";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false); // Made functional
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 2. Validate input data using Zod schema before calling Supabase
-    const validationResult = loginSchema.safeParse({
+    const credentials: LoginInput = {
       email,
       password,
-    });
+    };
 
+    const validationResult = loginSchema.safeParse(credentials);
     if (!validationResult.success) {
-      const errorMessage = validationResult.error.issues[0].message;
-      alert(errorMessage);
+      alert(validationResult.error.issues[0].message);
       return;
     }
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      alert("Login failed: " + error.message);
-    } else {
+      if (error) {
+        throw new Error(error.message);
+      }
+
       if (data.user) {
-        await supabase
+        const { error: dbError } = await supabase
           .from("user_account")
           .update({ last_login_at: new Date().toISOString() })
           .eq("id", data.user.id);
+
+        if (dbError) {
+          console.error(
+            "Failed to update last login timestamp:",
+            dbError.message,
+          );
+        }
       }
-      router.push("/memoir");
+
+      router.push("/memoir"); // Or wherever your dashboard route is
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
+      alert("Login Failed: " + errorMessage);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    alert("Password reset functionality will be available soon.");
   };
 
   return (
@@ -54,8 +74,8 @@ export default function LoginForm() {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
@@ -70,7 +90,7 @@ export default function LoginForm() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] leading-snug">
-            Step back into <br /> your family&apos;s safe space
+            Step back into <br /> your family&rsquo;s safe space
           </h1>
         </div>
 
@@ -101,17 +121,20 @@ export default function LoginForm() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-[#f0e4d3] text-[#381c24] accent-[#381c24] cursor-pointer"
               />
               <span>Remember me</span>
             </label>
 
-            <a
-              href="#"
-              className="hover:text-[#381c24] transition underline underline-offset-2"
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="hover:text-[#381c24] transition underline underline-offset-2 bg-transparent border-none cursor-pointer text-sm text-[#78716c]"
             >
               Forgot your password?
-            </a>
+            </button>
           </div>
 
           <motion.button
@@ -119,18 +142,19 @@ export default function LoginForm() {
             disabled={loading}
             whileHover={!loading ? { scale: 1.01 } : {}}
             whileTap={!loading ? { scale: 0.99 } : {}}
-            className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${!loading
-              ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10'
-              : 'bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none'
-              }`}
+            className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
+              !loading
+                ? "bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10"
+                : "bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none"
+            }`}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </motion.button>
         </form>
 
         {/* Footer Link */}
         <div className="border border-[#f0e4d3] rounded-2xl mt-8 py-4 text-center text-sm text-[#78716c] font-serif bg-[#faf8f5]">
-          Not a member yet?{' '}
+          Not a member yet?{" "}
           <Link
             href="/signup"
             className="text-[#381c24] font-semibold ml-1 hover:underline underline-offset-2"
