@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "next lint",
+  "typecheck": "tsc --noEmit",
+  "test": "echo \"No tests specified\" && exit 0",
+  "verify": "npm run typecheck && npm run lint"
+},
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/supabase-js": "^2.112.3",
