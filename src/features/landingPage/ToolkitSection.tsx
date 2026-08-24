@@ -15,7 +15,7 @@ const toolkitCards = [
         }}
         className="bg-white border border-gray-100 text-[#381c24] text-[13px] px-4 py-3 rounded-2xl rounded-br-sm shadow-md max-w-[90%] text-left"
       >
-        <p className="opacity-95 mb-3 leading-snug font-medium">We are collecting memories for Dad's 60th.</p>
+        <p className="opacity-95 mb-3 leading-snug font-medium">We are collecting memories for Dads 60th.</p>
         <div className="bg-[#381c24] rounded-lg p-2 border border-[#381c24] flex items-center gap-3 transition-colors duration-300 group-hover:border-[#c9a063] group-hover:bg-[#4a222a]">
            <div className="w-6 h-6 bg-[#faf8f5] rounded-full flex items-center justify-center shrink-0">
               <svg className="w-3 h-3 text-[#c9a063]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -44,7 +44,7 @@ const toolkitCards = [
                <span className="text-xs text-[#faf8f5]/70 font-mono group-hover:text-[#faf8f5] transition-colors duration-300">02:14</span>
              </div>
              
-             <div className="flex items-center gap-[3px]">
+             <div className="flex items-center gap-0.75">
                <motion.div variants={{ hover: { scaleY: [1, 1.8, 0.8, 1], transition: { repeat: Infinity, duration: 0.8 } } }} className="w-1 h-3 bg-[#c9a063] rounded-full origin-center"></motion.div>
                <motion.div variants={{ hover: { scaleY: [1, 2.5, 1.2, 1], transition: { repeat: Infinity, duration: 0.9 } } }} className="w-1.5 h-5 bg-[#c9a063] rounded-full origin-center"></motion.div>
                <motion.div variants={{ hover: { scaleY: [1, 1.5, 0.5, 1], transition: { repeat: Infinity, duration: 0.7 } } }} className="w-1 h-2 bg-[#c9a063] rounded-full origin-center"></motion.div>
@@ -61,7 +61,7 @@ const toolkitCards = [
         >
              <div className="flex flex-col items-start gap-1">
                <span className="text-[10px] text-[#c9a063] uppercase tracking-wider font-bold">Text Mode</span>
-               <span className="text-xs text-[#381c24]/60 italic font-serif group-hover:text-[#381c24] transition-colors">"I still remember..."</span>
+               <span className="text-xs text-[#381c24]/60 italic font-serif group-hover:text-[#381c24] transition-colors">I still remember...</span>
              </div>
              <div className="w-6 h-6 rounded-full bg-[#fdf8ed] border border-[#f0e4d3] flex items-center justify-center group-hover:bg-[#c9a063] transition-colors duration-300">
                <svg className="w-3 h-3 text-[#381c24] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
@@ -95,7 +95,7 @@ const toolkitCards = [
                <svg className="w-4 h-4 text-[#381c24]/30 group-hover:text-[#c9a063] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
              </div>
              <p className="text-[#381c24] text-[13px] font-serif italic leading-snug">
-               "What was the most rebellious thing you did in your twenties?"
+               What was the most rebellious thing you did in your twenties?
              </p>
         </motion.div>
       </>
@@ -105,7 +105,7 @@ const toolkitCards = [
 
 export default function ToolkitSection() {
   return (
-   <section className="py-32 md:py-44 flex flex-col items-center justify-center bg-gradient-to-b from-[#381c24] to-[#12070b] p-8 md:p-16 overflow-hidden">
+   <section className="py-32 md:py-44 flex flex-col items-center justify-center bg-linear-to-b from-[#381c24] to-[#12070b] p-8 md:p-16 overflow-hidden">
       
       <div className="text-center mb-20">
          <motion.h3 

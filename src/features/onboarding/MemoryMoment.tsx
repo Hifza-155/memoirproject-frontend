@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Heart, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -13,7 +13,7 @@ export default function MemoryMoment() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-[720px] bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        className="w-full max-w-180 bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
 
         {/* Back */}
@@ -33,7 +33,7 @@ export default function MemoryMoment() {
             Your first memory is ready
           </h1>
 
-          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-[520px] mx-auto font-serif italic">
+          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-130 mx-auto font-serif italic">
             This is a glimpse of how your contributions will look inside your permanent family archive.
           </p>
         </div>

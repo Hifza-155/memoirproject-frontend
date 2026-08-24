@@ -2,9 +2,7 @@
 
 import {
   ArrowLeft,
-  ArrowRight,
   Heart,
-  Sparkles,
   Users,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +17,7 @@ export default function InviteFamilyFriends() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-[680px] bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm flex flex-col"
+        className="w-full max-w-170 bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm flex flex-col"
       >
 
         {/* Back */}
@@ -43,7 +41,7 @@ export default function InviteFamilyFriends() {
           </h1>
 
           {/* Supporting Text */}
-          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-[420px] mx-auto font-serif italic mb-8">
+          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-105 mx-auto font-serif italic mb-8">
             Invite the people who were part of the story.
           </p>
 

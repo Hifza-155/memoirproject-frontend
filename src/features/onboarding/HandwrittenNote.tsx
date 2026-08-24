@@ -8,7 +8,7 @@ export default function HandwrittenNote() {
 
       {/* Note Card */}
       <div
-        className="relative w-full max-w-[420px] bg-white border border-[#f0e4d3] shadow-lg shadow-[#381c24]/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
+        className="relative w-full max-w-105 bg-white border border-[#f0e4d3] shadow-lg shadow-[#381c24]/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
         style={{
           borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px'
         }}
@@ -28,7 +28,7 @@ export default function HandwrittenNote() {
             Dear Hafsa!
           </h2>
 
-          <p className="font-['Caveat'] text-[28px] text-[#381c24] leading-[44px]">
+          <p className="font-['Caveat'] text-[28px] text-[#381c24] leading-11">
             Every family has a story worth keeping, the quiet mornings,
             the faded photographs, and the voices you never want to lose.
             We built this space to hold those precious pieces safe for you
@@ -39,7 +39,7 @@ export default function HandwrittenNote() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center gap-4 mt-12 w-full max-w-[420px]">
+      <div className="flex items-center gap-4 mt-12 w-full max-w-105">
         <Link
           href="/easy-first-interaction"
           className="flex-1 text-center bg-white border border-[#f0e4d3] text-[#381c24] text-[16px] font-semibold py-4 rounded-xl hover:border-[#c9a063] transition shadow-xs"

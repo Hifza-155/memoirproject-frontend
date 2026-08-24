@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowLeft,Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -31,7 +31,7 @@ export default function StoryPrompt() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-[680px] bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        className="w-full max-w-170 bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
 
         {/* Back */}
@@ -52,7 +52,7 @@ export default function StoryPrompt() {
             memory to life.
           </h1>
 
-          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-[520px] mx-auto font-serif italic">
+          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed max-w-130 mx-auto font-serif italic">
             Start with a moment that still stays with you.
           </p>
         </div>

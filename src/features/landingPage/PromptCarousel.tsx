@@ -27,15 +27,15 @@ export default function PromptCarousel() {
             </motion.h3>
 
             {/* Horizontal Scroll Container */}
-            <div className="flex gap-6 overflow-x-auto w-full max-w-6xl px-8 pb-12 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex gap-6 overflow-x-auto w-full max-w-6xl px-8 pb-12 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none">
 
                 {prompts.map((question, index) => (
                     <div 
                         key={index}
-                        className="w-[280px] h-[200px] md:w-[340px] md:h-[240px] bg-[#fdf8ed] p-8 rounded-2xl border border-[#f0e4d3] snap-center shrink-0 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-center items-start text-left"
+                        className="w-70 h-50 md:w-85 md:h-60 bg-[#fdf8ed] p-8 rounded-2xl border border-[#f0e4d3] snap-center shrink-0 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-center items-start text-left"
                     >
                         <p className="text-[#381c24] text-base md:text-lg font-serif italic leading-relaxed">
-                            "{question}"
+                            {question}
                         </p>
                     </div>
                 ))}

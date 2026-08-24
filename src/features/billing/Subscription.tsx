@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+
 import { motion } from 'framer-motion';
 
 export default function Subscription() {
@@ -25,7 +27,7 @@ export default function Subscription() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full max-w-[680px] bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        className="w-full max-w-170 bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
         {/* Back */}
         <div className="mb-8">
@@ -50,12 +52,12 @@ export default function Subscription() {
           </Link>
 
           <div className="flex gap-2">
-            <img
+            <Image
               src="/visa.png"
               alt="Visa"
               className="w-10 h-10 object-contain"
             />
-            <img
+            <Image
               src="/masterCard.png"
               alt="Mastercard"
               className="w-10 h-10 object-contain"
