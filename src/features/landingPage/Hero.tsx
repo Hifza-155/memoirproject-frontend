@@ -24,7 +24,7 @@ export default function Hero() {
 
         <div className="flex mt-8">
           <Link
-            href="/signup"
+            href="/small-personal-context"
             className="bg-[#4a222a] text-[#faf8f5] text-base md:text-lg font-sans font-medium px-8 py-3.5 rounded-xl hover:bg-[#381c24] hover:shadow-xl hover:shadow-[#4a222a]/20 hover:-translate-y-0.5 transition-all duration-300 inline-flex items-center justify-center border border-[#4a222a]"
           >
             Gather your memories

@@ -73,7 +73,7 @@ export default function SignupForm() {
           return;
         }
 
-        router.push("/small-personal-context");
+        router.push("/subscription");
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -95,7 +95,7 @@ export default function SignupForm() {
         {/* Back */}
         <div className="mb-8">
           <Link
-            href="/"
+            href="/invite-family-friends"
             className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1"
           >
             ←
