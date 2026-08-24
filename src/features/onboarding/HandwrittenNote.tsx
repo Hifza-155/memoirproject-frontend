@@ -48,7 +48,7 @@ export default function HandwrittenNote() {
         </Link>
 
         <Link
-          href="/easy-first-interaction"
+          href="/story-prompt"
           className="flex-1 text-center bg-[#381c24] text-white text-[16px] font-semibold py-4 rounded-xl hover:bg-[#4a222a] transition shadow-md"
         >
           Continue

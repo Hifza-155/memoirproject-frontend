@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 export default function Subscription() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function Subscription() {
     // Simulate payment processing
     setTimeout(() => {
       setLoading(false);
-      router.push('/memoir');
+      router.push("/");
     }, 1000);
   };
 
@@ -26,7 +26,7 @@ export default function Subscription() {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="w-full max-w-170 bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
         {/* Back */}
@@ -55,11 +55,15 @@ export default function Subscription() {
             <Image
               src="/visa.png"
               alt="Visa"
+              width={40}
+              height={40}
               className="w-10 h-10 object-contain"
             />
             <Image
               src="/masterCard.png"
               alt="Mastercard"
+              width={40}
+              height={40}
               className="w-10 h-10 object-contain"
             />
           </div>
@@ -104,12 +108,13 @@ export default function Subscription() {
             disabled={loading}
             whileHover={!loading ? { scale: 1.01 } : {}}
             whileTap={!loading ? { scale: 0.99 } : {}}
-            className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${!loading
-                ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10'
-                : 'bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none'
-              }`}
+            className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
+              !loading
+                ? "bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10"
+                : "bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none"
+            }`}
           >
-            {loading ? 'Processing...' : 'Pay Now'}
+            {loading ? "Processing..." : "Pay Now"}
           </motion.button>
         </form>
       </motion.div>

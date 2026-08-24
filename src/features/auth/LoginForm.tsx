@@ -54,7 +54,7 @@ export default function LoginForm() {
         }
       }
 
-      router.push("/memoir"); // Or wherever your dashboard route is
+      router.push("/"); // Or wherever your dashboard route is
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An error occurred";
