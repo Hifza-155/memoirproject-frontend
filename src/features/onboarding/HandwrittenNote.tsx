@@ -6,6 +6,12 @@ export default function HandwrittenNote() {
   return (
     <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
 
+      {/* Import Caveat font stylesheet */}
+      <link 
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" 
+        rel="stylesheet" 
+      />
+
       {/* Note Card */}
       <div
         className="relative w-full max-w-105 bg-white border border-[#f0e4d3] shadow-lg shadow-[#381c24]/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
