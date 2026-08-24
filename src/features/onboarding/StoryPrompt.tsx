@@ -5,8 +5,8 @@ import { ArrowLeft, Feather } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
-// Component that types out each prompt line-by-line like an old pen
-function HandwrittenPromptLine({ 
+// Component that types out each prompt character-by-character in Caveat handwriting font
+function HandwrittenPromptItem({ 
   promptText, 
   isStarted, 
   onSelect 
@@ -30,7 +30,7 @@ function HandwrittenPromptLine({
         setIsComplete(true);
         clearInterval(interval);
       }
-    }, 40); // Typing speed
+    }, 40);
 
     return () => clearInterval(interval);
   }, [isStarted, promptText]);
@@ -38,26 +38,22 @@ function HandwrittenPromptLine({
   if (!isStarted) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4 }}
+    <motion.button
+      type="button"
       onClick={() => isComplete && onSelect(promptText)}
-      className={`group p-3 rounded-xl border border-[#e5d9c5]/60 bg-white/70 backdrop-blur-xs transition-all duration-200 ${
-        isComplete ? 'cursor-pointer hover:border-[#c9a063] hover:bg-[#fdf8ed] hover:shadow-xs' : 'cursor-default'
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={isComplete ? { scale: 1.02, x: 2 } : {}}
+      whileTap={isComplete ? { scale: 0.98 } : {}}
+      className={`text-xl font-['Caveat'] text-[#4a3525] transition-all duration-200 hover:text-[#c9a063] flex items-center gap-1 py-1 px-1.5 ${
+        isComplete ? 'cursor-pointer' : 'cursor-default'
       }`}
     >
-      <p className="text-xl font-['Caveat'] text-[#4a3525] flex items-center justify-between">
-        <span>{displayedText}</span>
-        {!isComplete ? (
-          <span className="inline-block w-1.5 h-4 bg-[#c9a063] animate-pulse ml-2" />
-        ) : (
-          <span className="text-xs font-sans opacity-0 group-hover:opacity-60 text-[#c9a063] transition-opacity">
-            Use →
-          </span>
-        )}
-      </p>
-    </motion.div>
+      <span>{displayedText}</span>
+      {!isComplete && (
+        <span className="inline-block w-1.5 h-4 bg-[#c9a063] animate-pulse" />
+      )}
+    </motion.button>
   );
 }
 
@@ -75,14 +71,14 @@ export default function StoryPrompt() {
     'The warmth of their laughter',
     'A lesson they left behind',
     'Quiet afternoons together',
+    'Their favorite cup or sweater',
   ];
 
-  // 2-second pause between each sentence appearing on the left side
   useEffect(() => {
     if (currentPromptIndex < prompts.length - 1) {
       const currentTextLength = prompts[currentPromptIndex].length;
       const typingDuration = currentTextLength * 40;
-      const pauseDuration = 2000; // 2 seconds wait
+      const pauseDuration = 2000;
 
       const timer = setTimeout(() => {
         setCurrentPromptIndex((prev) => prev + 1);
@@ -102,7 +98,7 @@ export default function StoryPrompt() {
   };
 
   return (
-    <section className="min-h-screen bg-[#FAF8F5] text-[#381c24] flex flex-col items-center justify-center px-6 py-12 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
+    <section className="min-h-screen bg-[#FAF8F5] text-[#381c24] flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
       
       {/* Import Caveat font stylesheet */}
       <link 
@@ -110,47 +106,103 @@ export default function StoryPrompt() {
         rel="stylesheet" 
       />
 
-      {/* Main container widened for side-by-side layout */}
-      <div className="w-full max-w-5xl">
+      {/* Main content wrapper */}
+      <div className="w-full max-w-4xl flex flex-col">
 
-        {/* Back Button */}
-        <div className="mb-8">
+        {/* Back */}
+        <div className="w-full mb-8 flex justify-start">
           <button
             onClick={() => router.back()}
             className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft size={18} strokeWidth={1.7} />
-            <span>Back</span>
           </button>
         </div>
 
-        {/* Two-Column Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        {/* Heading */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="text-center md:text-left mb-10 w-full"
+        >
+          <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] mb-3">
+            Let&apos;s bring one memory to life.
+          </h1>
 
-          {/* LEFT SIDE: Live Inspiration Unfolding (5 Cols) */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="lg:col-span-5 flex flex-col space-y-6 lg:sticky lg:top-12"
-          >
-            <div>
-              <div className="inline-flex items-center gap-1.5 mb-2 text-xs uppercase tracking-widest font-bold text-[#381c24]/80">
-                <Feather size={14} className="text-[#c9a063]" />
-                <span>Whispers of Memory</span>
+          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed font-serif italic">
+            Start with a moment that still stays with you.
+          </p>
+        </motion.div>
+
+        {/* Two-Column Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start w-full">
+
+          {/* LEFT SIDE: Lined White Notepad Paper Effect */}
+          <div className="flex flex-col w-full">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+              className="w-full mb-6"
+            >
+              {/* Container styled with white background and horizontal ruled lines */}
+              <div 
+                className="relative w-full rounded-[2px_12px_4px_16px] border border-[#d6c7ab] bg-white shadow-[0_12px_35px_rgba(56,28,36,0.08)] transition-transform duration-300 hover:rotate-0"
+                style={{
+                  transform: 'rotate(-0.8deg)',
+                  backgroundImage: 'repeating-linear-gradient(transparent, transparent 35px, #f2e9d8 35px, #f2e9d8 36px)',
+                  backgroundPositionY: '12px'
+                }}
+              >
+                <textarea
+                  value={story}
+                  onChange={(e) => setStory(e.target.value)}
+                  placeholder="Write your one-line memory here..."
+                  rows={6}
+                  className="w-full resize-none bg-transparent px-7 py-7 text-[20px] leading-[36px] text-[#381c24] placeholder:text-[#b5a38a]/70 outline-none font-['Caveat'] relative z-10"
+                />
               </div>
-              <h2 className="font-serif text-2xl text-[#381c24]">
-                Ideas appearing as you reflect...
-              </h2>
-              <p className="text-sm font-serif italic text-[#78716c] mt-1">
-                Click any line below to weave it directly into your writing.
-              </p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+              className="w-full"
+            >
+              <motion.button
+                type="button"
+                onClick={() => router.push('/memory-moment')}
+                disabled={!story.trim()}
+                whileHover={story.trim() ? { scale: 1.01 } : {}}
+                whileTap={story.trim() ? { scale: 0.99 } : {}}
+                className={`w-full py-4 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md ${
+                  story.trim()
+                    ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/15'
+                    : 'bg-[#f0e4d3]/70 text-[#78716c] cursor-not-allowed shadow-none'
+                }`}
+              >
+                Continue
+              </motion.button>
+            </motion.div>
+          </div>
+
+          {/* RIGHT SIDE: Animated Handwritten Sentences */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="w-full flex flex-col items-center md:items-start text-center md:text-left"
+          >
+            <div className="inline-flex items-center gap-1.5 mb-4 text-xs uppercase tracking-widest font-bold text-[#381c24]/80">
+              <Feather size={14} className="text-[#c9a063]" />
+              <span>Need a little inspiration?</span>
             </div>
 
-            {/* Vertical list of typing prompts */}
-            <div className="flex flex-col space-y-3 max-h-[420px] overflow-y-auto pr-2">
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 min-h-[220px] items-center">
               {prompts.map((prompt, index) => (
-                <HandwrittenPromptLine
+                <HandwrittenPromptItem
                   key={prompt}
                   promptText={prompt}
                   isStarted={index <= currentPromptIndex}
@@ -158,61 +210,6 @@ export default function StoryPrompt() {
                 />
               ))}
             </div>
-          </motion.div>
-
-
-          {/* RIGHT SIDE: The Actual Paper Sheet & Input (7 Cols) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="lg:col-span-7 flex flex-col"
-          >
-            {/* Heading */}
-            <div className="mb-6">
-              <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] mb-2">
-                Let&apos;s bring one memory to life.
-              </h1>
-              <p className="text-[#78716c] text-[15px] font-serif italic">
-                Start with a moment that still stays with you.
-              </p>
-            </div>
-
-            {/* Writing Area - Organic paper shape with folded corner */}
-            <div className="relative overflow-visible rounded-[28px_12px_32px_22px] border-2 border-[#dfd1bc] bg-[linear-gradient(135deg,_#FFFDF9_0%,_#F8F3E9_100%)] shadow-[0_16px_45px_rgba(56,28,36,0.09)] transition-all duration-300 mb-8">
-
-              {/* Physical Folded Dog-Ear Corner Effect at Top Right */}
-              <div 
-                className="absolute -top-[2px] -right-[2px] w-9 h-9 bg-gradient-to-bl from-[#E6DCCF] via-[#F3ECE1] to-[#D9CCBA] shadow-[-3px_3px_6px_rgba(0,0,0,0.08)] pointer-events-none rounded-bl-lg z-20"
-                style={{ clipPath: 'polygon(0 0, 100% 100%, 0 100%)' }}
-              />
-
-              <textarea
-                value={story}
-                onChange={(e) => setStory(e.target.value)}
-                placeholder="Write your one-line memory here..."
-                rows={6}
-                className="w-full resize-none bg-transparent px-8 py-8 text-[20px] leading-9 text-[#381c24] placeholder:text-[#a89f95]/60 outline-none font-['Caveat'] relative z-10"
-              />
-
-            </div>
-
-            {/* Continue Button */}
-            <motion.button
-              type="button"
-              onClick={() => router.push('/memory-moment')}
-              disabled={!story.trim()}
-              whileHover={story.trim() ? { scale: 1.01 } : {}}
-              whileTap={story.trim() ? { scale: 0.99 } : {}}
-              className={`w-full py-4 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md ${
-                story.trim()
-                  ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/15'
-                  : 'bg-[#f0e4d3]/70 text-[#78716c] cursor-not-allowed shadow-none'
-              }`}
-            >
-              Continue
-            </motion.button>
-
           </motion.div>
 
         </div>
