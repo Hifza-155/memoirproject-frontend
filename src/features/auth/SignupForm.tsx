@@ -1,24 +1,40 @@
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { signupSchema, SignupInput } from './schemas';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/api/client";
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function SignupForm() {
-  const [full_name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [full_name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Inside your handleSignup function:
+    const rawInput: SignupInput = {
+      full_name,
+      email,
+      password,
+    };
+
+    // Zod validates an object that is strictly typed as a SignupInput
+    const validationResult = signupSchema.safeParse(rawInput);
+
+    if (!validationResult.success) {
+      alert(validationResult.error.issues[0].message);
+      return;
+    }
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match!');
+      alert("Passwords do not match!");
       return;
     }
 
@@ -29,27 +45,25 @@ export default function SignupForm() {
     });
 
     if (authError) {
-      alert('Sign up failed: ' + authError.message);
+      alert("Sign up failed: " + authError.message);
       setLoading(false);
       return;
     }
 
     if (authData.user) {
-      const { error: dbError } = await supabase
-        .from('user_account')
-        .insert([
-          {
-            id: authData.user.id,
-            email: authData.user.email,
-            full_name: full_name,
-          },
-        ]);
+      const { error: dbError } = await supabase.from("user_account").insert([
+        {
+          id: authData.user.id,
+          email: authData.user.email,
+          full_name: full_name,
+        },
+      ]);
 
       if (dbError) {
-        alert('Account created, but failed to save profile name.');
+        alert("Account created, but failed to save profile name.");
         console.error(dbError);
       } else {
-        router.push('/small-personal-context');
+        router.push("/small-personal-context");
       }
     }
     setLoading(false);
@@ -57,10 +71,10 @@ export default function SignupForm() {
 
   return (
     <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
         {/* Back */}
@@ -76,7 +90,8 @@ export default function SignupForm() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] leading-snug">
-            Let’s create a safe space <br className="hidden sm:block" /> for your memories
+            Let’s create a safe space <br className="hidden sm:block" /> for
+            your memories
           </h1>
 
           <div className="flex flex-col text-[15px] text-[#78716c] whitespace-nowrap">
@@ -140,16 +155,16 @@ export default function SignupForm() {
             whileTap={!loading ? { scale: 0.99 } : {}}
             className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
               !loading
-                ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10'
-                : 'bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none'
+                ? "bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10"
+                : "bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none"
             }`}
           >
-            {loading ? 'Creating account...' : 'Continue'}
+            {loading ? "Creating account..." : "Continue"}
           </motion.button>
         </form>
 
         <p className="text-center text-sm font-serif text-[#78716c] mt-8">
-          By clicking create an account you agree to the{' '}
+          By clicking create an account you agree to the{" "}
           <span className="text-[#381c24] font-medium cursor-pointer hover:underline underline-offset-2">
             Terms and Conditions
           </span>

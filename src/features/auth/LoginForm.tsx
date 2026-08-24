@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/api/client';
+import { loginSchema } from './schemas'; // 1. Import your login schema
 import { motion } from 'framer-motion';
 
 export default function LoginForm() {
@@ -14,6 +15,19 @@ export default function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 2. Validate input data using Zod schema before calling Supabase
+    const validationResult = loginSchema.safeParse({
+      email,
+      password,
+    });
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues[0].message;
+      alert(errorMessage);
+      return;
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -34,13 +48,14 @@ export default function LoginForm() {
     }
     setLoading(false);
   };
+
   return (
     <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full  bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
         {/* Back */}
         <div className="mb-8">
