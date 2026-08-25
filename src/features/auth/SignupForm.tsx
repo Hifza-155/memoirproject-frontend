@@ -2,11 +2,12 @@
  * @file signupForm.tsx
  * @description Client-side React component that renders the user registration form,
  * manages form field validation via React Hook Form and Zod, and delegates network actions 
- * and submission states to the `useAuth` custom hook while preserving exact UI styles.
+ * and submission states to the `useAuth` custom hook while preserving exact UI styles,
+ * refactored to use shared theme color tokens.
  */
 
 "use client";
-import { signupSchema, SignupInput } from "./schemas";
+import { signupSchema } from "./schemas";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -35,18 +36,18 @@ export default function SignupForm() {
   });
 
   return (
-    <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
           <Link
             href="/invite-family-friends"
-            className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1"
+            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1"
           >
             ←
           </Link>
@@ -54,16 +55,16 @@ export default function SignupForm() {
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] leading-snug">
+          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary leading-snug">
             Let’s create a safe space <br className="hidden sm:block" /> for
             your memories
           </h1>
 
-          <div className="flex flex-col text-[15px] text-[#78716c] whitespace-nowrap">
+          <div className="flex flex-col text-[15px] text-memory-muted whitespace-nowrap">
             <span>Have an account?</span>
             <Link
               href="/login"
-              className="text-[#381c24] font-semibold hover:underline transition mt-0.5"
+              className="text-memory-primary font-semibold hover:underline transition mt-0.5"
             >
               Login
             </Link>
@@ -91,10 +92,10 @@ export default function SignupForm() {
               type="text"
               placeholder="Full Name*"
               {...register("full_name")}
-              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.full_name
                   ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                  : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.full_name && (
@@ -109,10 +110,10 @@ export default function SignupForm() {
               type="email"
               placeholder="Email*"
               {...register("email")}
-              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.email
                   ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                  : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
@@ -128,10 +129,10 @@ export default function SignupForm() {
                 type="password"
                 placeholder="Password*"
                 {...register("password")}
-                className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                   errors.password
                     ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                    : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                    : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.password && (
@@ -146,10 +147,10 @@ export default function SignupForm() {
                 type="password"
                 placeholder="Confirm Password*"
                 {...register("confirmPassword")}
-                className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                   errors.confirmPassword
                     ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                    : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                    : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.confirmPassword && (
@@ -165,17 +166,17 @@ export default function SignupForm() {
             whileTap={!loading ? { scale: 0.99 } : {}}
             className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
               !loading
-                ? "bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10"
-                : "bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none"
+                ? "bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10"
+                : "bg-memory-border text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
             {loading ? "Creating account..." : "Continue"}
           </motion.button>
         </form>
 
-        <p className="text-center text-sm font-serif text-[#78716c] mt-8">
+        <p className="text-center text-sm font-serif text-memory-muted mt-8">
           By clicking create an account you agree to the{" "}
-          <span className="text-[#381c24] font-medium cursor-pointer hover:underline underline-offset-2">
+          <span className="text-memory-primary font-medium cursor-pointer hover:underline underline-offset-2">
             Terms and Conditions
           </span>
         </p>

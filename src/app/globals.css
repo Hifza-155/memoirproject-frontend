@@ -4,6 +4,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Shared Theme Tokens for your custom color palette */
+  --memory-bg: #faf8f5;
+  --memory-primary: #381c24;
+  --memory-accent: #c9a063;
+  --memory-border: #f0e4d3;
+  --memory-muted: #78716c;
+  --memory-maroon: #4a222a;
+  --memory-card: #fdf8ed;
+  --memory-light: #fefaf1;
+  --memory-dark-end: #12070b;
 }
 
 @theme inline {
@@ -11,6 +22,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), 'Inter', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Registering the shared color tokens for Tailwind utility classes */
+  --color-memory-bg: var(--memory-bg);
+  --color-memory-primary: var(--memory-primary);
+  --color-memory-accent: var(--memory-accent);
+  --color-memory-border: var(--memory-border);
+  --color-memory-muted: var(--memory-muted);
+  --color-memory-maroon: var(--memory-maroon);
+  --color-memory-card: var(--memory-card);
+  --color-memory-light: var(--memory-light);
+  --color-memory-dark-end: var(--memory-dark-end);
+  --font-caveat: var(--font-caveat), cursive;
 }
 
 body {

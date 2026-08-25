@@ -2,7 +2,8 @@
  * @file page.tsx (LoginForm)
  * @description Client-side React component that renders the user login interface,
  * manages form field validation via React Hook Form and Zod, and delegates network requests 
- * and submission states to the `useAuth` custom hook while preserving exact frame and layout specs.
+ * and submission states to the `useAuth` custom hook while preserving exact frame and layout specs,
+ * refactored to use shared theme color tokens.
  */
 
 "use client";
@@ -35,18 +36,18 @@ export default function LoginForm() {
   };
 
   return (
-    <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
           <Link
             href="/"
-            className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1"
+            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1"
           >
             ←
           </Link>
@@ -54,7 +55,7 @@ export default function LoginForm() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] leading-snug">
+          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary leading-snug">
             Step back into <br /> your family&rsquo;s safe space
           </h1>
         </div>
@@ -74,7 +75,7 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-4" noValidate>
           <div>
-            <label htmlFor="login-email" className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+            <label htmlFor="login-email" className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
               Email *
             </label>
             <input
@@ -82,10 +83,10 @@ export default function LoginForm() {
               type="email"
               placeholder="Email*"
               {...register("email")}
-              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.email
                   ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                  : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
@@ -94,7 +95,7 @@ export default function LoginForm() {
           </div>
 
           <div>
-            <label htmlFor="login-password" className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+            <label htmlFor="login-password" className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
               Password *
             </label>
             <input
@@ -102,10 +103,10 @@ export default function LoginForm() {
               type="password"
               placeholder="Password*"
               {...register("password")}
-              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.password
                   ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                  : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.password && (
@@ -113,14 +114,14 @@ export default function LoginForm() {
             )}
           </div>
 
-          <div className="flex justify-between items-center text-sm text-[#78716c] font-serif py-1">
+          <div className="flex justify-between items-center text-sm text-memory-muted font-serif py-1">
             <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
               <input
                 id="remember-me"
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-[#f0e4d3] text-[#381c24] accent-[#381c24] cursor-pointer"
+                className="w-4 h-4 rounded border-memory-border text-memory-primary accent-memory-primary cursor-pointer"
               />
               <span>Remember me</span>
             </label>
@@ -128,7 +129,7 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="hover:text-[#381c24] transition underline underline-offset-2 bg-transparent border-none cursor-pointer text-sm text-[#78716c]"
+              className="hover:text-memory-primary transition underline underline-offset-2 bg-transparent border-none cursor-pointer text-sm text-memory-muted"
             >
               Forgot your password?
             </button>
@@ -141,8 +142,8 @@ export default function LoginForm() {
             whileTap={!loading ? { scale: 0.99 } : {}}
             className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
               !loading
-                ? "bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10"
-                : "bg-[#f0e4d3] text-[#78716c] cursor-not-allowed shadow-none"
+                ? "bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10"
+                : "bg-memory-border text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
             {loading ? "Logging in..." : "Login"}
@@ -150,11 +151,11 @@ export default function LoginForm() {
         </form>
 
         {/* Footer Link */}
-        <div className="border border-[#f0e4d3] rounded-2xl mt-8 py-4 text-center text-sm text-[#78716c] font-serif bg-[#faf8f5]">
+        <div className="border border-memory-border rounded-2xl mt-8 py-4 text-center text-sm text-memory-muted font-serif bg-memory-bg">
           Not a member yet?{" "}
           <Link
             href="/signup"
-            className="text-[#381c24] font-semibold ml-1 hover:underline underline-offset-2"
+            className="text-memory-primary font-semibold ml-1 hover:underline underline-offset-2"
           >
             Sign up
           </Link>

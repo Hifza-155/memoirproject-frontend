@@ -1,9 +1,28 @@
+/**
+ * @file StoryPrompt.tsx
+ * @description Component rendering the story prompt writing interface with animated typewriter hints,
+ * refactored to move static prompt data outside the component to satisfy React hook dependency rules.
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Feather } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+
+// Defined outside the component to provide a stable reference across renders
+const PROMPTS = [
+  'A moment that still makes me smile',
+  'Something they used to say',
+  'A place I remember',
+  'A little thing I miss',
+  'A song we used to share',
+  'The warmth of their laughter',
+  'A lesson they left behind',
+  'Quiet afternoons together',
+  'Their favorite cup or sweater',
+];
 
 // Component that types out each prompt character-by-character in Caveat handwriting font
 function HandwrittenPromptItem({ 
@@ -45,13 +64,13 @@ function HandwrittenPromptItem({
       animate={{ opacity: 1, y: 0 }}
       whileHover={isComplete ? { scale: 1.02, x: 2 } : {}}
       whileTap={isComplete ? { scale: 0.98 } : {}}
-      className={`text-xl font-['Caveat'] text-[#4a3525] transition-all duration-200 hover:text-[#c9a063] flex items-center gap-1 py-1 px-1.5 ${
+      className={`text-xl font-caveat text-memory-primary/90 transition-all duration-200 hover:text-memory-accent flex items-center gap-1 py-1 px-1.5 ${
         isComplete ? 'cursor-pointer' : 'cursor-default'
       }`}
     >
       <span>{displayedText}</span>
       {!isComplete && (
-        <span className="inline-block w-1.5 h-4 bg-[#c9a063] animate-pulse" />
+        <span className="inline-block w-1.5 h-4 bg-memory-accent animate-pulse" />
       )}
     </motion.button>
   );
@@ -62,21 +81,9 @@ export default function StoryPrompt() {
   const [story, setStory] = useState('');
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
 
-  const prompts = [
-    'A moment that still makes me smile',
-    'Something they used to say',
-    'A place I remember',
-    'A little thing I miss',
-    'A song we used to share',
-    'The warmth of their laughter',
-    'A lesson they left behind',
-    'Quiet afternoons together',
-    'Their favorite cup or sweater',
-  ];
-
   useEffect(() => {
-    if (currentPromptIndex < prompts.length - 1) {
-      const currentTextLength = prompts[currentPromptIndex].length;
+    if (currentPromptIndex < PROMPTS.length - 1) {
+      const currentTextLength = PROMPTS[currentPromptIndex].length;
       const typingDuration = currentTextLength * 40;
       const pauseDuration = 2000;
 
@@ -86,7 +93,7 @@ export default function StoryPrompt() {
 
       return () => clearTimeout(timer);
     }
-  }, [currentPromptIndex, prompts]);
+  }, [currentPromptIndex]);
 
   const handlePromptClick = (prompt: string) => {
     setStory((current) => {
@@ -98,22 +105,17 @@ export default function StoryPrompt() {
   };
 
   return (
-    <section className="min-h-screen bg-[#FAF8F5] text-[#381c24] flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
       
-      {/* Import Caveat font stylesheet */}
-      <link 
-        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" 
-        rel="stylesheet" 
-      />
-
       {/* Main content wrapper */}
       <div className="w-full max-w-4xl flex flex-col">
 
         {/* Back */}
         <div className="w-full mb-8 flex justify-start">
           <button
+            type="button"
             onClick={() => router.back()}
-            className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
+            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft size={18} strokeWidth={1.7} />
           </button>
@@ -126,11 +128,11 @@ export default function StoryPrompt() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="text-center md:text-left mb-10 w-full"
         >
-          <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] mb-3">
+          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary mb-3">
             Let&apos;s bring one memory to life.
           </h1>
 
-          <p className="text-[#78716c] text-[15px] md:text-base leading-relaxed font-serif italic">
+          <p className="text-memory-muted text-[15px] md:text-base leading-relaxed font-serif italic">
             Start with a moment that still stays with you.
           </p>
         </motion.div>
@@ -146,12 +148,11 @@ export default function StoryPrompt() {
               transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
               className="w-full mb-6"
             >
-              {/* Container styled with white background and horizontal ruled lines */}
               <div 
-                className="relative w-full rounded-[2px_12px_4px_16px] border border-[#d6c7ab] bg-white shadow-[0_12px_35px_rgba(56,28,36,0.08)] transition-transform duration-300 hover:rotate-0"
+                className="relative w-full rounded-[2px_12px_4px_16px] border border-memory-border bg-white shadow-[0_12px_35px_rgba(56,28,36,0.08)] transition-transform duration-300 hover:rotate-0"
                 style={{
                   transform: 'rotate(-0.8deg)',
-                  backgroundImage: 'repeating-linear-gradient(transparent, transparent 35px, #f2e9d8 35px, #f2e9d8 36px)',
+                  backgroundImage: 'repeating-linear-gradient(transparent, transparent 35px, var(--memory-border) 35px, var(--memory-border) 36px)',
                   backgroundPositionY: '12px'
                 }}
               >
@@ -160,7 +161,7 @@ export default function StoryPrompt() {
                   onChange={(e) => setStory(e.target.value)}
                   placeholder="Write your one-line memory here..."
                   rows={6}
-                  className="w-full resize-none bg-transparent px-7 py-7 text-[20px] leading-[36px] text-[#381c24] placeholder:text-[#b5a38a]/70 outline-none font-['Caveat'] relative z-10"
+                  className="w-full resize-none bg-transparent px-7 py-7 text-[20px] leading-9 text-memory-primary placeholder:text-memory-muted/70 outline-none font-caveat relative z-10"
                 />
               </div>
             </motion.div>
@@ -179,8 +180,8 @@ export default function StoryPrompt() {
                 whileTap={story.trim() ? { scale: 0.99 } : {}}
                 className={`w-full py-4 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md ${
                   story.trim()
-                    ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/15'
-                    : 'bg-[#f0e4d3]/70 text-[#78716c] cursor-not-allowed shadow-none'
+                    ? 'bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/15'
+                    : 'bg-memory-border/70 text-memory-muted cursor-not-allowed shadow-none'
                 }`}
               >
                 Continue
@@ -195,13 +196,13 @@ export default function StoryPrompt() {
             transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
             className="w-full flex flex-col items-center md:items-start text-center md:text-left"
           >
-            <div className="inline-flex items-center gap-1.5 mb-4 text-xs uppercase tracking-widest font-bold text-[#381c24]/80">
-              <Feather size={14} className="text-[#c9a063]" />
+            <div className="inline-flex items-center gap-1.5 mb-4 text-xs uppercase tracking-widest font-bold text-memory-primary/80">
+              <Feather size={14} className="text-memory-accent" />
               <span>Need a little inspiration?</span>
             </div>
 
-            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 min-h-[220px] items-center">
-              {prompts.map((prompt, index) => (
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 min-h-55 items-center">
+              {PROMPTS.map((prompt, index) => (
                 <HandwrittenPromptItem
                   key={prompt}
                   promptText={prompt}

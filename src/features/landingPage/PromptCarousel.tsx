@@ -1,4 +1,11 @@
+/**
+ * @file PromptCarousel.tsx
+ * @description Component rendering the horizontal scrollable prompt questions carousel,
+ * refactored to use shared theme color tokens instead of hardcoded hex values.
+ */
+
 "use client";
+
 import { motion } from "framer-motion";
 
 const prompts = [
@@ -15,15 +22,15 @@ const prompts = [
 
 export default function PromptCarousel() {
     return (
-        <section className="py-32 md:py-44 flex flex-col items-center justify-center bg-[#faf8f5] overflow-hidden">
+        <section className="py-32 md:py-44 flex flex-col items-center justify-center bg-memory-bg overflow-hidden">
 
             <motion.h3
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-[#381c24] text-3xl md:text-4xl mb-12 font-serif text-center px-4"
+                className="text-memory-primary text-3xl md:text-4xl mb-12 font-serif text-center px-4"
             >
-                Find just the right <span className="text-[#c9a063] italic">questions to ask</span>
+                Find just the right <span className="text-memory-accent italic">questions to ask</span>
             </motion.h3>
 
             {/* Horizontal Scroll Container */}
@@ -32,9 +39,9 @@ export default function PromptCarousel() {
                 {prompts.map((question, index) => (
                     <div 
                         key={index}
-                        className="w-70 h-50 md:w-85 md:h-60 bg-[#fdf8ed] p-8 rounded-2xl border border-[#f0e4d3] snap-center shrink-0 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-center items-start text-left"
+                        className="w-70 h-50 md:w-85 md:h-60 bg-memory-card p-8 rounded-2xl border border-memory-border snap-center shrink-0 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-center items-start text-left"
                     >
-                        <p className="text-[#381c24] text-base md:text-lg font-serif italic leading-relaxed">
+                        <p className="text-memory-primary text-base md:text-lg font-serif italic leading-relaxed">
                             {question}
                         </p>
                     </div>

@@ -1,3 +1,8 @@
+/**
+ * @file SmallPersonalContext.tsx
+ * @description Component rendering the interactive auto-flipping album and detail inscription form,
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -60,13 +65,10 @@ export default function SmallPersonalContext() {
   const rotations = [-1.5, 2, -1, 1.5, -2];
 
   return (
-    <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
       
-      {/* Import Caveat font stylesheet */}
-      <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet" />
-
       {/* Main content wrapper */}
-      <div className="w-full max-w-[700px] flex flex-col items-center">
+      <div className="w-full max-w-175 flex flex-col items-center">
 
         {/* Back Button */}
         <div className="mb-6 w-full flex justify-start">
@@ -83,7 +85,7 @@ export default function SmallPersonalContext() {
                 router.back();
               }
             }}
-            className="text-[#78716c] hover:text-[#381c24] text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
+            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft size={18} strokeWidth={1.7} />
             <span>Back</span>
@@ -99,10 +101,10 @@ export default function SmallPersonalContext() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="text-center mb-8"
             >
-              <h1 className="font-serif text-3xl md:text-4xl text-[#381c24] mb-2">
+              <h1 className="font-serif text-3xl md:text-4xl text-memory-primary mb-2">
                 Who is this memory for?
               </h1>
-              <p className="text-[#78716c] text-[15px] italic font-serif">
+              <p className="text-memory-muted text-[15px] italic font-serif">
                 {!isScattered ? "Turning album pages..." : "Choose the heart of your story below."}
               </p>
             </motion.div>
@@ -110,7 +112,7 @@ export default function SmallPersonalContext() {
             {!isScattered ? (
               /* Auto-Flipping Album Page View (Narrower & Tighter Portrait Proportions) */
               <div 
-                className="w-full max-w-[400px] relative min-h-[380px] flex flex-col items-center justify-center mb-6"
+                className="w-full max-w-100 relative min-h-95 flex flex-col items-center justify-center mb-6"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
               >
@@ -121,25 +123,25 @@ export default function SmallPersonalContext() {
                     animate={{ opacity: 1, rotateY: 0, scale: 1 }}
                     exit={{ opacity: 0, rotateY: -90, scale: 0.95 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="w-full bg-[#fffdf9] border border-[#e2d2ba] rounded-xl px-8 py-14 text-center shadow-[0_15px_40px_rgba(56,28,36,0.06)] relative cursor-pointer group flex flex-col justify-center min-h-[380px]"
+                    className="w-full bg-memory-card border border-memory-border rounded-xl px-8 py-14 text-center shadow-[0_15px_40px_rgba(56,28,36,0.06)] relative cursor-pointer group flex flex-col justify-center min-h-95"
                     onClick={() => handleCardSelect(currentItem.id)}
                   >
                     {/* Page number badge */}
-                    <span className="absolute top-5 right-6 text-[#b5a38a] font-['Caveat'] text-xl">
+                    <span className="absolute top-5 right-6 text-memory-muted font-caveat text-xl">
                       Page {currentIndex + 1} of {options.length}
                     </span>
 
-                    <h2 className="text-4xl sm:text-5xl font-['Caveat'] font-bold text-[#381c24] mb-4 tracking-wide group-hover:text-[#c9a063] transition-colors">
+                    <h2 className="text-4xl sm:text-5xl font-caveat font-bold text-memory-primary mb-4 tracking-wide group-hover:text-memory-accent transition-colors">
                       {currentItem.label}
                     </h2>
 
-                    <p className="font-['Caveat'] text-2xl sm:text-3xl text-[#78716c] leading-relaxed max-w-[300px] mx-auto">
+                    <p className="font-caveat text-2xl sm:text-3xl text-memory-muted leading-relaxed max-w-75 mx-auto">
                       &ldquo;{currentItem.description}&rdquo;
                     </p>
                   </motion.div>
                 </AnimatePresence>
                 
-                <p className="text-xs text-[#b5a38a] mt-4 tracking-wider uppercase font-serif">
+                <p className="text-xs text-memory-muted mt-4 tracking-wider uppercase font-serif">
                   Hover to pause • Click page to select
                 </p>
               </div>
@@ -149,7 +151,7 @@ export default function SmallPersonalContext() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full max-w-[560px] grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8"
+                className="w-full max-w-140 grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8"
               >
                 {options.map((option, index) => (
                   <motion.div
@@ -160,19 +162,19 @@ export default function SmallPersonalContext() {
                     whileHover={{ scale: 1.02, rotate: 0, zIndex: 10 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleCardSelect(option.id)}
-                    className="bg-[#fffdf9] border border-[#e2d2ba] rounded-xl p-7 text-left shadow-[0_12px_35px_rgba(56,28,36,0.05)] cursor-pointer transition-all hover:border-[#c9a063] relative group flex flex-col justify-between min-h-[200px]"
+                    className="bg-memory-card border border-memory-border rounded-xl p-7 text-left shadow-[0_12px_35px_rgba(56,28,36,0.05)] cursor-pointer transition-all hover:border-memory-accent relative group flex flex-col justify-between min-h-50"
                   >
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <h2 className="text-3xl font-['Caveat'] font-bold text-[#381c24] group-hover:text-[#c9a063] transition-colors">
+                        <h2 className="text-3xl font-caveat font-bold text-memory-primary group-hover:text-memory-accent transition-colors">
                           {option.label}
                         </h2>
-                        <span className="text-xs text-[#b5a38a] font-['Caveat'] text-lg">
+                        <span className="text-lg text-memory-muted font-caveat">
                           Select →
                         </span>
                       </div>
 
-                      <p className="font-['Caveat'] text-2xl text-[#78716c] leading-snug">
+                      <p className="font-caveat text-2xl text-memory-muted leading-snug">
                         &ldquo;{option.description}&rdquo;
                       </p>
                     </div>
@@ -187,13 +189,13 @@ export default function SmallPersonalContext() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="w-full max-w-[540px]"
+            className="w-full max-w-135"
           >
             <div className="text-center mb-8">
-              <h1 className="font-serif text-3xl text-[#381c24] mb-2">
-                Inscribed for <span className="font-['Caveat'] text-4xl text-[#c9a063]">{options.find(o => o.id === selectedOption)?.label}</span>
+              <h1 className="font-serif text-3xl text-memory-primary mb-2">
+                Inscribed for <span className="font-caveat text-4xl text-memory-accent">{options.find(o => o.id === selectedOption)?.label}</span>
               </h1>
-              <p className="text-[#78716c] text-[15px] italic font-serif">
+              <p className="text-memory-muted text-[15px] italic font-serif">
                 Jot down a few simple details to keep their memory close.
               </p>
             </div>
@@ -201,7 +203,7 @@ export default function SmallPersonalContext() {
             <div className="space-y-5 mb-8">
               {/* Name Input */}
               <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+                <label className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
                   Their Name
                 </label>
                 <input
@@ -209,14 +211,14 @@ export default function SmallPersonalContext() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Fatima Khan"
-                  className="w-full px-5 py-3.5 bg-white border border-[#e6d7bf] rounded-xl text-xl font-['Caveat'] text-[#381c24] placeholder:text-[#b5a38a]/50 outline-none focus:border-[#c9a063] shadow-2xs transition"
+                  className="w-full px-5 py-3.5 bg-white border border-memory-border rounded-xl text-xl font-caveat text-memory-primary placeholder:text-memory-muted/50 outline-none focus:border-memory-accent shadow-2xs transition"
                 />
               </div>
 
               {/* Dates Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+                  <label className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
                     Date of Birth
                   </label>
                   <input
@@ -224,16 +226,16 @@ export default function SmallPersonalContext() {
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     placeholder="e.g., 14 June 1952"
-                    className="w-full px-4 py-3.5 bg-white border border-[#e6d7bf] rounded-xl text-base font-serif text-[#381c24] placeholder:text-[#b5a38a]/50 outline-none focus:border-[#c9a063] shadow-2xs transition"
+                    className="w-full px-4 py-3.5 bg-white border border-memory-border rounded-xl text-base font-serif text-memory-primary placeholder:text-memory-muted/50 outline-none focus:border-memory-accent shadow-2xs transition"
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="text-xs uppercase tracking-widest font-bold text-[#381c24]/70">
+                    <label className="text-xs uppercase tracking-widest font-bold text-memory-primary/70">
                       Date of Passing
                     </label>
-                    <label className="flex items-center gap-1.5 text-xs text-[#78716c] cursor-pointer select-none">
+                    <label className="flex items-center gap-1.5 text-xs text-memory-muted cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={isAlive}
@@ -241,7 +243,7 @@ export default function SmallPersonalContext() {
                           setIsAlive(e.target.checked);
                           if (e.target.checked) setDod('');
                         }}
-                        className="rounded border-[#e6d7bf] text-[#381c24] focus:ring-0 cursor-pointer"
+                        className="rounded border-memory-border text-memory-primary focus:ring-0 cursor-pointer"
                       />
                       Still with us
                     </label>
@@ -252,8 +254,8 @@ export default function SmallPersonalContext() {
                     onChange={(e) => setDod(e.target.value)}
                     disabled={isAlive}
                     placeholder={isAlive ? "Living in our hearts" : "e.g., 12 October 2023"}
-                    className={`w-full px-4 py-3.5 border border-[#e6d7bf] rounded-xl text-base font-serif text-[#381c24] placeholder:text-[#b5a38a]/50 outline-none shadow-2xs transition ${
-                      isAlive ? 'bg-[#f4efe4] opacity-60 cursor-not-allowed' : 'bg-white focus:border-[#c9a063]'
+                    className={`w-full px-4 py-3.5 border border-memory-border rounded-xl text-base font-serif text-memory-primary placeholder:text-memory-muted/50 outline-none shadow-2xs transition ${
+                      isAlive ? 'bg-memory-card opacity-60 cursor-not-allowed' : 'bg-white focus:border-memory-accent'
                     }`}
                   />
                 </div>
@@ -269,8 +271,8 @@ export default function SmallPersonalContext() {
               whileTap={name.trim() ? { scale: 0.99 } : {}}
               className={`w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md ${
                 name.trim()
-                  ? 'bg-[#381c24] text-white hover:bg-[#4a222a] shadow-[#381c24]/10'
-                  : 'bg-[#f0e4d3]/70 text-[#78716c] cursor-not-allowed shadow-none'
+                  ? 'bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10'
+                  : 'bg-memory-border text-memory-muted cursor-not-allowed shadow-none'
               }`}
             >
               Continue to Memory
