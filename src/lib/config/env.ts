@@ -14,8 +14,8 @@ const envSchema = z.object({
     .default(10_000),
 
   /** Supabase Configuration */
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url("https://fqpizscquprqqubsaymq.supabase.co"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxcGl6c2NxdXBycXF1YnNheW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDY5NjUsImV4cCI6MjEwMTUyMjk2NX0.2VbuUfMTDsG-eqEisfCYDTeqKf1852uzkYKf6RwonmA"),
+  NEXT_PUBLIC_SUPABASE_URL: z.string("Must be a valid Supabase URL"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase Anon Key is required"),
 });
 
 const parsed = envSchema.safeParse({
