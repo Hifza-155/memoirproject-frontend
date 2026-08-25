@@ -1,88 +1,38 @@
+/**
+ * @file signupForm.tsx
+ * @description Client-side React component that renders the user registration form,
+ * manages form field validation via React Hook Form and Zod, and delegates network actions 
+ * and submission states to the `useAuth` custom hook while preserving exact UI styles.
+ */
+
 "use client";
 import { signupSchema, SignupInput } from "./schemas";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/api/client";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "./hooks";
+
+const extendedSignupSchema = signupSchema.extend({
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match!",
+  path: ["confirmPassword"],
+});
+
+type ExtendedSignupInput = z.infer<typeof extendedSignupSchema>;
 
 export default function SignupForm() {
-  const [full_name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { loading, serverError, successMessage, handleSignup } = useAuth();
 
-  const router = useRouter();
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // 1. Validate input data using Zod schema first
-    const formData: SignupInput = {
-      full_name,
-      email,
-      password,
-    };
-
-    const validationResult = signupSchema.safeParse(formData);
-
-    if (!validationResult.success) {
-      alert(validationResult.error.issues[0].message);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // 2. Sign up via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) {
-        throw new Error(authError.message);
-      }
-
-      if (authData.user) {
-        // 3. Insert profile into user_account table
-        const { error: dbError } = await supabase.from("user_account").insert([
-          {
-            id: authData.user.id,
-            email: authData.user.email,
-            full_name: full_name,
-          },
-        ]);
-
-        if (dbError) {
-          throw new Error("Database profile save error: " + dbError.message);
-        }
-
-        // 4. Handle email confirmation state properly
-        if (!authData.session) {
-          alert(
-            "Account created! Please check your email to confirm your account before logging in.",
-          );
-          router.push("/login");
-          return;
-        }
-
-        router.push("/subscription");
-      }
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      alert("Failed: " + errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ExtendedSignupInput>({
+    resolver: zodResolver(extendedSignupSchema),
+  });
 
   return (
     <section className="min-h-screen bg-[#faf8f5] text-[#381c24] flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-[#381c24] selection:text-white">
@@ -90,7 +40,7 @@ export default function SignupForm() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm"
+        className="w-full bg-white border border-[#f0e4d3] rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
@@ -120,47 +70,92 @@ export default function SignupForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSignup} className="flex flex-col gap-4">
+        {/* Server Success / Error Banners (Replaces Alerts) */}
+        {serverError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-serif">
+            Failed: {serverError}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-serif">
+            {successMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(handleSignup)} className="flex flex-col gap-4" noValidate>
           <div>
+            <label htmlFor="signup-fullname" className="sr-only">Full Name</label>
             <input
+              id="signup-fullname"
               type="text"
               placeholder="Full Name*"
-              value={full_name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
+              {...register("full_name")}
+              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                errors.full_name
+                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+              }`}
             />
+            {errors.full_name && (
+              <p className="mt-1 text-xs text-red-600 font-medium">{errors.full_name.message}</p>
+            )}
           </div>
 
           <div>
+            <label htmlFor="signup-email" className="sr-only">Email</label>
             <input
+              id="signup-email"
               type="email"
               placeholder="Email*"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
+              {...register("email")}
+              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                errors.email
+                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+              }`}
             />
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-600 font-medium">{errors.email.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
-              type="password"
-              placeholder="Password*"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
-            />
+            <div>
+              <label htmlFor="signup-password" className="sr-only">Password</label>
+              <input
+                id="signup-password"
+                type="password"
+                placeholder="Password*"
+                {...register("password")}
+                className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                  errors.password
+                    ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                    : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                }`}
+              />
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600 font-medium">{errors.password.message}</p>
+              )}
+            </div>
 
-            <input
-              type="password"
-              placeholder="Confirm Password*"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
-            />
+            <div>
+              <label htmlFor="signup-confirmpassword" className="sr-only">Confirm Password</label>
+              <input
+                id="signup-confirmpassword"
+                type="password"
+                placeholder="Confirm Password*"
+                {...register("confirmPassword")}
+                className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                  errors.confirmPassword
+                    ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                    : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+                }`}
+              />
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-600 font-medium">{errors.confirmPassword.message}</p>
+              )}
+            </div>
           </div>
 
           <motion.button

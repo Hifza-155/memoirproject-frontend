@@ -1,72 +1,37 @@
+/**
+ * @file page.tsx (LoginForm)
+ * @description Client-side React component that renders the user login interface,
+ * manages form field validation via React Hook Form and Zod, and delegates network requests 
+ * and submission states to the `useAuth` custom hook while preserving exact frame and layout specs.
+ */
+
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/api/client";
-import { loginSchema , LoginInput} from "./schemas";
+import { loginSchema, LoginInput } from "./schemas";
 import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "./hooks";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false); // Made functional
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [rememberMe, setRememberMe] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const { loading, serverError, setServerError, handleLogin } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const credentials: LoginInput = {
-      email,
-      password,
-    };
-
-    const validationResult = loginSchema.safeParse(credentials);
-    if (!validationResult.success) {
-      alert(validationResult.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data.user) {
-        const { error: dbError } = await supabase
-          .from("user_account")
-          .update({ last_login_at: new Date().toISOString() })
-          .eq("id", data.user.id);
-
-        if (dbError) {
-          console.error(
-            "Failed to update last login timestamp:",
-            dbError.message,
-          );
-        }
-      }
-
-      router.push("/"); // Or wherever your dashboard route is
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An error occurred";
-      alert("Login Failed: " + errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
-    alert("Password reset functionality will be available soon.");
+    setServerError(null);
+    setInfoMessage("Password reset functionality will be available soon.");
   };
 
   return (
@@ -94,32 +59,64 @@ export default function LoginForm() {
           </h1>
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        {/* Server Error / Info Banners */}
+        {serverError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-serif">
+            Login Failed: {serverError}
+          </div>
+        )}
+
+        {infoMessage && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-serif">
+            {infoMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-4" noValidate>
           <div>
+            <label htmlFor="login-email" className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+              Email *
+            </label>
             <input
+              id="login-email"
               type="email"
               placeholder="Email*"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
+              {...register("email")}
+              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                errors.email
+                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+              }`}
             />
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-600 font-medium">{errors.email.message}</p>
+            )}
           </div>
 
           <div>
+            <label htmlFor="login-password" className="block text-xs uppercase tracking-widest font-bold text-[#381c24]/70 mb-1.5">
+              Password *
+            </label>
             <input
+              id="login-password"
               type="password"
               placeholder="Password*"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#f0e4d3] bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20 transition-all duration-300 font-serif shadow-2xs"
+              {...register("password")}
+              className={`w-full rounded-xl border bg-[#faf8f5] px-5 py-4 text-[16px] text-[#381c24] placeholder:text-[#78716c]/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                errors.password
+                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  : "border-[#f0e4d3] focus:border-[#c9a063] focus:ring-2 focus:ring-[#c9a063]/20"
+              }`}
             />
+            {errors.password && (
+              <p className="mt-1 text-xs text-red-600 font-medium">{errors.password.message}</p>
+            )}
           </div>
 
           <div className="flex justify-between items-center text-sm text-[#78716c] font-serif py-1">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
               <input
+                id="remember-me"
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
