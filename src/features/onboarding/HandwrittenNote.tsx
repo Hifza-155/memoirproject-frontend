@@ -47,7 +47,7 @@ export default function HandwrittenNote() {
       {/* Navigation Buttons */}
       <div className="flex items-center gap-4 mt-12 w-full max-w-105">
         <Link
-          href="/easy-first-interaction"
+          href="/small-personal-context"
           className="flex-1 text-center bg-white border border-[#f0e4d3] text-[#381c24] text-[16px] font-semibold py-4 rounded-xl hover:border-[#c9a063] transition shadow-xs"
         >
           Back

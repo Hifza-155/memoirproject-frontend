@@ -115,7 +115,7 @@ export default function InviteFamilyFriends() {
             {/* Primary */}
             <motion.button
               type="button"
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push('/')}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-[#381c24] text-white hover:bg-[#4a222a] shadow-md shadow-[#381c24]/10"
@@ -126,7 +126,7 @@ export default function InviteFamilyFriends() {
             {/* Secondary */}
             <button
               type="button"
-              onClick={() => router.push('/subscription')}
+              onClick={() => router.push('/signup')}
               className="py-2 text-sm font-medium text-[#78716c] hover:text-[#381c24] transition cursor-pointer font-serif"
             >
               Maybe later
