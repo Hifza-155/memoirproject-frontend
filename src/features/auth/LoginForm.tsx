@@ -36,12 +36,12 @@ export default function LoginForm() {
   };
 
   return (
-    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-memory-light">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
@@ -62,13 +62,13 @@ export default function LoginForm() {
 
         {/* Server Error / Info Banners */}
         {serverError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
             Login Failed: {serverError}
           </div>
         )}
 
         {infoMessage && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
             {infoMessage}
           </div>
         )}
@@ -85,12 +85,12 @@ export default function LoginForm() {
               {...register("email")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.email
-                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-600 font-medium">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -105,12 +105,12 @@ export default function LoginForm() {
               {...register("password")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.password
-                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-red-600 font-medium">{errors.password.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.password.message}</p>
             )}
           </div>
 
@@ -142,7 +142,7 @@ export default function LoginForm() {
             whileTap={!loading ? { scale: 0.99 } : {}}
             className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
               !loading
-                ? "bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10"
+                ? "bg-memory-primary text-memory-light hover:bg-memory-maroon shadow-memory-primary/10"
                 : "bg-memory-border text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
