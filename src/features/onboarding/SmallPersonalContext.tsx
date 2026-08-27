@@ -33,6 +33,9 @@ export default function SmallPersonalContext() {
   const [dod, setDod] = useState('');
   const [isAlive, setIsAlive] = useState(true);
 
+  // Validation error state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const currentItem = options[currentIndex];
 
   // Automatic page-turning timer for the initial full cycle
@@ -56,16 +59,33 @@ export default function SmallPersonalContext() {
   const handleCardSelect = (id: string) => {
     setSelectedOption(id);
     setStep('details');
+    setErrorMessage(null);
   };
 
   const handleFinalSubmit = () => {
-    if (!name.trim()) return;
+    setErrorMessage(null);
+
+    // Lightweight validation checks
+    if (!name.trim()) {
+      setErrorMessage('Please enter their name to continue.');
+      return;
+    }
+
+    if (!dob.trim()) {
+      setErrorMessage('Please select their date of birth.');
+      return;
+    }
+
+    if (!isAlive && !dod.trim()) {
+      setErrorMessage('Please select their date of passing, or check "Still with us".');
+      return;
+    }
 
     // Package the onboarding details into localStorage for memoir creation post-signup
     const memoirDraft = {
-      subject_name: name,
-      subject_born_on: dob || null,
-      subject_died_on: isAlive ? null : (dod || null),
+      subject_name: name.trim(),
+      subject_born_on: dob.trim(),
+      subject_died_on: isAlive ? null : dod.trim(),
       subject_is_living: isAlive,
       description: `A memoir dedicated to my ${selectedOption || 'loved one'}.`
     };
@@ -73,7 +93,7 @@ export default function SmallPersonalContext() {
     localStorage.setItem("pending_memoir", JSON.stringify(memoirDraft));
 
     // Proceed to your signup / authentication screen
-    router.push('/handwritten-note'); // Change this to your actual signup route path
+    router.push('/handwritten-note');
   };
 
   const rotations = [-1.5, 2, -1, 1.5, -2];
@@ -92,6 +112,7 @@ export default function SmallPersonalContext() {
               if (step === 'details') {
                 setStep('flipping');
                 setIsScattered(true);
+                setErrorMessage(null);
               } else if (isScattered) {
                 setIsScattered(false);
                 setCurrentIndex(0);
@@ -124,7 +145,7 @@ export default function SmallPersonalContext() {
             </motion.div>
 
             {!isScattered ? (
-              /* Auto-Flipping Album Page View (Narrower & Tighter Portrait Proportions) */
+              /* Auto-Flipping Album Page View */
               <div 
                 className="w-full max-w-100 relative min-h-95 flex flex-col items-center justify-center mb-6"
                 onMouseEnter={() => setIsPaused(true)}
@@ -160,7 +181,7 @@ export default function SmallPersonalContext() {
                 </p>
               </div>
             ) : (
-              /* Scattered Album Pages View Across Screen (Narrower & Taller Cards) */
+              /* Scattered Album Pages View Across Screen */
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -214,40 +235,52 @@ export default function SmallPersonalContext() {
               </p>
             </div>
 
+            {/* Error Notification Banner */}
+            {errorMessage && (
+              <div className="mb-6 p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl font-medium text-center">
+                {errorMessage}
+              </div>
+            )}
+
             <div className="space-y-5 mb-8">
               {/* Name Input */}
               <div>
                 <label className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
-                  Their Name
+                  Their Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
                   placeholder="e.g., Fatima Khan"
                   className="w-full px-5 py-3.5 bg-white border border-memory-border rounded-xl text-xl font-caveat text-memory-primary placeholder:text-memory-muted/50 outline-none focus:border-memory-accent shadow-2xs transition"
                 />
               </div>
 
-              {/* Dates Grid */}
+              {/* Dates Grid with Calendar Pickers */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
-                    Date of Birth
+                    Date of Birth <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="date"
                     value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    placeholder="e.g., 14 June 1952"
-                    className="w-full px-4 py-3.5 bg-white border border-memory-border rounded-xl text-base font-serif text-memory-primary placeholder:text-memory-muted/50 outline-none focus:border-memory-accent shadow-2xs transition"
+                    onChange={(e) => {
+                      setDob(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                    className="w-full px-4 py-3.5 bg-white border border-memory-border rounded-xl text-base font-serif text-memory-primary outline-none focus:border-memory-accent shadow-2xs transition cursor-pointer"
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-xs uppercase tracking-widest font-bold text-memory-primary/70">
-                      Date of Passing
+                      Date of Passing {!isAlive && <span className="text-red-500">*</span>}
                     </label>
                     <label className="flex items-center gap-1.5 text-xs text-memory-muted cursor-pointer select-none">
                       <input
@@ -256,6 +289,7 @@ export default function SmallPersonalContext() {
                         onChange={(e) => {
                           setIsAlive(e.target.checked);
                           if (e.target.checked) setDod('');
+                          if (errorMessage) setErrorMessage(null);
                         }}
                         className="rounded border-memory-border text-memory-primary focus:ring-0 cursor-pointer"
                       />
@@ -263,13 +297,15 @@ export default function SmallPersonalContext() {
                     </label>
                   </div>
                   <input
-                    type="text"
+                    type="date"
                     value={dod}
-                    onChange={(e) => setDod(e.target.value)}
+                    onChange={(e) => {
+                      setDod(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
                     disabled={isAlive}
-                    placeholder={isAlive ? "Living in our hearts" : "e.g., 12 October 2023"}
-                    className={`w-full px-4 py-3.5 border border-memory-border rounded-xl text-base font-serif text-memory-primary placeholder:text-memory-muted/50 outline-none shadow-2xs transition ${
-                      isAlive ? 'bg-memory-card opacity-60 cursor-not-allowed' : 'bg-white focus:border-memory-accent'
+                    className={`w-full px-4 py-3.5 border border-memory-border rounded-xl text-base font-serif text-memory-primary outline-none shadow-2xs transition ${
+                      isAlive ? 'bg-memory-card opacity-60 cursor-not-allowed' : 'bg-white focus:border-memory-accent cursor-pointer'
                     }`}
                   />
                 </div>
@@ -280,14 +316,9 @@ export default function SmallPersonalContext() {
             <motion.button
               type="button"
               onClick={handleFinalSubmit}
-              disabled={!name.trim()}
-              whileHover={name.trim() ? { scale: 1.01 } : {}}
-              whileTap={name.trim() ? { scale: 0.99 } : {}}
-              className={`w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md ${
-                name.trim()
-                  ? 'bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10'
-                  : 'bg-memory-border text-memory-muted cursor-not-allowed shadow-none'
-              }`}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10"
             >
               Continue to Memory
               <ArrowRight size={18} />
