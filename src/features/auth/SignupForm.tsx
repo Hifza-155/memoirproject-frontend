@@ -14,6 +14,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "./hooks";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const extendedSignupSchema = signupSchema.extend({
   confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -25,6 +27,7 @@ const extendedSignupSchema = signupSchema.extend({
 type ExtendedSignupInput = z.infer<typeof extendedSignupSchema>;
 
 export default function SignupForm() {
+  const router = useRouter();
   const { loading, serverError, successMessage, handleSignup } = useAuth();
 
   const {
@@ -35,13 +38,29 @@ export default function SignupForm() {
     resolver: zodResolver(extendedSignupSchema),
   });
 
+  useEffect(() => {
+    if (successMessage) {
+      router.push("/dashboard");
+    }
+  }, [successMessage, router]);
+
+  // Restored proper handler connecting input data to the useAuth hook and safeguarding redirection
+  const onSubmit = async (data: ExtendedSignupInput) => {
+    try {
+      await handleSignup(data);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Signup error:", err);
+    }
+  };
+
   return (
-    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-memory-light">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
       >
         {/* Back */}
         <div className="mb-8">
@@ -73,18 +92,18 @@ export default function SignupForm() {
 
         {/* Server Success / Error Banners (Replaces Alerts) */}
         {serverError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
             Failed: {serverError}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
             {successMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(handleSignup)} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <div>
             <label htmlFor="signup-fullname" className="sr-only">Full Name</label>
             <input
@@ -94,12 +113,12 @@ export default function SignupForm() {
               {...register("full_name")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.full_name
-                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.full_name && (
-              <p className="mt-1 text-xs text-red-600 font-medium">{errors.full_name.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.full_name.message}</p>
             )}
           </div>
 
@@ -112,12 +131,12 @@ export default function SignupForm() {
               {...register("email")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                 errors.email
-                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-600 font-medium">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -131,12 +150,12 @@ export default function SignupForm() {
                 {...register("password")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                   errors.password
-                    ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                    ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600 font-medium">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-memory-muted font-medium">{errors.password.message}</p>
               )}
             </div>
 
@@ -149,12 +168,12 @@ export default function SignupForm() {
                 {...register("confirmPassword")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
                   errors.confirmPassword
-                    ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                    ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600 font-medium">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-xs text-memory-muted font-medium">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
@@ -166,7 +185,7 @@ export default function SignupForm() {
             whileTap={!loading ? { scale: 0.99 } : {}}
             className={`w-full mt-2 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer shadow-md ${
               !loading
-                ? "bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/10"
+                ? "bg-memory-primary text-memory-light hover:bg-memory-maroon shadow-memory-primary/10"
                 : "bg-memory-border text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
