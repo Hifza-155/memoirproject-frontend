@@ -59,7 +59,21 @@ export default function SmallPersonalContext() {
   };
 
   const handleFinalSubmit = () => {
-    router.push('/handwritten-note');
+    if (!name.trim()) return;
+
+    // Package the onboarding details into localStorage for memoir creation post-signup
+    const memoirDraft = {
+      subject_name: name,
+      subject_born_on: dob || null,
+      subject_died_on: isAlive ? null : (dod || null),
+      subject_is_living: isAlive,
+      description: `A memoir dedicated to my ${selectedOption || 'loved one'}.`
+    };
+    
+    localStorage.setItem("pending_memoir", JSON.stringify(memoirDraft));
+
+    // Proceed to your signup / authentication screen
+    router.push('/handwritten-note'); // Change this to your actual signup route path
   };
 
   const rotations = [-1.5, 2, -1, 1.5, -2];
