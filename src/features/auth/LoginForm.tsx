@@ -1,7 +1,7 @@
 /**
  * @file page.tsx (LoginForm)
  * @description Client-side React component that renders the user login interface,
- * manages form field validation via React Hook Form and Zod, and delegates network requests 
+ * manages form field validation via React Hook Form and Zod, and delegates network requests
  * and submission states to the `useAuth` custom hook while preserving exact frame and layout specs,
  * refactored to use shared theme color tokens.
  */
@@ -41,7 +41,7 @@ export default function LoginForm() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-150"
       >
         {/* Back */}
         <div className="mb-8">
@@ -55,67 +55,94 @@ export default function LoginForm() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary leading-snug">
+          <h1 className="text-3xl md:text-4xl text-memory-primary leading-snug">
             Step back into <br /> your family&rsquo;s safe space
           </h1>
         </div>
 
         {/* Server Error / Info Banners */}
         {serverError && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             Login Failed: {serverError}
           </div>
         )}
 
         {infoMessage && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             {infoMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-4" noValidate>
+        <form
+          onSubmit={handleSubmit(handleLogin)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
           <div>
-            <label htmlFor="login-email" className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
-              Email *
+            <label
+              htmlFor="login-email"
+              className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
+            >
+              Email
+              <span aria-hidden="true" className="ml-1 text-memory-required">
+                *
+              </span>
             </label>
+
             <input
               id="login-email"
               type="email"
-              placeholder="Email*"
+              placeholder="e.g. hafsa@example.com"
               {...register("email")}
-              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.email
                   ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
+
             {errors.email && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="login-password" className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5">
-              Password *
+            <label
+              htmlFor="login-password"
+              className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
+            >
+              Password
+              <span aria-hidden="true" className="ml-1 text-memory-required">
+                *
+              </span>
             </label>
+
             <input
               id="login-password"
               type="password"
-              placeholder="Password*"
+              placeholder="Enter your password"
               {...register("password")}
-              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.password
                   ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
+
             {errors.password && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.password.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
-          <div className="flex justify-between items-center text-sm text-memory-muted font-serif py-1">
-            <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
+          <div className="flex justify-between items-center text-sm text-memory-muted py-1">
+            <label
+              htmlFor="remember-me"
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <input
                 id="remember-me"
                 type="checkbox"
@@ -151,7 +178,7 @@ export default function LoginForm() {
         </form>
 
         {/* Footer Link */}
-        <div className="border border-memory-border rounded-2xl mt-8 py-4 text-center text-sm text-memory-muted font-serif bg-memory-bg">
+        <div className="border border-memory-border rounded-2xl mt-8 py-4 text-center text-sm text-memory-muted bg-memory-bg">
           Not a member yet?{" "}
           <Link
             href="/signup"
