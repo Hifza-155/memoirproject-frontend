@@ -14,7 +14,7 @@ export default function HandwrittenNote() {
 
       {/* Note Card */}
       <div
-        className="relative w-full max-w-105 bg-white border border-memory-border shadow-lg shadow-memory-primary/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
+        className="relative w-full max-w-90 bg-white border border-memory-border shadow-lg shadow-memory-primary/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
         style={{
           borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px'
         }}
@@ -23,7 +23,7 @@ export default function HandwrittenNote() {
         <div
           className="absolute inset-0 opacity-[0.12] pointer-events-none"
           style={{
-            borderRadius: 'inherit', 
+            borderRadius: 'inherit',
             backgroundImage: 'repeating-linear-gradient(transparent, transparent 43px, var(--memory-primary) 43px, var(--memory-primary) 44px)',
             backgroundPositionY: '56px'
           }}
@@ -46,7 +46,7 @@ export default function HandwrittenNote() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center gap-4 mt-12 w-full max-w-105">
+      <div className="flex items-center gap-4 mt-12 w-full max-w-85">
         <Link
           href="/small-personal-context"
           className="flex-1 text-center bg-white border border-memory-border text-memory-primary text-[16px] font-semibold py-4 rounded-xl hover:border-memory-accent transition shadow-xs"
