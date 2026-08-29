@@ -45,7 +45,7 @@ export default function Subscription() {
         </h1>
 
         <div className="flex justify-between items-center mb-2">
-          <Link href="/dashboard" className="group inline-block">
+          <Link href="/" className="group inline-block">
             <h2 className="font-serif text-2xl text-[#381c24] group-hover:underline transition-all">
               Payment
             </h2>
