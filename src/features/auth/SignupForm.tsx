@@ -2,11 +2,12 @@
  * @file signupForm.tsx
  * @description Client-side React component that renders the user registration form,
  * manages form field validation via React Hook Form and Zod, and delegates network actions 
- * and submission states to the `useAuth` custom hook while preserving exact UI styles,
- * refactored to use shared theme color tokens.
+ * and submission states to the `useAuth` custom hook while maintaining the side-by-side 
+ * password fields and exact login styling specs.
  */
 
 "use client";
+
 import { signupSchema } from "./schemas";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -44,7 +45,6 @@ export default function SignupForm() {
     }
   }, [successMessage, router]);
 
-  // Restored proper handler connecting input data to the useAuth hook and safeguarding redirection
   const onSubmit = async (data: ExtendedSignupInput) => {
     try {
       await handleSignup(data);
@@ -60,7 +60,7 @@ export default function SignupForm() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-170"
+        className="w-full bg-memory-card border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm max-w-150"
       >
         {/* Back */}
         <div className="mb-8">
@@ -72,10 +72,10 @@ export default function SignupForm() {
           </Link>
         </div>
 
-        {/* Header */}
+        {/* Header with Top-Right Login Link */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary leading-snug">
-            Let’s create a safe space <br className="hidden sm:block" /> for
+          <h1 className="text-3xl md:text-4xl text-memory-primary leading-snug">
+            Let’s create a safe <br className="hidden sm:block" />space for
             your memories
           </h1>
 
@@ -90,90 +90,133 @@ export default function SignupForm() {
           </div>
         </div>
 
-        {/* Server Success / Error Banners (Replaces Alerts) */}
+        {/* Server Success / Error Banners */}
         {serverError && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
-            Failed: {serverError}
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+            Signup Failed: {serverError}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-serif">
+          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             {successMessage}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+          {/* Full Name */}
           <div>
-            <label htmlFor="signup-fullname" className="sr-only">Full Name</label>
+            <label
+              htmlFor="signup-fullname"
+              className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
+            >
+              Full Name
+              <span aria-hidden="true" className="ml-1 text-memory-required">
+                *
+              </span>
+            </label>
             <input
               id="signup-fullname"
               type="text"
-              placeholder="Full Name*"
+              placeholder="John Doe"
               {...register("full_name")}
-              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.full_name
                   ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.full_name && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.full_name.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">
+                {errors.full_name.message}
+              </p>
             )}
           </div>
 
+          {/* Email */}
           <div>
-            <label htmlFor="signup-email" className="sr-only">Email</label>
+            <label
+              htmlFor="signup-email"
+              className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
+            >
+              Email
+              <span aria-hidden="true" className="ml-1 text-memory-required">
+                *
+              </span>
+            </label>
             <input
               id="signup-email"
               type="email"
-              placeholder="Email*"
+              placeholder="john@example.com"
               {...register("email")}
-              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+              className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.email
                   ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-memory-muted font-medium">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
+          {/* Passwords in the same line */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="signup-password" className="sr-only">Password</label>
+              <label
+                htmlFor="signup-password"
+                className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
+              >
+                Password
+                <span aria-hidden="true" className="ml-1 text-memory-required">
+                  *
+                </span>
+              </label>
               <input
                 id="signup-password"
                 type="password"
-                placeholder="Password*"
+                placeholder="Enter your password"
                 {...register("password")}
-                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.password
                     ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-memory-muted font-medium">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-memory-muted font-medium">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="signup-confirmpassword" className="sr-only">Confirm Password</label>
+              <label
+                htmlFor="signup-confirmpassword"
+                className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5 ml-1"
+              >
+                Confirm Password
+                <span aria-hidden="true" className="ml-1 text-memory-required">
+                  *
+                </span>
+              </label>
               <input
                 id="signup-confirmpassword"
                 type="password"
-                placeholder="Confirm Password*"
+                placeholder="Confirm your password"
                 {...register("confirmPassword")}
-                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 font-serif shadow-2xs ${
+                className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.confirmPassword
                     ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-memory-muted font-medium">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-xs text-memory-muted font-medium">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
           </div>
@@ -193,7 +236,8 @@ export default function SignupForm() {
           </motion.button>
         </form>
 
-        <p className="text-center text-sm font-serif text-memory-muted mt-8">
+        {/* Terms and Conditions Footer */}
+        <p className="text-center text-sm text-memory-muted mt-8">
           By clicking create an account you agree to the{" "}
           <span className="text-memory-primary font-medium cursor-pointer hover:underline underline-offset-2">
             Terms and Conditions
