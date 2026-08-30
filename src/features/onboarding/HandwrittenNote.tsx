@@ -1,7 +1,7 @@
 /**
  * @file HandwrittenNote.tsx
- * @description Component rendering a handwritten style note card for user Hafsa,
- * using the globally loaded Caveat font and shared theme tokens.
+ * @description Component rendering a handwritten style note card for user Hafsa.
+ * Elevated to a premium, blank stationery look to distinguish it from the drafting phase.
  */
 
 'use client';
@@ -12,51 +12,37 @@ export default function HandwrittenNote() {
   return (
     <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
 
-      {/* Note Card */}
+      {/* Keepsake Note Card (Elevated from torn paper to premium stationery) */}
       <div
-        className="relative w-full max-w-90 bg-white border border-memory-border shadow-lg shadow-memory-primary/5 -rotate-1 transition-transform hover:rotate-0 duration-500 p-8 sm:p-10"
-        style={{
-          borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px'
-        }}
+        className="relative w-full max-w-90 bg-white border border-memory-border/50 shadow-2xl shadow-memory-primary/10 -rotate-1 transition-transform hover:rotate-0 duration-500 p-10 sm:p-12 rounded-3xl"
       >
-        {/* Lined Paper Lines */}
-        <div
-          className="absolute inset-0 opacity-[0.12] pointer-events-none"
-          style={{
-            borderRadius: 'inherit',
-            backgroundImage: 'repeating-linear-gradient(transparent, transparent 43px, var(--memory-primary) 43px, var(--memory-primary) 44px)',
-            backgroundPositionY: '56px'
-          }}
-        />
-
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col items-center text-center">
           {/* Using the global font-caveat utility class */}
-          <h2 className="font-caveat text-center text-[36px] font-bold text-memory-primary mb-4 -ml-2">
+          <h2 className="font-caveat text-[40px] font-bold text-memory-primary mb-4">
             Dear Hafsa!
           </h2>
 
-          <p className="font-caveat text-[28px] text-memory-primary leading-11">
+          <p className="font-caveat text-[28px] text-memory-primary leading-10">
             Every family has a story worth keeping, the quiet mornings,
             the faded photographs, and the voices you never want to lose.
             We built this space to hold those precious pieces safe for you
             and the ones you love.
           </p>
         </div>
-
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center gap-4 mt-12 w-full max-w-85">
+      <div className="flex items-center gap-4 mt-6 w-full max-w-85">
         <Link
           href="/small-personal-context"
-          className="flex-1 text-center bg-white border border-memory-border text-memory-primary text-[16px] font-semibold py-4 rounded-xl hover:border-memory-accent transition shadow-xs"
+          className="flex-1 text-center bg-white border border-memory-border text-memory-primary text-[16px] font-semibold py-4 rounded-2xl hover:border-memory-accent transition shadow-sm"
         >
           Back
         </Link>
 
         <Link
           href="/story-prompt"
-          className="flex-1 text-center bg-memory-primary text-white text-[16px] font-semibold py-4 rounded-xl hover:bg-memory-maroon transition shadow-md"
+          className="flex-1 text-center bg-memory-primary text-white text-[16px] font-semibold py-4 rounded-2xl hover:bg-memory-maroon transition shadow-md"
         >
           Continue
         </Link>
