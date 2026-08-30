@@ -238,7 +238,7 @@ export default function SignupForm() {
 
         {/* Terms and Conditions Footer */}
         <p className="text-center text-sm text-memory-muted mt-8">
-          By clicking create an account you agree to the{" "}
+          By clicking continue you agree to the{" "}
           <span className="text-memory-primary font-medium cursor-pointer hover:underline underline-offset-2">
             Terms and Conditions
           </span>
