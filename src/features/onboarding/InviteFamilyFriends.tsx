@@ -1,14 +1,14 @@
 /**
  * @file InviteFamilyFriends.tsx
- * @description Component rendering the family and friends invitation screen,
+ * @description Component rendering the family and friends invitation screen.
  */
 
 'use client';
 
 import {
   ArrowLeft,
-  Heart,
-  Users,
+  ImagePlus,
+  Quote,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -18,10 +18,10 @@ export default function InviteFamilyFriends() {
 
   return (
     <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="w-full max-w-170 bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm flex flex-col"
       >
 
@@ -51,66 +51,143 @@ export default function InviteFamilyFriends() {
             Invite the people who were part of the story.
           </p>
 
-          {/* Visual Network Graphic */}
-          <div className="relative mb-10 flex h-60 w-full max-w-md items-center justify-center rounded-2xl border border-memory-border bg-memory-card shadow-2xs overflow-hidden">
+          {/* Shared Memory Visual */}
+          <div className="relative mb-10 h-64 w-full max-w-md overflow-visible rounded-2xl border border-memory-border bg-memory-card">
 
-            {/* Horizontal Connection */}
-            <div className="absolute h-px w-36 bg-memory-border" />
-
-            {/* Vertical Connection */}
-            <div className="absolute h-28 w-px bg-memory-border" />
-
-            {/* Center Memory */}
-            <motion.div 
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="relative z-10 flex h-18 w-18 items-center justify-center rounded-full border border-memory-border bg-white shadow-xs"
+            {/* Left Memory Note */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+              whileHover={{
+                y: -8,
+                rotate: -2,
+                scale: 1.06,
+                zIndex: 30,
+              }}
+              className="group absolute left-5 top-7 z-10 w-36 -rotate-6 cursor-pointer rounded-lg border border-memory-border bg-white px-4 py-4 text-left shadow-sm transition-shadow duration-300 hover:shadow-lg"
             >
-              <Heart
-                size={28}
-                fill="var(--memory-card)"
-                className="text-memory-primary"
-                strokeWidth={1.5}
+              <p className="font-serif text-[12px] italic leading-relaxed text-memory-muted">
+                “I still remember the way you used to laugh...”
+              </p>
+
+              {/* Hover Popup */}
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                className="pointer-events-none absolute -bottom-12 left-1/2 z-40 w-40 -translate-x-1/2 rounded-lg border border-memory-border bg-white px-3 py-2 text-center shadow-md"
+              >
+                <p className="font-serif text-[10px] text-memory-primary">
+                  Little moments become precious memories.
+                </p>
+              </motion.div>
+            </motion.div>
+
+            {/* Right Photo Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.5 }}
+              whileHover={{
+                y: -10,
+                rotate: 2,
+                scale: 1.08,
+                zIndex: 30,
+              }}
+              className="group absolute right-5 top-6 z-10 h-32 w-28 rotate-6 cursor-pointer overflow-visible rounded-md border-4 border-white bg-white shadow-md transition-shadow duration-300 hover:shadow-lg"
+            >
+              <div className="h-full w-full overflow-hidden">
+                <img
+                  src="/BottomRightImage.jpg"
+                  alt="A family memory"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+  
+
+              {/* Hover Popup */}
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                className="pointer-events-none absolute -bottom-12 left-1/2 z-40 w-40 -translate-x-1/2 rounded-lg border border-memory-border bg-white px-3 py-2 text-center shadow-md"
+              >
+                <p className="font-serif text-[10px] text-memory-primary">
+                  The faces behind the memories.
+                </p>
+              </motion.div>
+            </motion.div>
+
+            {/* Central Memory Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.55 }}
+              whileHover={{
+                y: -4,
+                scale: 1.02,
+              }}
+              className="absolute left-1/2 top-1/2 z-20 w-64 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-memory-border bg-white px-6 py-4 text-center shadow-sm"
+            >
+              <Quote
+                size={17}
+                strokeWidth={1.2}
+                className="mx-auto mb-2 text-memory-primary"
               />
+
+              <p className="font-serif text-[14px] leading-relaxed text-memory-primary">
+                The moments we hold closest
+              <br />
+                are often the ones
+              <br />
+                we remember together.
+              </p>
             </motion.div>
 
-            {/* Person 1 */}
-            <motion.div 
-              animate={{ y: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="absolute left-[16%]"
-              style={{ top: '25%' }}
+            {/* Bottom Memory Note */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.5 }}
+              whileHover={{
+                y: -8,
+                rotate: 1,
+                scale: 1.06,
+                zIndex: 30,
+              }}
+              className="group absolute bottom-8 right-8 z-10 w-40 rotate-3 cursor-pointer rounded-lg border border-memory-border bg-white px-4 py-4 text-left shadow-sm transition-shadow duration-300 hover:shadow-lg"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
-              </div>
+              <p className="font-serif text-[12px] italic leading-relaxed text-memory-muted">
+                “Some stories feel warmer when someone else remembers them too.”
+              </p>
+
+              {/* Hover Popup */}
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                className="pointer-events-none absolute -top-12 left-1/2 z-40 w-44 -translate-x-1/2 rounded-lg border border-memory-border bg-white px-3 py-2 text-center shadow-md"
+              >
+                <p className="font-serif text-[10px] text-memory-primary">
+                  Invite someone who was there.
+                </p>
+              </motion.div>
             </motion.div>
 
-            {/* Person 2 */}
-            <motion.div 
-              animate={{ y: [2, -2, 2] }}
-              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-              className="absolute right-[16%]"
-              style={{ top: '25%' }}
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
-              </div>
-            </motion.div>
+            {/* Small Decorative Paper */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.55, duration: 0.5 }}
+              whileHover={{
+                y: -5,
+                rotate: -3,
+                scale: 1.08,
+              }}
+              className="absolute bottom-8 left-10 h-12 w-12 -rotate-6 rounded-md border border-memory-border bg-white shadow-sm"
+            />
 
-            {/* Person 3 */}
-            <motion.div 
-              animate={{ y: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
-              className="absolute bottom-[14%] left-1/2 -translate-x-1/2"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
-              </div>
-            </motion.div>
-
-            {/* Visual Caption */}
-            <p className="absolute bottom-3 text-xs font-serif italic text-memory-muted">
+            {/* Small Caption */}
+            <p className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif text-[10px] italic text-memory-muted">
               The people who make the story yours
             </p>
 
@@ -118,6 +195,7 @@ export default function InviteFamilyFriends() {
 
           {/* Buttons */}
           <div className="w-full max-w-md flex flex-col gap-3">
+
             {/* Primary */}
             <motion.button
               type="button"
@@ -137,10 +215,10 @@ export default function InviteFamilyFriends() {
             >
               Maybe later
             </button>
+
           </div>
 
         </div>
-
       </motion.div>
     </section>
   );
