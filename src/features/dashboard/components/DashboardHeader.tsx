@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 interface DashboardHeaderProps {
@@ -14,27 +16,30 @@ export function DashboardHeader({
   onLogout,
 }: DashboardHeaderProps) {
   return (
-    <header className="bg-memory-card border-b border-memory-border px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-      {/* MEMOIR SUBJECT DETAILS (NAME, DOB, DOD) --- */}
-      <div className="text-right">
-        <h2 className="text-base sm:text-lg font-serif font-bold text-memory-primary tracking-tight">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-memory-border bg-memory-card px-6 py-5 sm:px-8">
+      {/* Memoir Subject */}
+      <div>
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-memory-accent">
+          Remembering
+        </p>
+
+        <h2 className="font-serif text-xl font-bold tracking-tight text-memory-maroon sm:text-2xl">
           {subjectName}
         </h2>
-        <p className="text-xs text-memory-muted font-serif italic">
+
+        <p className="mt-1 font-serif text-xs italic text-memory-muted">
           {dob} — {dod}
         </p>
       </div>
 
-      {/* ---LOGOUT ACTION --- */}
-      <div>
-        <button
-          type="button"
-          onClick={onLogout}
-          className="bg-memory-maroon hover:bg-memory-primary text-memory-light px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shadow-2xs"
-        >
-          Logout
-        </button>
-      </div>
+      {/* Logout */}
+      <button
+        type="button"
+        onClick={onLogout}
+        className="rounded-lg border border-memory-accent bg-memory-light px-4 py-2 text-xs font-semibold uppercase tracking-wider text-memory-maroon transition-all duration-200 hover:bg-memory-maroon hover:text-memory-light"
+      >
+        Logout
+      </button>
     </header>
   );
 }
