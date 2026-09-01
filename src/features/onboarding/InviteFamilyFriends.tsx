@@ -161,7 +161,7 @@ export default function InviteFamilyFriends() {
               "
             >
               <img
-                src="/BottomRightImage.jpg"
+                src="/invite family.jpg"
                 alt="A cherished family memory"
                 className="h-full w-full object-cover"
               />
