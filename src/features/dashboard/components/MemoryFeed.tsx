@@ -1,6 +1,12 @@
+/**
+ * @file MemoryFeed.tsx
+ * @description Client-side component that renders interactive capture cards
+ * with fallback resolution for active memoir IDs from local storage.
+ */
+
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { MemoryCard, MemoryItem } from "./MemoryCard";
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
 
@@ -14,8 +20,18 @@ interface MemoryFeedProps {
 export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: MemoryFeedProps) {
   const [activeCaptureMode, setActiveCaptureMode] = useState<"text" | "audio" | "combined" | null>(null);
 
-  // Safe fallback string to satisfy the hook's required string parameter and prevent ts(2345)
-  const safeMemoirId = memoirId ?? "00000000-0000-0000-0000-000000000000";
+  // Fallback to localStorage if the memoirId prop wasn't passed down
+  const effectiveMemoirId = memoirId || (() => {
+    if (typeof window === "undefined") return "";
+    const stored = localStorage.getItem("active_memoir");
+    if (!stored) return "";
+    try {
+      const parsed = JSON.parse(stored);
+      return parsed.id || parsed;
+    } catch {
+      return stored;
+    }
+  })();
 
   // Hooking directly into your exact production backend capture logic
   const {
@@ -34,12 +50,17 @@ export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: Me
     stopRecording,
     clearRecording,
     handleSubmit
-  } = useCaptureMemory(safeMemoirId, () => {
+  } = useCaptureMemory(effectiveMemoirId, () => {
     setActiveCaptureMode(null);
     if (onSuccess) onSuccess();
   });
 
   const handleCardClick = (mode: "text" | "audio" | "combined") => {
+    // Guard capture actions if neither prop nor localStorage has a valid ID
+    if (!effectiveMemoirId) {
+      alert("Please select an active memoir before attempting to capture new entries.");
+      return;
+    }
     setActiveCaptureMode(activeCaptureMode === mode ? null : mode);
   };
 

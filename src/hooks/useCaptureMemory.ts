@@ -121,22 +121,25 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     }
   };
 
-  /**
-   * Resolves the active memoir container ID from props or local storage fallback.
-   */
   const resolveMemoirId = (): string => {
-    if (memoirId) return memoirId;
+    if (memoirId) return memoirId; 
+
     if (typeof window !== "undefined") {
       try {
         const savedMemoir = localStorage.getItem("active_memoir");
         if (savedMemoir) {
           const parsed = JSON.parse(savedMemoir);
-          return parsed.id || parsed.data?.id || "";
+          
+          // Strictly target the exact UUID string required by the backend
+          if (parsed && parsed.data && typeof parsed.data.id === "string") {
+            return parsed.data.id;
+          }
         }
       } catch (err) {
         console.error("Failed to parse active memoir from localStorage", err);
       }
     }
+    
     return "";
   };
 
@@ -250,7 +253,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
         occurred_start: hasDate ? draft.occurred_start : null,
         occurred_end: hasDate ? draft.occurred_start : null,
         occurred_precision: hasDate ? "day" : null,
-        date_source: hasDate ? "contributor" : null,
+        date_source: hasDate ? "owner" : null,
         media_asset_ids: mediaAssetIds,
       });
 
