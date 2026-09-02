@@ -34,14 +34,14 @@ export default function HandwrittenNote() {
       {/* Navigation Buttons */}
       <div className="flex items-center gap-4 mt-6 w-full max-w-85">
         <Link
-          href="/small-personal-context"
+          href="/memory-subject-selection"
           className="flex-1 text-center bg-white border border-memory-border text-memory-primary text-[16px] font-semibold py-4 rounded-2xl hover:border-memory-accent transition shadow-sm"
         >
           Back
         </Link>
 
         <Link
-          href="/story-prompt"
+          href="/unfold-memory"
           className="flex-1 text-center bg-memory-primary text-white text-[16px] font-semibold py-4 rounded-2xl hover:bg-memory-maroon transition shadow-md"
         >
           Continue
