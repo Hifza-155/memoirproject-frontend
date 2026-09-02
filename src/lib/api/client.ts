@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
 
 function getAuthHeaders(): Record<string, string> {
   const token =
@@ -130,7 +130,6 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/api/media/metadata`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(payload),
