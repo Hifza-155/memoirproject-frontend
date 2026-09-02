@@ -2,8 +2,8 @@
  * @file page.tsx (LoginForm)
  * @description Client-side React component that renders the user login interface,
  * manages form field validation via React Hook Form and Zod, and delegates network requests
- * and submission states to the `useAuth` custom hook while preserving exact frame and layout specs,
- * refactored to use shared theme color tokens.
+ * and submission states to the useAuth custom hook while preserving exact frame and layout specs,
+ * refactored to use shared theme color tokens and strict accessibility attributes.
  */
 
 "use client";
@@ -60,15 +60,15 @@ export default function LoginForm() {
           </h1>
         </div>
 
-        {/* Server Error / Info Banners */}
+        {/* Server Error / Info Banners with Accessibility Role */}
         {serverError && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div role="alert" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             Login Failed: {serverError}
           </div>
         )}
 
         {infoMessage && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div role="status" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             {infoMessage}
           </div>
         )}
@@ -93,16 +93,18 @@ export default function LoginForm() {
               id="login-email"
               type="email"
               placeholder="e.g. hafsa@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "login-email-error" : undefined}
               {...register("email")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.email
-                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                  ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
 
             {errors.email && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">
+              <p id="login-email-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                 {errors.email.message}
               </p>
             )}
@@ -123,16 +125,18 @@ export default function LoginForm() {
               id="login-password"
               type="password"
               placeholder="Enter your password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "login-password-error" : undefined}
               {...register("password")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.password
-                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                  ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
 
             {errors.password && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">
+              <p id="login-password-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                 {errors.password.message}
               </p>
             )}

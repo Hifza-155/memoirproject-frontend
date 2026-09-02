@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 function getAuthHeaders(): Record<string, string> {
   const token =
@@ -7,6 +7,44 @@ function getAuthHeaders(): Record<string, string> {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+async function apiFetch(endpoint: string, options: RequestInit = {}) {
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+  });
+  return res;
+}
+
+interface ApiErrorDetail {
+  loc?: (string | number)[];
+  msg?: string;
+}
+
+interface ApiErrorResponse {
+  detail?: string | ApiErrorDetail[];
+  message?: string;
+}
+
+function parseErrorDetail(errData: ApiErrorResponse | null | undefined, defaultMessage: string): string {
+  if (!errData) return defaultMessage;
+  if (typeof errData.detail === "string") return errData.detail;
+
+  if (Array.isArray(errData.detail)) {
+    return errData.detail
+      .map((err: ApiErrorDetail) => {
+        const field = err.loc && err.loc.length > 0 ? err.loc[err.loc.length - 1] : "Field";
+        return `${field}: ${err.msg || "Invalid value"}`;
+      })
+      .join(" | ");
+  }
+
+  if (errData.message) return errData.message;
+  return defaultMessage;
 }
 
 export interface SignupPayload {
@@ -23,6 +61,7 @@ export interface MemoirCreatePayload {
   description?: string;
   visibility?: string;
   comment_policy?: string;
+  relationship?: string;
 }
 
 export interface MemoryCreatePayload {
@@ -59,111 +98,95 @@ export interface MediaMetadataPayload {
 
 export const api = {
   async signup(payload: SignupPayload) {
-    const res = await fetch(`${API_BASE_URL}/api/auth/signup/`, {
+    const res = await apiFetch("/api/auth/signup/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Signup failed");
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Signup failed"));
+    }
+    return res.json();
+  },
+
+  async login(payload: { email: string; password: string }) {
+    const res = await apiFetch("/api/auth/login/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Login failed"));
     }
     return res.json();
   },
 
   async createMemoir(payload: MemoirCreatePayload) {
-    const res = await fetch(`${API_BASE_URL}/api/memoirs/`, {
+    const res = await apiFetch("/api/memoirs/", {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Failed to create memoir"); // ✅ Now exposes the exact backend error!
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to create memoir"));
     }
     return res.json();
   },
 
   async getMemoirFeed(memoirId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/memoirs/${memoirId}/feed/`, {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/feed/`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch memoir feed");
     return res.json();
   },
 
   async createMemory(payload: MemoryCreatePayload) {
-    const res = await fetch(`${API_BASE_URL}/api/memories`, {
+    const res = await apiFetch("/api/memories/", {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(
-        JSON.stringify(errData.detail) ||
-          errData.message ||
-          "Failed to create memory",
-      );
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to create memory"));
     }
     return res.json();
   },
 
   async getPresignedUrl(payload: PresignedUrlPayload) {
-    const res = await fetch(`${API_BASE_URL}/api/media/presigned-url/`, {
+    const res = await apiFetch("/api/media/presigned-url/", {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Failed to get presigned URL");
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to get presigned URL"));
     }
 
     const responseJson = await res.json();
-
     return responseJson.data || responseJson;
   },
 
   async registerMediaMetadata(payload: MediaMetadataPayload) {
-    const res = await fetch(`${API_BASE_URL}/api/media/metadata`, {
+    const res = await apiFetch("/api/media/metadata/", {
       method: "POST",
-      headers: {
-        ...getAuthHeaders(),
-      },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Failed to register media metadata");
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to register media metadata"));
     }
 
     const responseJson = await res.json();
-
     return responseJson.data || responseJson;
   },
 
   async deleteMemory(memoryId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/memories/${memoryId}/`, {
+    const res = await apiFetch(`/api/memories/${memoryId}/`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error("Failed to delete memory");
-    return res.json();
-  },
-
-  async login(payload: { email: string; password: string }) {
-    const res = await fetch(`${API_BASE_URL}/api/auth/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Login failed");
-    }
     return res.json();
   },
 };
