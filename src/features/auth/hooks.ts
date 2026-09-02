@@ -84,6 +84,7 @@ export function useAuth() {
       });
 
       const accessToken = res.access_token || res.token || res.data?.access_token;
+      // Here we are storing it in localStorage which is wrong 
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
         await processPendingMemoir();
@@ -97,7 +98,6 @@ export function useAuth() {
         return;
       }
 
-      router.push("/");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred during signup";
