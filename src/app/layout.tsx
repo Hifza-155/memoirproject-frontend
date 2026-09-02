@@ -6,7 +6,7 @@ import "./globals.css";
 // Configure fonts
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-inter",
 });
 
 const playfair = Playfair_Display({
