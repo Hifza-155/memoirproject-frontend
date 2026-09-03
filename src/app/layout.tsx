@@ -1,37 +1,44 @@
+// A wrapper file that defines layout elements shared accross webpages
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-
-import { Providers } from "@/app/providers";
+import { Playfair_Display, Inter, Caveat } from "next/font/google";
 import "./globals.css";
+import AnnouncementBar from "../components/ui/AnnouncementBar";
+import Navbar from "../components/ui/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Configure fonts
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  variable: "--font-serif",
+});
+
+// Configure Caveat globally to fix the Next.js warning
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-caveat",
 });
 
 export const metadata: Metadata = {
-  title: "Frontend Template",
-  description: "Reference structure for consuming the project backend API.",
+  title: "Memoir Archive",
+  description: "Preserve your life's legacy.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      {/* Stays a server component. Only `Providers` crosses into the browser. */}
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        <Providers>{children}</Providers>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${caveat.variable}`}>
+      <body className="font-sans antialiased bg-[#FAF8F5] text-[#1D1D1D]">
+        <AnnouncementBar />
+        <Navbar />
+        <main>{children}</main>
       </body>
     </html>
   );
