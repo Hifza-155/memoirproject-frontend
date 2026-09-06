@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import MemoirLayout from "../../features/FinalMemoir/MemoirLayout";
 import MemoryCard from "../../features/FinalMemoir/MemoryCard";
 
@@ -14,45 +14,61 @@ interface MemoryItem {
   memoryType: "written" | "audio" | "media";
   imageUrl?: string;
   imageCaption?: string;
-  audioDuration?: string; // 👈 Made optional here
+  audioDuration?: string; 
 }
-
-const saraMemory: MemoryItem = {
-  id: "mem-sara-1",
-  author: "Sara",
-  relation: "Daughter",
-  text: "Dad always woke up before the sun. He claimed it was to get a head start on the day, but I think he just liked the quiet before the house woke up.",
-  imageUrl: "/api/placeholder/800/600",
-  imageCaption: "In the garden, summer of '94",
-  reactionsCount: 5,
-  memoryType: "written",
-};
-
-const audioMemory: MemoryItem = {
-  id: "mem-audio-1",
-  author: "Michael",
-  relation: "Son",
-  text: "I still remember those early mornings. Dad would wake up before everyone else and sit quietly with his coffee. Those were simple moments, but they are some of the memories I miss the most.",
-  reactionsCount: 5,
-  memoryType: "audio",
-  audioDuration: "0:42", // 👈 Now fully valid on MemoryItem
-};
-
-const pages = [
-  {
-    title: "Written Memory",
-    memory: saraMemory,
-    isAudio: false,
-  },
-  {
-    title: "Voice Recording & Transcription",
-    memory: audioMemory,
-    isAudio: true,
-  },
-];
 
 export default function FinalMemoirPage() {
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Lazy initialization: reads localStorage once on mount without triggering effect warnings
+  const [memoirId] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const savedMemoir = localStorage.getItem("active_memoir");
+      if (savedMemoir) {
+        const parsed = JSON.parse(savedMemoir);
+        return parsed.data?.id || parsed.id || "";
+      }
+    } catch (err) {
+      console.error("Failed to parse memoir session identifier from localStorage", err);
+    }
+    return "";
+  });
+
+  // Valid UUID format for backend and database foreign key integrity
+  const saraMemory: MemoryItem = {
+    id: "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    author: "Sara",
+    relation: "Daughter",
+    text: "Dad always woke up before the sun. He claimed it was to get a head start on the day, but I think he just liked the quiet before the house woke up.",
+    imageUrl: "/api/placeholder/800/600",
+    imageCaption: "In the garden, summer of '94",
+    reactionsCount: 5,
+    memoryType: "written",
+  };
+
+  const audioMemory: MemoryItem = {
+    id: "b2c3d4e5-f6a7-8901-bcde-f0123456789a",
+    author: "Michael",
+    relation: "Son",
+    text: "I still remember those early mornings. Dad would wake up before everyone else and sit quietly with his coffee. Those were simple moments, but they are some of the memories I miss the most.",
+    reactionsCount: 5,
+    memoryType: "audio",
+    audioDuration: "0:42",
+  };
+
+  const pages = [
+    {
+      title: "Written Memory",
+      memory: saraMemory,
+      isAudio: false,
+    },
+    {
+      title: "Voice Recording & Transcription",
+      memory: audioMemory,
+      isAudio: true,
+    },
+  ];
 
   return (
     <MemoirLayout>
@@ -142,14 +158,14 @@ export default function FinalMemoirPage() {
                         <span className="flex items-center gap-1.5 font-medium">
                           ✓ I REMEMBER THIS TOO <span className="bg-memory-maroon/10 text-memory-maroon px-2 py-0.5 rounded-full text-[10px]">{page.memory.reactionsCount}</span>
                         </span>
-                        <span className="hover:text-memory-primary cursor-pointer transition">
-                          View family notes (3) ↓
-                        </span>
                       </div>
                     </div>
                   ) : (
-                    /* Standard Default Memory Card for Sara */
-                    <MemoryCard {...page.memory} />
+                    /* Standard Default Memory Card for Sara with dynamic memoirId passed */
+                    <MemoryCard 
+                      {...page.memory} 
+                      memoirId={memoirId}
+                    />
                   )}
                 </div>
               </div>
