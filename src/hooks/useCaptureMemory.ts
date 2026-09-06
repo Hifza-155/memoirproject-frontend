@@ -1,7 +1,7 @@
 /**
  * @file useCaptureMemory.ts
- * @description Production-grade custom React hook managing draft states, 
- * secure audio/photo media upload pipelines, memory submission, 
+ * @description Production-grade custom React hook managing draft states,
+ * secure audio/photo media upload pipelines, memory submission,
  * and strict resource cleanup to prevent memory leaks.
  */
 
@@ -24,7 +24,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   const [recording, setRecording] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -72,7 +72,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   const startRecording = async () => {
     // Ensure prior stream is completely terminated before starting a new one
     stopMediaStream();
-    
+
     // Revoke any existing audio preview URL to prevent memory accumulation
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
@@ -82,8 +82,8 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     audioChunksRef.current = [];
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream; 
-      
+      mediaStreamRef.current = stream;
+
       mediaRecorderRef.current = new MediaRecorder(stream);
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -93,7 +93,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
-        
+
         // Safely generate and assign new object URL
         setAudioUrl((prevUrl) => {
           if (prevUrl) URL.revokeObjectURL(prevUrl);
@@ -120,26 +120,38 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       setRecording(false);
     }
   };
-
+  // This giving us memoir is
   const resolveMemoirId = (): string => {
-    if (memoirId) return memoirId; 
+    // 1. If memoirId was passed as a prop, handle it whether it's a string or an object
+    if (memoirId) {
+      if (typeof memoirId === "string") {
+        return memoirId;
+      }
+      if (typeof memoirId === "object" && memoirId !== null) {
+        // Extract the ID if an object or response wrapper was passed
+        const obj = memoirId as any;
+        return obj.id || obj.data?.id || obj.data?.data?.id || "";
+      }
+    }
 
+    // 2. Fallback to localStorage if prop is empty
     if (typeof window !== "undefined") {
       try {
         const savedMemoir = localStorage.getItem("active_memoir");
         if (savedMemoir) {
           const parsed = JSON.parse(savedMemoir);
-          
-          // Strictly target the exact UUID string required by the backend
           if (parsed && parsed.data && typeof parsed.data.id === "string") {
             return parsed.data.id;
+          }
+          if (parsed && typeof parsed.id === "string") {
+            return parsed.id;
           }
         }
       } catch (err) {
         console.error("Failed to parse active memoir from localStorage", err);
       }
     }
-    
+
     return "";
   };
 
@@ -154,7 +166,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     mimeType: string,
     kind: "photo" | "audio",
     caption?: string,
-    durationMs?: number | null
+    durationMs?: number | null,
   ): Promise<string> => {
     const presignRes = await api.getPresignedUrl({
       memoir_id: currentMemoirId,
@@ -163,7 +175,8 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       kind,
     });
 
-    const uploadUrl = presignRes.upload_url || presignRes.signed_url || presignRes.url;
+    const uploadUrl =
+      presignRes.upload_url || presignRes.signed_url || presignRes.url;
     const storageKey = presignRes.storage_key || presignRes.path;
 
     if (!uploadUrl || !storageKey) {
@@ -178,7 +191,9 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
 
     if (!uploadRes.ok) {
       const errorText = await uploadRes.text();
-      throw new Error(`Failed to upload ${kind} to storage bucket: ${errorText}`);
+      throw new Error(
+        `Failed to upload ${kind} to storage bucket: ${errorText}`,
+      );
     }
 
     const metaRes = await api.registerMediaMetadata({
@@ -223,7 +238,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
           photoFile.type,
           "photo",
           photoCaption,
-          null
+          null,
         );
         mediaAssetIds.push(photoId);
       }
@@ -231,6 +246,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       // 2. Audio Upload Pipeline
       if (audioBlob) {
         const audioFileName = `voice_memo_${Date.now()}.webm`;
+        // const calculatedDuration = await getAudioDurationMs(audioBlob);
         const audioId = await uploadMediaAsset(
           currentMemoirId,
           audioBlob,
@@ -238,7 +254,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
           "audio/webm",
           "audio",
           "Voice recording",
-          0
+          5000,
         );
         mediaAssetIds.push(audioId);
       }

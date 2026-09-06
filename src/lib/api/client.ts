@@ -9,6 +9,9 @@ function getAuthHeaders(): Record<string, string> {
   };
 }
 
+// centralized wrapper to make sure every request sent to your 
+// FastAPI backend is properly formatted, secure, and pointed to
+//  the right address
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -29,6 +32,7 @@ interface ApiErrorResponse {
   detail?: string | ApiErrorDetail[];
   message?: string;
 }
+
 
 function parseErrorDetail(errData: ApiErrorResponse | null | undefined, defaultMessage: string): string {
   if (!errData) return defaultMessage;
@@ -96,6 +100,29 @@ export interface MediaMetadataPayload {
   duration_ms?: number | null;
 }
 
+export interface CommentEntity {
+  id: string;
+  memoir_id: string;
+  memory_id: string | null;
+  media_asset_id: string | null;
+  parent_comment_id: string | null;
+  author_participant_id: string;
+  body: string;
+  created_at: string;
+  hidden_at: string | null;
+  hidden_by_participant_id: string | null;
+  deleted_at: string | null;
+  author_name?: string;
+}
+
+export interface CommentCreatePayload {
+  memoir_id: string;
+  memory_id?: string | null;
+  media_asset_id?: string | null;
+  author_participant_id?: string | null;
+  body: string;
+}
+
 export const api = {
   async signup(payload: SignupPayload) {
     const res = await apiFetch("/api/auth/signup/", {
@@ -140,7 +167,7 @@ export const api = {
     if (!res.ok) throw new Error("Failed to fetch memoir feed");
     return res.json();
   },
-
+// Memory
   async createMemory(payload: MemoryCreatePayload) {
     const res = await apiFetch("/api/memories/", {
       method: "POST",
@@ -153,8 +180,17 @@ export const api = {
     return res.json();
   },
 
+  async deleteMemory(memoryId: string) {
+    const res = await apiFetch(`/api/memories/${memoryId}/`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete memory");
+    return res.json();
+  },
+
+  //Presigned Url for object storage storing 
   async getPresignedUrl(payload: PresignedUrlPayload) {
-    const res = await apiFetch("/api/media/presigned-url/", {
+    const res = await apiFetch("/api/media/presigned-url", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -166,9 +202,9 @@ export const api = {
     const responseJson = await res.json();
     return responseJson.data || responseJson;
   },
-
+// To upload meta data
   async registerMediaMetadata(payload: MediaMetadataPayload) {
-    const res = await apiFetch("/api/media/metadata/", {
+    const res = await apiFetch("/api/media/metadata", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -182,11 +218,37 @@ export const api = {
     return responseJson.data || responseJson;
   },
 
-  async deleteMemory(memoryId: string) {
-    const res = await apiFetch(`/api/memories/${memoryId}/`, {
-      method: "DELETE",
+// Comments
+  async getComments(memoryId: string): Promise<CommentEntity[]> {
+    const res = await apiFetch(`/api/comments/?memory_id=${memoryId}`, {
+      method: "GET",
     });
-    if (!res.ok) throw new Error("Failed to delete memory");
-    return res.json();
+
+    if (res.status === 404) {
+      return [];
+    }
+
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to fetch comments"));
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.comments || [];
+  },
+
+  async createComment(payload: CommentCreatePayload): Promise<CommentEntity> {
+    const res = await apiFetch("/api/comments/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to post comment"));
+    }
+
+    const data = await res.json();
+    return data.comment || data;
   },
 };
