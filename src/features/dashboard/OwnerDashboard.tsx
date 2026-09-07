@@ -1,27 +1,56 @@
+/**
+ * @file OwnerDashboardPage.tsx
+ * @description Main dashboard view incorporating the MemoryFeed input capture component
+ * and the MemoryFeedList live database renderer.
+ */
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { MetricsGrid } from "./components/MetricsGrid";
 import { MemoryFeed } from "./components/MemoryFeed";
-import { MemoryItem } from "./components/MemoryCard";
+import MemoryFeedList from "./MemoryFeedList";
 import { BookCoverExperience } from "./BookCoverExperience";
 import { useRouter } from "next/navigation";
 
+interface MemoirLocalStorageData {
+  data?: {
+    id?: string;
+  };
+  id?: string;
+}
+
 export default function OwnerDashboardPage() {
-  const [activeTab, setActiveTab] = useState("feed");
-  const [memories, setMemories] = useState<MemoryItem[]>([]);
+  // State management for active navigation tab and active memoir container ID
+  const [activeTab, setActiveTab] = useState<string>("feed");
+  const [memoirId, setMemoirId] = useState<string>("");
   const router = useRouter();
 
+  // Retrieve active memoir identifier securely from local storage on mount
+  useEffect(() => {
+    try {
+      const savedMemoir = localStorage.getItem("active_memoir");
+      if (savedMemoir) {
+        const parsed = JSON.parse(savedMemoir) as MemoirLocalStorageData;
+        const activeId = parsed.data?.id || parsed.id || "";
+        setMemoirId(activeId);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to read active memoir from localStorage", err);
+    }
+  }, []);
+
+  // Metrics data configuration for dashboard overview
   const metricsData = [
     {
       label: "Total Entries",
-      value: memories.length,
+      value: "Live",
     },
     {
       label: "Media Vault",
-      value: "0 MB",
+      value: "Active",
     },
     {
       label: "Collaborators",
@@ -29,14 +58,7 @@ export default function OwnerDashboardPage() {
     },
   ];
 
-  const handleOptionSelect = (action: string, memoryId: string) => {
-    if (action === "delete") {
-      setMemories((prev) =>
-        prev.filter((memory) => memory.id !== memoryId)
-      );
-    }
-  };
-
+  // Handle user logout action and clear authentication tokens
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("active_memoir");
@@ -50,16 +72,13 @@ export default function OwnerDashboardPage() {
     >
       <div className="flex min-h-screen overflow-hidden rounded-2xl border border-memory-border bg-memory-bg text-memory-primary shadow-lg">
         {/* =========================
-            SIDEBAR
-        ========================== */}
-        <DashboardSidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+            SIDEBAR NAVIGATION
+        ========================= */}
+        <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* =========================
-            MAIN AREA
-        ========================== */}
+            MAIN CONTENT AREA
+        ========================= */}
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           <DashboardHeader
             subjectName="Ahmad Khan"
@@ -68,11 +87,8 @@ export default function OwnerDashboardPage() {
             onLogout={handleLogout}
           />
 
-          {/* =========================
-              CONTENT
-          ========================== */}
           <div className="mx-auto w-full max-w-6xl px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
-            {/* Intro */}
+            {/* Dashboard Banner Intro */}
             <div className="mb-7">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-memory-accent">
                 Living Archive
@@ -88,24 +104,40 @@ export default function OwnerDashboardPage() {
               </p>
             </div>
 
-            {/* Metrics */}
+            {/* Metrics Overview Grid */}
             <div className="mb-9">
               <MetricsGrid metrics={metricsData} />
             </div>
 
-            {/* =========================
-                STORY FEED
-            ========================== */}
+            {/* =========================================
+                TAB: FEED (Capture Form + Live Feed List)
+            ========================================= */}
             {activeTab === "feed" && (
-              <MemoryFeed
-                memories={memories}
-                onOptionSelect={handleOptionSelect}
-              />
+              <div className="space-y-10">
+                {/* 1. MemoryFeed Component: Interactive entry capture cards & forms */}
+                <MemoryFeed 
+                  memories={[]} 
+                  memoirId={memoirId} 
+                  onSuccess={() => {
+                    // Automatically reload feed view when a new memory is successfully saved
+                    window.location.reload();
+                  }}
+                />
+
+                {/* 2. MemoryFeedList Component: Fetches and displays live database records */}
+                {memoirId ? (
+                  <MemoryFeedList memoirId={memoirId} />
+                ) : (
+                  <div className="text-center py-12 text-memory-muted text-sm bg-white rounded-2xl border border-memory-maroon/20 p-6">
+                    No active memoir container found. Please complete onboarding.
+                  </div>
+                )}
+              </div>
             )}
 
             {/* =========================
-                MEDIA VAULT
-            ========================== */}
+                TAB: MEDIA VAULT
+            ========================= */}
             {activeTab === "media" && (
               <section className="rounded-3xl border border-memory-border bg-memory-card p-10 text-center shadow-sm">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-memory-accent bg-memory-light font-serif text-xl font-bold text-memory-maroon">
@@ -127,8 +159,8 @@ export default function OwnerDashboardPage() {
             )}
 
             {/* =========================
-                COLLABORATORS
-            ========================== */}
+                TAB: COLLABORATORS
+            ========================= */}
             {activeTab === "team" && (
               <section className="rounded-3xl border border-memory-border bg-memory-card p-10 text-center shadow-sm">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-memory-accent bg-memory-light font-serif text-xl font-bold text-memory-maroon">
