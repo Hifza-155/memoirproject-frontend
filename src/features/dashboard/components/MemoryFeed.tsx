@@ -7,7 +7,7 @@
 "use client";
 
 import { useState } from "react";
-import { MemoryCard, MemoryItem } from "./MemoryCard";
+import { MemoryItem } from "./MemoryCard";
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
 
 interface MemoryFeedProps {
@@ -268,29 +268,6 @@ export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: Me
                 </button>
               </div>
             </form>
-          </div>
-        )}
-      </div>
-
-      {/* --- CHRONICLE FEED LIST --- */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif font-bold text-lg text-memory-primary">Chronicle Entries</h3>
-          <span className="text-xs text-memory-muted bg-memory-light border border-memory-border px-2.5 py-1 rounded-full font-medium">
-            Live Feed ({memories.length})
-          </span>
-        </div>
-
-        {memories.length === 0 ? (
-          <div className="bg-memory-card border border-memory-border rounded-2xl p-12 text-center space-y-2">
-            <p className="font-serif font-medium text-memory-primary">No entries recorded yet.</p>
-            <p className="text-xs text-memory-muted">Click the action arrow on any capture card above to add your first story or voice note.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {memories.map((memory) => (
-              <MemoryCard key={memory.id} memory={memory} onOptionSelect={onOptionSelect} />
-            ))}
           </div>
         )}
       </div>
