@@ -1,10 +1,10 @@
-
-// @file hooks/useExportMemoir.ts
-// @description React hook for handling memoir PDF export requests, status polling, and blob-based custom filename downloads.
-
+/**
+ * @file hooks/useExportMemoir.ts
+ * @description React hook for handling memoir PDF export requests, status polling, and blob-based custom filename downloads.
+ */
 
 import { useState } from 'react';
-import { requestMemoirExport } from '@/lib/api/client';
+import { api } from '@/lib/api/client';
 
 export function useExportMemoir(memoirId: string) {
   const [isExporting, setIsExporting] = useState(false);
@@ -22,8 +22,8 @@ export function useExportMemoir(memoirId: string) {
     setExportMessage('Preparing your printable memoir PDF...');
 
     try {
-      // 1. Trigger the export job
-      await requestMemoirExport(memoirId);
+      // 1. Trigger the export job via the centralized api client object
+      await api.requestMemoirExport(memoirId);
       setExportMessage('Formatting book layout in the background...');
 
       // 2. Poll for job completion
@@ -33,15 +33,8 @@ export function useExportMemoir(memoirId: string) {
       const pollInterval = setInterval(async () => {
         attempts++;
         try {
-          const token = localStorage.getItem("access_token") || localStorage.getItem("token");
-
-          const res = await fetch(`http://localhost:8000/api/memoirs/${memoirId}/export/latest`, {
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-            },
-          });
-          const data = await res.json();
+          // Use centralized api method for status polling (handles auth headers automatically)
+          const data = await api.getLatestExportStatus(memoirId);
 
           if (data.status === 'ready' && data.download_url) {
             clearInterval(pollInterval);
