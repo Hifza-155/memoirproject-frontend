@@ -42,7 +42,6 @@ export function useAuth() {
       const accessToken = res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
-        await processPendingMemoir();
       }
 
       router.push("/dashboard");

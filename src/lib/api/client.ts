@@ -252,3 +252,28 @@ export const api = {
     return data.comment || data;
   },
 };
+// PDF Export
+export async function requestMemoirExport(memoirId: string) {
+  if (!memoirId) {
+    throw new Error("No active memoir ID found in local storage.");
+  }
+
+  // Retrieve auth token from localStorage (adjust key name if your app uses something else like 'supabase.auth.token' or 'access_token')
+  const token = localStorage.getItem("access_token") || localStorage.getItem("token");
+
+  const response = await fetch(`http://localhost:8000/api/memoirs/${memoirId}/export`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("Backend export error response:", errorBody);
+    throw new Error(`Failed to initiate PDF export: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
