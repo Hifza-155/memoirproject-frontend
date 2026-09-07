@@ -3,6 +3,7 @@
 import { useState } from "react";
 import MemoirLayout from "../../features/FinalMemoir/MemoirLayout";
 import MemoryCard from "../../features/FinalMemoir/MemoryCard";
+import { useExportMemoir } from "@/hooks/useExportMemoir";
 
 // 1. Define a unified interface so TypeScript knows optional properties exist
 interface MemoryItem {
@@ -19,6 +20,7 @@ interface MemoryItem {
 
 export default function FinalMemoirPage() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState("family-memoir");
 
   // Lazy initialization: reads localStorage once on mount without triggering effect warnings
   const [memoirId] = useState<string>(() => {
@@ -34,6 +36,9 @@ export default function FinalMemoirPage() {
     }
     return "";
   });
+
+  // Export hook integration
+  const { triggerExport, isExporting, exportMessage, error } = useExportMemoir(memoirId);
 
   // Valid UUID format for backend and database foreign key integrity
   const saraMemory: MemoryItem = {
@@ -73,6 +78,48 @@ export default function FinalMemoirPage() {
   return (
     <MemoirLayout>
       <div className="w-full py-8 space-y-16">
+        {/* EXPORT ACTION BAR */}
+        <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-memory-maroon/20 shadow-2xs gap-4">
+          <div>
+            <h2 className="font-serif font-bold text-memory-primary text-lg">Printable Memoir Archive</h2>
+            <p className="text-[11px] text-memory-muted uppercase tracking-wider">Comments excluded for clean book format</p>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <input
+              type="text"
+              value={pdfFileName}
+              onChange={(e) => setPdfFileName(e.target.value)}
+              placeholder="Enter file name"
+              className="px-3 py-2 text-xs border border-memory-border rounded-lg bg-memory-bg text-memory-primary outline-none focus:border-memory-accent"
+            />
+            <button
+              type="button"
+              onClick={() => triggerExport(pdfFileName)}
+              disabled={isExporting}
+              className="bg-memory-primary text-memory-light px-4 py-2.5 rounded-lg text-xs font-medium uppercase tracking-wider hover:bg-memory-maroon transition shadow-sm cursor-pointer disabled:opacity-50 whitespace-nowrap"
+            >
+              {isExporting ? "Queuing Export..." : "Export PDF"}
+            </button>
+          </div>
+        </div>
+
+        {exportMessage && (
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs">
+              {exportMessage}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
+              {error}
+            </div>
+          </div>
+        )}
+
         {pages.map((page, index) => (
           <div key={index} className="w-full">
             {/* PAGE TITLE */}
