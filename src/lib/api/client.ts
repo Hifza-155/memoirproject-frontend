@@ -1,17 +1,16 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 function getAuthHeaders(): Record<string, string> {
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    typeof window !== "undefined" ? localStorage.getItem("access_token") || localStorage.getItem("token") : null;
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
-// centralized wrapper to make sure every request sent to your 
-// FastAPI backend is properly formatted, secure, and pointed to
-//  the right address
+// Centralized wrapper to make sure every request sent to your 
+// FastAPI backend is properly formatted, secure, and pointed to the right address
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -32,7 +31,6 @@ interface ApiErrorResponse {
   detail?: string | ApiErrorDetail[];
   message?: string;
 }
-
 
 function parseErrorDetail(errData: ApiErrorResponse | null | undefined, defaultMessage: string): string {
   if (!errData) return defaultMessage;
@@ -160,14 +158,17 @@ export const api = {
     return res.json();
   },
 
+  // Aligned with backend prefix /api/memories/feed/{memoir_id}
   async getMemoirFeed(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/feed/`, {
+    const res = await apiFetch(`/api/memories/feed/${memoirId}`, {
       method: "GET",
     });
     if (!res.ok) throw new Error("Failed to fetch memoir feed");
-    return res.json();
+    const json = await res.json();
+    return json.data || json;
   },
-// Memory
+
+  // Memory
   async createMemory(payload: MemoryCreatePayload) {
     const res = await apiFetch("/api/memories/", {
       method: "POST",
@@ -188,7 +189,7 @@ export const api = {
     return res.json();
   },
 
-  //Presigned Url for object storage storing 
+  // Presigned Url for object storage storing 
   async getPresignedUrl(payload: PresignedUrlPayload) {
     const res = await apiFetch("/api/media/presigned-url", {
       method: "POST",
@@ -202,7 +203,8 @@ export const api = {
     const responseJson = await res.json();
     return responseJson.data || responseJson;
   },
-// To upload meta data
+
+  // To upload meta data
   async registerMediaMetadata(payload: MediaMetadataPayload) {
     const res = await apiFetch("/api/media/metadata", {
       method: "POST",
@@ -218,7 +220,7 @@ export const api = {
     return responseJson.data || responseJson;
   },
 
-// Comments
+  // Comments
   async getComments(memoryId: string): Promise<CommentEntity[]> {
     const res = await apiFetch(`/api/comments/?memory_id=${memoryId}`, {
       method: "GET",
@@ -251,29 +253,36 @@ export const api = {
     const data = await res.json();
     return data.comment || data;
   },
+
+  // PDF Export
+  async requestMemoirExport(memoirId: string) {
+    if (!memoirId) {
+      throw new Error("No active memoir ID found.");
+    }
+
+    const res = await apiFetch(`/api/memoirs/${memoirId}/export`, {
+      method: 'POST',
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error("Backend export error response:", errorBody);
+      throw new Error(`Failed to initiate PDF export: ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+  },
+
+  // PDF Export Status Polling
+  async getLatestExportStatus(memoirId: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/export/latest`, {
+      method: 'GET',
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to check export status.");
+    }
+
+    return res.json();
+  }
 };
-// PDF Export
-export async function requestMemoirExport(memoirId: string) {
-  if (!memoirId) {
-    throw new Error("No active memoir ID found in local storage.");
-  }
-
-  // Retrieve auth token from localStorage (adjust key name if your app uses something else like 'supabase.auth.token' or 'access_token')
-  const token = localStorage.getItem("access_token") || localStorage.getItem("token");
-
-  const response = await fetch(`http://localhost:8000/api/memoirs/${memoirId}/export`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    },
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error("Backend export error response:", errorBody);
-    throw new Error(`Failed to initiate PDF export: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
