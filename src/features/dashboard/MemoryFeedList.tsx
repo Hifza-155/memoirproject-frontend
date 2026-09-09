@@ -6,6 +6,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { api } from "@/lib/api/client";
 
 interface MediaAsset {
@@ -157,11 +158,12 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
               {/* PHOTO MEMORY VISUAL */}
               {photoAsset && (
                 <div className="mt-4 pt-4 border-t border-memory-maroon/10 text-center">
-                  <div className="rounded-xl overflow-hidden inline-block max-h-96 border border-memory-maroon/15 bg-memory-bg">
-                    <img
-                      src={photoAsset.playback_url || photoAsset.storage_key}
+                  <div className="rounded-xl overflow-hidden relative w-full h-72 max-w-md mx-auto border border-memory-maroon/15 bg-memory-bg">
+                    <Image
+                      src={photoAsset.playback_url || photoAsset.storage_key || ""}
                       alt={photoAsset.caption || "Memory photo"}
-                      className="max-h-80 w-auto object-cover mx-auto"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   {photoAsset.caption && (
