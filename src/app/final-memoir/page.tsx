@@ -1,28 +1,46 @@
+// cspell:disable
 "use client";
 
-import { useState } from "react";
-import MemoirLayout from "../../features/FinalMemoir/MemoirLayout";
-import MemoryCard from "../../features/FinalMemoir/MemoryCard";
+import React, { useState, useEffect, useRef } from "react";
 import { useExportMemoir } from "@/hooks/useExportMemoir";
 
-// 1. Define a unified interface so TypeScript knows optional properties exist
-interface MemoryItem {
-  id: string;
-  author: string;
-  relation: string;
-  text: string;
-  reactionsCount: number;
-  memoryType: "written" | "audio" | "media";
-  imageUrl?: string;
-  imageCaption?: string;
-  audioDuration?: string; 
-}
+// Custom Components
+import MemoirHeader from "@/features/FinalMemoir/MemoirHeader";
+import MemoirHero from "@/features/FinalMemoir/MemoirHero";
+import MemoirActionBar from "@/features/FinalMemoir/MemoirActionBar";
+import MemoryCard from "@/features/FinalMemoir/MemoryCard";
+import MemoirSidebar from "@/features/FinalMemoir/MemoirSidebar";
+import ScatteredGallery from "@/features/FinalMemoir/ScatteredGallery";
+
+// Mock Data
+import { mockHeroPhotos, mockMemories, mockShortQuotes } from "@/features/FinalMemoir/mockData";
 
 export default function FinalMemoirPage() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [pdfFileName, setPdfFileName] = useState("family-memoir");
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [activeView, setActiveView] = useState<"timeline" | "chapters">("timeline");
+  
+  const [showScatteredView, setShowScatteredView] = useState(false);
 
-  // Lazy initialization: reads localStorage once on mount without triggering effect warnings
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [pdfFileName, setPdfFileName] = useState("nadias-story");
+  const [isTurningPage] = useState(false);
+
+  const [reactions, setReactions] = useState<Record<string, { count: number; reacted: boolean }>>(() => {
+    const initial: Record<string, { count: number; reacted: boolean }> = {};
+    mockMemories.forEach(m => {
+      initial[m.id] = { count: m.reactionsCount, reacted: false };
+    });
+    return initial;
+  });
+
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [commentsMap, setCommentsMap] = useState<Record<string, { id: string; author: string; text: string; time: string }[]>>({});
+
   const [memoirId] = useState<string>(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -31,195 +49,203 @@ export default function FinalMemoirPage() {
         const parsed = JSON.parse(savedMemoir);
         return parsed.data?.id || parsed.id || "";
       }
-    } catch (err) {
-      console.error("Failed to parse memoir session identifier from localStorage", err);
-    }
+    } catch (err) {}
     return "";
   });
 
-  // Export hook integration
-  const { triggerExport, isExporting, exportMessage, error } = useExportMemoir(memoirId);
+  const { triggerExport, isExporting } = useExportMemoir(memoirId);
 
-  // Valid UUID format for backend and database foreign key integrity
-  const saraMemory: MemoryItem = {
-    id: "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
-    author: "Sara",
-    relation: "Daughter",
-    text: "Dad always woke up before the sun. He claimed it was to get a head start on the day, but I think he just liked the quiet before the house woke up.",
-    imageUrl: "/api/placeholder/800/600",
-    imageCaption: "In the garden, summer of '94",
-    reactionsCount: 5,
-    memoryType: "written",
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  const handleToggleReaction = (id: string) => {
+    setReactions((prev) => {
+      const current = prev[id] || { count: 0, reacted: false };
+      const nextReacted = !current.reacted;
+      return {
+        ...prev,
+        [id]: { count: nextReacted ? current.count + 1 : current.count - 1, reacted: nextReacted },
+      };
+    });
   };
 
-  const audioMemory: MemoryItem = {
-    id: "b2c3d4e5-f6a7-8901-bcde-f0123456789a",
-    author: "Michael",
-    relation: "Son",
-    text: "I still remember those early mornings. Dad would wake up before everyone else and sit quietly with his coffee. Those were simple moments, but they are some of the memories I miss the most.",
-    reactionsCount: 5,
-    memoryType: "audio",
-    audioDuration: "0:42",
+  const handlePostComment = (id: string) => {
+    const text = commentInputs[id];
+    if (!text || !text.trim()) return;
+    const newComment = { id: Date.now().toString(), author: "You", text: text.trim(), time: "Just now" };
+    setCommentsMap((prev) => ({ ...prev, [id]: [...(prev[id] || []), newComment] }));
+    setCommentInputs((prev) => ({ ...prev, [id]: "" }));
   };
 
-  const pages = [
-    {
-      title: "Written Memory",
-      memory: saraMemory,
-      isAudio: false,
-    },
-    {
-      title: "Voice Recording & Transcription",
-      memory: audioMemory,
-      isAudio: true,
-    },
-  ];
+  const handleSearchTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setIsTyping(true);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 250);
+  };
+
+  const filteredMemories = mockMemories.filter((mem) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      mem.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mem.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (mem.imageCaption && mem.imageCaption.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (mem.title && mem.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
+  });
+
+  const uniqueChapters = Array.from(new Set(mockMemories.map(m => m.chapter)));
 
   return (
-    <MemoirLayout>
-      <div className="w-full py-8 space-y-16">
-        {/* EXPORT ACTION BAR */}
-        <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-memory-maroon/20 shadow-2xs gap-4">
-          <div>
-            <h2 className="font-serif font-bold text-memory-primary text-lg">Printable Memoir Archive</h2>
-            <p className="text-[11px] text-memory-muted uppercase tracking-wider">Comments excluded for clean book format</p>
-          </div>
+    <div className="min-h-screen bg-[#FAF9F6] font-serif text-stone-900 selection:bg-memory-maroon/20">
+      
+      <style dangerouslySetInnerHTML={{ __html: `
+        .font-serif { font-family: "Times New Roman", Times, serif !important; }
+        .book-text { hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto; }
+        @keyframes scribble {
+          0% { transform: rotate(-12deg) translate(0px, 0px); }
+          25% { transform: rotate(-16deg) translate(-1px, 2px); }
+          50% { transform: rotate(-8deg) translate(2px, -1px); }
+          75% { transform: rotate(-14deg) translate(-1px, 1px); }
+          100% { transform: rotate(-12deg) translate(0px, 0px); }
+        }
+        .animate-scribble { animation: scribble 0.2s infinite; }
+        .cursor-blink::after { content: '|'; animation: blink 1s step-start infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .clearfix::after { content: ""; clear: both; display: table; }
+      `}} />
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <input
-              type="text"
-              value={pdfFileName}
-              onChange={(e) => setPdfFileName(e.target.value)}
-              placeholder="Enter file name"
-              className="px-3 py-2 text-xs border border-memory-border rounded-lg bg-memory-bg text-memory-primary outline-none focus:border-memory-accent"
-            />
-            <button
-              type="button"
-              onClick={() => triggerExport(pdfFileName)}
-              disabled={isExporting}
-              className="bg-memory-primary text-memory-light px-4 py-2.5 rounded-lg text-xs font-medium uppercase tracking-wider hover:bg-memory-maroon transition shadow-sm cursor-pointer disabled:opacity-50 whitespace-nowrap"
-            >
-              {isExporting ? "Queuing Export..." : "Export PDF"}
-            </button>
-          </div>
-        </div>
+      <MemoirHeader isVisible={isVisible} />
 
-        {exportMessage && (
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs">
-              {exportMessage}
-            </div>
-          </div>
-        )}
+      <MemoirHero onOpenGallery={() => setShowScatteredView(true)} />
 
-        {error && (
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
-              {error}
-            </div>
-          </div>
-        )}
+      <div className="max-w-4xl mx-auto px-6 mb-8 flex flex-col gap-0.5 opacity-60">
+        <div className="w-full h-[1px] bg-stone-300"></div>
+        <div className="w-full h-[1px] bg-stone-300"></div>
+      </div>
 
-        {pages.map((page, index) => (
-          <div key={index} className="w-full">
-            {/* PAGE TITLE */}
-            <div className="mb-6 text-center">
-              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-memory-muted">
-                {page.title}
-              </p>
-              <div className="mx-auto h-px w-16 bg-memory-maroon/30" />
-            </div>
+      <MemoirActionBar 
+        pdfFileName={pdfFileName}
+        setPdfFileName={setPdfFileName}
+        triggerExport={triggerExport}
+        isExporting={isExporting}
+        searchQuery={searchQuery}
+        handleSearchTyping={handleSearchTyping}
+        isTyping={isTyping}
+      />
 
-            {/* SINGLE MEMORY PAGE */}
-            <div className="mx-auto w-full max-w-4xl space-y-4">
-              <div className="relative w-full">
-                {/* subtle paper stack effect with soft pink stroke tint */}
-                <div className="absolute inset-x-2 top-2 bottom-1 rounded-sm border border-memory-maroon/20 bg-memory-maroon/5" />
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row px-6 md:px-10 py-4 gap-8 md:gap-12">
+        <main style={{ perspective: "2500px" }} className="flex-1 max-w-3xl">
+          <div 
+            className={`relative bg-[#FCFBF8] border border-stone-200/80 px-6 md:px-10 py-6 rounded-sm pb-16 origin-left overflow-hidden ${
+              isTurningPage 
+                ? "transition-all duration-700 ease-[cubic-bezier(0.645,0.045,0.355,1)] opacity-0 [transform:rotateY(-130deg)_rotateX(4deg)_scale(0.95)] shadow-2xl brightness-50" 
+                : "transition-opacity duration-500 ease-in opacity-100 [transform:rotateY(0deg)_rotateX(0deg)_scale(1)] shadow-[0_4px_24px_rgba(0,0,0,0.04),inset_0_0_60px_rgba(90,24,39,0.02)] brightness-100"
+            }`}
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E")`,
+            }}
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-black/5 via-black/0 to-transparent pointer-events-none" style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }} />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-black/5 via-transparent to-transparent pointer-events-none" style={{ clipPath: 'polygon(0 100%, 0 0, 100% 100%)' }} />
 
-                <div className="relative z-10">
-                  {page.isAudio ? (
-                    /* Side-by-Side Grid Layout for Michael's Audio Memory with Clean White Background */
-                    <div className="p-6 md:p-8 bg-white rounded-2xl border border-memory-maroon/20 shadow-xs">
-                      {/* Author Header */}
-                      <div className="mb-6">
-                        <h4 className="font-serif font-bold text-lg text-memory-primary">Michael</h4>
-                        <p className="text-[10px] uppercase tracking-widest text-memory-muted">Son</p>
-                      </div>
+            {filteredMemories.length === 0 ? (
+              <div className="py-16 text-center text-stone-400 font-serif italic">
+                No entries found matching your criteria.
+              </div>
+            ) : (
+              uniqueChapters.map((chapterName) => {
+                const chapterMemories = filteredMemories.filter(m => m.chapter === chapterName);
+                if (chapterMemories.length === 0) return null;
+                const chapterSub = chapterMemories[0].chapterSubtitle;
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        {/* Left: The Quote Box with Pure White Background */}
-                        <div className="relative p-6 bg-white border border-memory-maroon/20 rounded-xl shadow-2xs">
-                          <span className="absolute top-3 left-3 text-memory-maroon/40 font-serif text-xl">“</span>
-                          <p className="font-serif text-sm text-memory-primary leading-relaxed px-2">
-                            {page.memory.text}
-                          </p>
-                          <span className="absolute bottom-1 right-4 text-memory-maroon/40 font-serif text-xl">”</span>
-                        </div>
-
-                        {/* Right: Audio Player & Transcription Block with Pure White Background */}
-                        <div className="space-y-4 bg-white p-5 rounded-2xl border border-memory-maroon/20">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] uppercase tracking-wider font-semibold text-memory-muted">
-                              Voice Note
-                            </span>
-                            <span className="text-[10px] bg-memory-maroon/10 text-memory-maroon px-2 py-0.5 rounded-full font-medium">
-                              Verified Audio
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-4 bg-memory-light p-3.5 rounded-xl border border-memory-maroon/15">
-                            <button
-                              type="button"
-                              onClick={() => setIsPlaying(!isPlaying)}
-                              className="w-10 h-10 rounded-full bg-memory-primary text-memory-light flex items-center justify-center hover:bg-memory-maroon transition shadow-sm cursor-pointer shrink-0"
-                              aria-label={isPlaying ? "Pause audio" : "Play audio"}
-                            >
-                              <span className="text-sm font-bold">
-                                {isPlaying ? "❚❚" : "▶"}
-                              </span>
-                            </button>
-
-                            <div className="flex-1 space-y-1">
-                              <div className="flex justify-between text-[11px] text-memory-muted font-mono">
-                                <span>{isPlaying ? "0:14" : "0:00"}</span>
-                                <span>{page.memory.audioDuration}</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-memory-border rounded-full overflow-hidden flex items-center">
-                                <div 
-                                  className={`h-full bg-memory-primary transition-all duration-350 ${
-                                    isPlaying ? "w-1/3" : "w-0"
-                                  }`} 
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <p className="text-[11px] text-memory-muted italic leading-relaxed">
-                            Click play to listen to Michael&apos;s recorded narrative in his own voice.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Card Footer Reactions */}
-                      <div className="mt-8 pt-4 border-t border-memory-maroon/15 flex items-center justify-between text-xs text-memory-muted">
-                        <span className="flex items-center gap-1.5 font-medium">
-                          ✓ I REMEMBER THIS TOO <span className="bg-memory-maroon/10 text-memory-maroon px-2 py-0.5 rounded-full text-[10px]">{page.memory.reactionsCount}</span>
-                        </span>
-                      </div>
+                return (
+                  <div key={chapterName} className="mb-8">
+                    <div className="mb-3 mt-4 text-left relative flex flex-col">
+                      <div className="w-full h-[2px] bg-stone-800 mb-3"></div>
+                      <h2 className="text-3xl md:text-4xl font-serif text-stone-900 mb-1 leading-tight">
+                        {chapterName}
+                      </h2>
+                      {chapterSub && (
+                        <p className="text-[14px] font-serif italic text-stone-500 mb-3">
+                          {chapterSub}
+                        </p>
+                      )}
                     </div>
-                  ) : (
-                    /* Standard Default Memory Card for Sara with dynamic memoirId passed */
-                    <MemoryCard 
-                      {...page.memory} 
-                      memoirId={memoirId}
-                    />
-                  )}
+
+                    {chapterMemories.map((mem) => (
+                      <MemoryCard 
+                        key={mem.id}
+                        mem={mem}
+                        isHighlighted={mem.reactionsCount > 20}
+                        currentReaction={reactions[mem.id] || { count: mem.reactionsCount, reacted: false }}
+                        handleToggleReaction={handleToggleReaction}
+                        isCommentsOpen={openCommentsId === mem.id}
+                        setOpenCommentsId={setOpenCommentsId}
+                        commentsList={commentsMap[mem.id] || []}
+                        commentInputValue={commentInputs[mem.id] || ""}
+                        setCommentInputValue={(val) => setCommentInputs({ ...commentInputs, [mem.id]: val })}
+                        handlePostComment={handlePostComment}
+                      />
+                    ))}
+                  </div>
+                );
+              })
+            )}
+
+            {filteredMemories.length > 0 && (
+              <div className="mt-16 flex flex-col items-center justify-center opacity-90 pb-8">
+                <div 
+                  className="relative w-20 h-20 bg-memory-maroon flex items-center justify-center cursor-default group"
+                  style={{
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.2), inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 3px 8px rgba(255,255,255,0.2)",
+                    borderRadius: "50% 48% 52% 49% / 49% 51% 48% 52%"
+                  }}
+                >
+                  <div className="absolute -top-1 right-2 w-3 h-3 rounded-full bg-memory-maroon shadow-[inset_0_-1px_2px_rgba(0,0,0,0.2)]"></div>
+                  <div className="absolute bottom-1 -left-1 w-4 h-3 rounded-full bg-memory-maroon shadow-[inset_0_-1px_2px_rgba(0,0,0,0.2)]"></div>
+                  <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] bg-memory-maroon/50">
+                    <span className="font-serif text-white/80 text-3xl italic font-bold select-none">N</span>
+                  </div>
+                </div>
+                
+                <div className="mt-8 text-center border-t border-stone-200/60 pt-6 flex flex-col items-center">
+                  <p className="text-[10px] font-sans uppercase tracking-[0.2em] text-stone-400 mb-4 font-semibold">
+                    Sealed & Shared By
+                  </p>
+                  <p className="text-[16px] md:text-[18px] font-serif italic text-stone-600 max-w-lg leading-loose px-4">
+                    Sarah, Amir, Uncle Tariq, Aunt Salma, Elena, Daniel, Leila, and Marcus.
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        ))}
+        </main>
+
+        <MemoirSidebar 
+          activeView={activeView}
+          setActiveView={setActiveView}
+          mockShortQuotes={mockShortQuotes}
+        />
       </div>
-    </MemoirLayout>
+
+      {showScatteredView && (
+        <ScatteredGallery 
+          heroPhotos={mockHeroPhotos} 
+          onClose={() => setShowScatteredView(false)} 
+        />
+      )}
+    </div>
   );
 }
