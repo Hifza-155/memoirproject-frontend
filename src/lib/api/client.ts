@@ -118,6 +118,7 @@ export interface CommentCreatePayload {
   memory_id?: string | null;
   media_asset_id?: string | null;
   author_participant_id?: string | null;
+  parent_comment_id?: string | null;
   body: string;
 }
 
@@ -285,4 +286,15 @@ export const api = {
 
     return res.json();
   }
+,
+  // Search
+  async searchMemories(memoirId: string, query: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`, {
+    method: "GET",
+  });
+  if (!res.ok) throw new Error("Failed to search archive");
+  const json = await res.json();
+  return json.data || json;
+  },
 };
+

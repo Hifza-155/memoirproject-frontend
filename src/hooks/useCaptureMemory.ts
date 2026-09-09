@@ -1,3 +1,5 @@
+// cspell:disable
+
 /**
  * @file useCaptureMemory.ts
  * @description Production-grade custom React hook managing draft states,
@@ -127,11 +129,19 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       if (typeof memoirId === "string") {
         return memoirId;
       }
-      if (typeof memoirId === "object" && memoirId !== null) {
-        // Extract the ID if an object or response wrapper was passed
-        const obj = memoirId as any;
-        return obj.id || obj.data?.id || obj.data?.data?.id || "";
-      }
+     if (typeof memoirId === "object" && memoirId !== null) {
+      // Extract the ID if an object or response wrapper was passed
+      const obj = memoirId as Record<string, unknown>;
+      const dataObj = obj.data as Record<string, unknown> | undefined;
+      const nestedDataObj = dataObj?.data as Record<string, unknown> | undefined;
+
+      return (
+        (typeof obj.id === "string" ? obj.id : "") ||
+        (typeof dataObj?.id === "string" ? dataObj.id : "") ||
+        (typeof nestedDataObj?.id === "string" ? nestedDataObj.id : "") ||
+        ""
+      );
+    }
     }
 
     // 2. Fallback to localStorage if prop is empty
