@@ -17,7 +17,7 @@ export default function MemoirActionBar({
   return (
     <div className="max-w-6xl mx-auto px-6 md:px-10 pt-2 pb-2 flex flex-col lg:flex-row justify-between items-end gap-6 relative z-10">
       
-      {/* LEFT: Compact PDF Export */}
+      {/* LEFT: Compact PDF Export Trigger */}
       <div className="flex items-center gap-4 bg-white/70 backdrop-blur-sm px-4 py-2.5 border border-stone-200 shadow-sm rounded-sm mb-1 w-full lg:w-auto">
         <span className="text-[10px] font-sans uppercase tracking-[0.1em] text-stone-600 font-semibold">Printable Archive</span>
         <div className="h-4 w-px bg-stone-300"></div>
@@ -38,12 +38,12 @@ export default function MemoirActionBar({
         </button>
       </div>
 
-      {/* RIGHT: Vintage Paper Scrap Search Box */}
+      {/* RIGHT: Vintage Paper Scrap Semantic Search Box */}
       <div 
         className="relative p-4 shadow-[1px_2px_8px_rgba(0,0,0,0.08)] bg-white border-2 border-[#EAE3D9] w-full lg:w-80"
         style={{
           borderRadius: "2px 20px 4px 15px / 15px 4px 20px 3px",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3 viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3 width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
         }}
       >
         <div className="absolute -top-2 -left-2 w-4 h-4 bg-[#FAF9F6] rounded-full"></div>

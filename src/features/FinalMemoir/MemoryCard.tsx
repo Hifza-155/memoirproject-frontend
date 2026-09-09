@@ -1,6 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { MemoryItem } from "./types";
+
+interface ReplyItem {
+  id: string;
+  author: string;
+  text: string;
+  time: string;
+}
+
+interface CommentItem {
+  id: string;
+  author: string;
+  text: string;
+  time: string;
+  replies?: ReplyItem[];
+}
 
 interface MemoryCardProps {
   mem: MemoryItem;
@@ -9,17 +24,34 @@ interface MemoryCardProps {
   handleToggleReaction: (id: string) => void;
   isCommentsOpen: boolean;
   setOpenCommentsId: (id: string | null) => void;
-  commentsList: { id: string; author: string; text: string; time: string }[];
+  commentsList: CommentItem[];
   commentInputValue: string;
   setCommentInputValue: (val: string) => void;
   handlePostComment: (id: string) => void;
+  // Added optional handlers/state for replies to support full comment-reply threads
+  handlePostReply?: (commentId: string, replyText: string) => void;
 }
 
 export default function MemoryCard({
   mem, isHighlighted, currentReaction, handleToggleReaction,
   isCommentsOpen, setOpenCommentsId, commentsList,
-  commentInputValue, setCommentInputValue, handlePostComment
+  commentInputValue, setCommentInputValue, handlePostComment,
+  handlePostReply
 }: MemoryCardProps) {
+  // Local state to track which comment currently has an active reply input box open
+  const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
+  const [replyTextMap, setReplyTextMap] = useState<{ [commentId: string]: string }>({});
+
+  const onReplySubmit = (commentId: string) => {
+    const text = replyTextMap[commentId];
+    if (!text || !text.trim()) return;
+    if (handlePostReply) {
+      handlePostReply(commentId, text.trim());
+    }
+    setReplyTextMap({ ...replyTextMap, [commentId]: "" });
+    setActiveReplyCommentId(null);
+  };
+
   return (
     <article className="relative group flex flex-col pt-1 pb-2">
       <div className="relative book-text font-serif leading-[1.7] text-[15px] text-stone-800 text-justify w-full clearfix">
@@ -106,29 +138,77 @@ export default function MemoryCard({
         </button>
       </div>
 
-      {/* MARGINALIA SECTION */}
+      {/* MARGINALIA SECTION (Comments & Replies) */}
       {isCommentsOpen && (
         <div className="mb-4 pt-3 border-t border-stone-200/50 space-y-3 text-xs font-sans animate-fadeIn px-4">
           <h5 className="font-serif uppercase tracking-widest text-memory-maroon font-semibold text-[9px] text-center">
             Marginalia
           </h5>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {commentsList.length === 0 ? (
               <p className="text-[11px] text-stone-400 italic font-serif text-center">
                 No margin notes yet.
               </p>
             ) : (
               commentsList.map((c) => (
-                <div key={c.id} className="bg-stone-50/50 p-2 border-l-2 border-memory-maroon/30">
-                  <div className="flex justify-between font-semibold text-stone-800 mb-0.5 text-[10px]">
+                <div key={c.id} className="bg-stone-50/50 p-2.5 border-l-2 border-memory-maroon/30 space-y-2">
+                  <div className="flex justify-between font-semibold text-stone-800 text-[10px]">
                     <span>{c.author}</span>
                     <span className="text-[9px] text-stone-400 font-normal">{c.time}</span>
                   </div>
                   <p className="text-stone-600 text-[11px] font-serif italic">{c.text}</p>
+                  
+                  {/* Nested Replies Stream */}
+                  {c.replies && c.replies.length > 0 && (
+                    <div className="pl-3 mt-2 border-l border-stone-200 space-y-2">
+                      {c.replies.map((r) => (
+                        <div key={r.id} className="text-[10px] space-y-0.5">
+                          <div className="flex justify-between font-semibold text-stone-700">
+                            <span>{r.author}</span>
+                            <span className="text-[8px] text-stone-400 font-normal">{r.time}</span>
+                          </div>
+                          <p className="text-stone-600 font-serif italic">{r.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Reply Action Trigger */}
+                  <div className="pt-1 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setActiveReplyCommentId(activeReplyCommentId === c.id ? null : c.id)}
+                      className="text-[10px] text-stone-500 hover:text-memory-maroon font-serif italic cursor-pointer"
+                    >
+                      {activeReplyCommentId === c.id ? "Cancel" : "Reply"}
+                    </button>
+                  </div>
+
+                  {/* Inline Reply Input Box */}
+                  {activeReplyCommentId === c.id && (
+                    <div className="flex gap-2 pt-1 pl-2 items-center">
+                      <input 
+                        type="text"
+                        placeholder="Write a reply..."
+                        value={replyTextMap[c.id] || ""}
+                        onChange={(e) => setReplyTextMap({ ...replyTextMap, [c.id]: e.target.value })}
+                        className="w-full bg-transparent border-b border-stone-300 border-dashed px-2 py-1 text-[11px] font-serif italic outline-none focus:border-memory-maroon"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => onReplySubmit(c.id)}
+                        className="px-2 py-1 text-memory-maroon font-serif text-[11px] hover:underline cursor-pointer whitespace-nowrap"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
+
+          {/* Main Comment Input Box */}
           <div className="flex gap-2 pt-2 justify-center">
             <input 
               type="text"

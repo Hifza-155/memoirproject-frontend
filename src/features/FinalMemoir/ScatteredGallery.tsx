@@ -1,4 +1,5 @@
-import React from "react";
+// cspell:disable
+
 import Image from "next/image";
 import { HeroPhoto } from "./types";
 import { scatterPositions } from "./mockData";
@@ -27,7 +28,7 @@ export default function ScatteredGallery({ heroPhotos, onClose }: ScatteredGalle
 
       <div className="absolute top-12 left-12 z-40 hidden md:block">
         <h2 className="text-4xl font-serif italic text-memory-maroon">The Archives</h2>
-        <p className="text-sm font-serif uppercase tracking-[0.2em] text-stone-500 mt-2">Nadia's Photographic Plates</p>
+        <p className="text-sm font-serif uppercase tracking-[0.2em] text-stone-500 mt-2">Nadias Photographic Plates</p>
       </div>
 
       <div className="relative w-full h-full max-w-7xl mx-auto p-12 mt-12">

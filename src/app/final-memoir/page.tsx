@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useExportMemoir } from "@/hooks/useExportMemoir";
+import { api, CommentEntity } from "@/lib/api/client";
 
 // Custom Components
 import MemoirHeader from "@/features/FinalMemoir/MemoirHeader";
@@ -14,6 +15,21 @@ import ScatteredGallery from "@/features/FinalMemoir/ScatteredGallery";
 
 // Mock Data
 import { mockHeroPhotos, mockMemories, mockShortQuotes } from "@/features/FinalMemoir/mockData";
+
+interface ReplyItem {
+  id: string;
+  author: string;
+  text: string;
+  time: string;
+}
+
+interface CommentItem {
+  id: string;
+  author: string;
+  text: string;
+  time: string;
+  replies?: ReplyItem[];
+}
 
 export default function FinalMemoirPage() {
   const [isVisible, setIsVisible] = useState(true);
@@ -28,7 +44,12 @@ export default function FinalMemoirPage() {
 
   const [pdfFileName, setPdfFileName] = useState("nadias-story");
   const [isTurningPage] = useState(false);
-
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  
+  // Strict typing for comments map without any 'any' types
+  const [commentsMap, setCommentsMap] = useState<Record<string, CommentItem[]>>({});
+  
   const [reactions, setReactions] = useState<Record<string, { count: number; reacted: boolean }>>(() => {
     const initial: Record<string, { count: number; reacted: boolean }> = {};
     mockMemories.forEach(m => {
@@ -36,10 +57,6 @@ export default function FinalMemoirPage() {
     });
     return initial;
   });
-
-  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-  const [commentsMap, setCommentsMap] = useState<Record<string, { id: string; author: string; text: string; time: string }[]>>({});
 
   const [memoirId] = useState<string>(() => {
     if (typeof window === "undefined") return "";
@@ -49,7 +66,9 @@ export default function FinalMemoirPage() {
         const parsed = JSON.parse(savedMemoir);
         return parsed.data?.id || parsed.id || "";
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to parse active memoir from localStorage", err);
+    }
     return "";
   });
 
@@ -69,6 +88,66 @@ export default function FinalMemoirPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  // Helper to check if an ID is a valid database UUID
+  const isValidUuid = (id: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
+  // Helper to format flat backend comment entities into nested reply trees
+  const formatCommentsToTree = (entities: CommentEntity[]): CommentItem[] => {
+    const commentMap = new Map<string, CommentItem>();
+    const rootComments: CommentItem[] = [];
+
+    entities.forEach((entity) => {
+      const item: CommentItem = {
+        id: entity.id,
+        author: entity.author_name || "Participant",
+        text: entity.body,
+        time: new Date(entity.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        replies: [],
+      };
+      commentMap.set(entity.id, item);
+    });
+
+    entities.forEach((entity) => {
+      const item = commentMap.get(entity.id);
+      if (!item) return;
+
+      if (entity.parent_comment_id && commentMap.has(entity.parent_comment_id)) {
+        const parent = commentMap.get(entity.parent_comment_id);
+        if (parent && parent.replies) {
+          parent.replies.push({
+            id: item.id,
+            author: item.author,
+            text: item.text,
+            time: item.time,
+          });
+        }
+      } else {
+        rootComments.push(item);
+      }
+    });
+
+    return rootComments;
+  };
+
+  // Safe useEffect without synchronous state updates during effect execution
+  useEffect(() => {
+    if (openCommentsId && !commentsMap[openCommentsId]) {
+      if (!isValidUuid(openCommentsId)) {
+        return;
+      }
+
+      api.getComments(openCommentsId)
+        .then((data: CommentEntity[]) => {
+          const formatted = formatCommentsToTree(data);
+          setCommentsMap((prev) => ({ ...prev, [openCommentsId]: formatted }));
+        })
+        .catch((err) => console.error("Failed to load comments:", err));
+    }
+  }, [openCommentsId, commentsMap]);
+
   const handleToggleReaction = (id: string) => {
     setReactions((prev) => {
       const current = prev[id] || { count: 0, reacted: false };
@@ -80,12 +159,104 @@ export default function FinalMemoirPage() {
     });
   };
 
-  const handlePostComment = (id: string) => {
+  const handlePostComment = async (id: string) => {
     const text = commentInputs[id];
     if (!text || !text.trim()) return;
-    const newComment = { id: Date.now().toString(), author: "You", text: text.trim(), time: "Just now" };
-    setCommentsMap((prev) => ({ ...prev, [id]: [...(prev[id] || []), newComment] }));
-    setCommentInputs((prev) => ({ ...prev, [id]: "" }));
+
+    if (!isValidUuid(id)) {
+      const fallbackComment: CommentItem = { 
+        id: Date.now().toString(), 
+        author: "You", 
+        text: text.trim(), 
+        time: "Just now", 
+        replies: [] 
+      };
+      setCommentsMap((prev) => ({ ...prev, [id]: [...(prev[id] || []), fallbackComment] }));
+      setCommentInputs((prev) => ({ ...prev, [id]: "" }));
+      return;
+    }
+
+    try {
+      const newComment = await api.createComment({
+        memoir_id: memoirId || "mock-memoir-id",
+        memory_id: id,
+        body: text.trim(),
+      });
+
+      const formattedComment: CommentItem = {
+        id: newComment.id,
+        author: newComment.author_name || "You",
+        text: newComment.body,
+        time: new Date(newComment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        replies: [],
+      };
+
+      setCommentsMap((prev) => ({ 
+        ...prev, 
+        [id]: [...(prev[id] || []), formattedComment] 
+      }));
+      setCommentInputs((prev) => ({ ...prev, [id]: "" }));
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+    }
+  };
+
+  const handlePostReply = async (memoryId: string, commentId: string, replyText: string) => {
+    if (!replyText || !replyText.trim()) return;
+
+    if (!isValidUuid(memoryId)) {
+      setCommentsMap((prev) => {
+        const memoryComments = prev[memoryId] || [];
+        const updated = memoryComments.map((c) => {
+          if (c.id === commentId) {
+            const replyItem: ReplyItem = { 
+              id: Date.now().toString(), 
+              author: "You", 
+              text: replyText.trim(), 
+              time: "Just now" 
+            };
+            return {
+              ...c,
+              replies: [...(c.replies || []), replyItem]
+            };
+          }
+          return c;
+        });
+        return { ...prev, [memoryId]: updated };
+      });
+      return;
+    }
+
+    try {
+      const newReply = await api.createComment({
+        memoir_id: memoirId || "mock-memoir-id",
+        memory_id: memoryId,
+        parent_comment_id: commentId,
+        body: replyText.trim(),
+      });
+
+      setCommentsMap((prev) => {
+        const memoryComments = prev[memoryId] || [];
+        const updated = memoryComments.map((c) => {
+          if (c.id === commentId) {
+            const replyItem: ReplyItem = {
+              id: newReply.id,
+              author: newReply.author_name || "You",
+              text: newReply.body,
+              time: new Date(newReply.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            };
+            return {
+              ...c,
+              replies: [...(c.replies || []), replyItem]
+            };
+          }
+          return c;
+        });
+        return { ...prev, [memoryId]: updated };
+      });
+    } catch (err) {
+      console.error("Failed to post reply:", err);
+    }
   };
 
   const handleSearchTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,6 +368,7 @@ export default function FinalMemoirPage() {
                         commentInputValue={commentInputs[mem.id] || ""}
                         setCommentInputValue={(val) => setCommentInputs({ ...commentInputs, [mem.id]: val })}
                         handlePostComment={handlePostComment}
+                        handlePostReply={(commentId, replyText) => handlePostReply(mem.id, commentId, replyText)}
                       />
                     ))}
                   </div>
