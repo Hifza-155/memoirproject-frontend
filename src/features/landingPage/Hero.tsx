@@ -30,7 +30,7 @@ export default function Hero() {
 
         <div className="flex mt-8">
           <Link
-            href="/small-personal-context"
+            href="/memory-subject-selection"
             className="bg-memory-maroon text-memory-bg text-base md:text-lg font-sans font-medium px-8 py-3.5 rounded-xl hover:bg-memory-primary hover:shadow-xl hover:shadow-memory-maroon/20 hover:-translate-y-0.5 transition-all duration-300 inline-flex items-center justify-center border border-memory-maroon"
           >
             Gather your memories

@@ -2,8 +2,8 @@
  * @file signupForm.tsx
  * @description Client-side React component that renders the user registration form,
  * manages form field validation via React Hook Form and Zod, and delegates network actions 
- * and submission states to the `useAuth` custom hook while maintaining the side-by-side 
- * password fields and exact login styling specs.
+ * and submission states to the useAuth custom hook while maintaining side-by-side 
+ * password fields, exact login styling specs, and strict accessibility attributes.
  */
 
 "use client";
@@ -47,8 +47,10 @@ export default function SignupForm() {
 
   const onSubmit = async (data: ExtendedSignupInput) => {
     try {
-      await handleSignup(data);
-      router.push("/dashboard");
+      const success = await handleSignup(data);
+      if (success) {
+        router.push("/dashboard");
+      }
     } catch (err) {
       console.error("Signup error:", err);
     }
@@ -90,15 +92,15 @@ export default function SignupForm() {
           </div>
         </div>
 
-        {/* Server Success / Error Banners */}
+        {/* Server Success / Error Banners with Accessibility Role */}
         {serverError && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div role="alert" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             Signup Failed: {serverError}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div role="status" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
             {successMessage}
           </div>
         )}
@@ -119,15 +121,17 @@ export default function SignupForm() {
               id="signup-fullname"
               type="text"
               placeholder="John Doe"
+              aria-invalid={Boolean(errors.full_name)}
+              aria-describedby={errors.full_name ? "signup-fullname-error" : undefined}
               {...register("full_name")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.full_name
-                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                  ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.full_name && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">
+              <p id="signup-fullname-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                 {errors.full_name.message}
               </p>
             )}
@@ -148,15 +152,17 @@ export default function SignupForm() {
               id="signup-email"
               type="email"
               placeholder="john@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "signup-email-error" : undefined}
               {...register("email")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.email
-                  ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                  ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-memory-muted font-medium">
+              <p id="signup-email-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                 {errors.email.message}
               </p>
             )}
@@ -178,15 +184,17 @@ export default function SignupForm() {
                 id="signup-password"
                 type="password"
                 placeholder="Enter your password"
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? "signup-password-error" : undefined}
                 {...register("password")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.password
-                    ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                    ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-memory-muted font-medium">
+                <p id="signup-password-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                   {errors.password.message}
                 </p>
               )}
@@ -206,15 +214,17 @@ export default function SignupForm() {
                 id="signup-confirmpassword"
                 type="password"
                 placeholder="Confirm your password"
+                aria-invalid={Boolean(errors.confirmPassword)}
+                aria-describedby={errors.confirmPassword ? "signup-confirmpassword-error" : undefined}
                 {...register("confirmPassword")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.confirmPassword
-                    ? "border-memory-border focus:ring-2 focus:ring-memory-accent/20"
+                    ? "border-red-500 focus:ring-2 focus:ring-red-500/20"
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-memory-muted font-medium">
+                <p id="signup-confirmpassword-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
                   {errors.confirmPassword.message}
                 </p>
               )}

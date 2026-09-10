@@ -1,7 +1,13 @@
+/**
+ * @file MemoryFeed.tsx
+ * @description Client-side component that renders interactive capture cards
+ * with fallback resolution for active memoir IDs from local storage.
+ */
+
 "use client";
 
-import React, { useState } from "react";
-import { MemoryCard, MemoryItem } from "./MemoryCard";
+import { useState } from "react";
+import { MemoryItem } from "./MemoryCard";
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
 
 interface MemoryFeedProps {
@@ -14,8 +20,18 @@ interface MemoryFeedProps {
 export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: MemoryFeedProps) {
   const [activeCaptureMode, setActiveCaptureMode] = useState<"text" | "audio" | "combined" | null>(null);
 
-  // Safe fallback string to satisfy the hook's required string parameter and prevent ts(2345)
-  const safeMemoirId = memoirId ?? "00000000-0000-0000-0000-000000000000";
+  // Fallback to localStorage if the memoirId prop wasn't passed down
+  const effectiveMemoirId = memoirId || (() => {
+    if (typeof window === "undefined") return "";
+    const stored = localStorage.getItem("active_memoir");
+    if (!stored) return "";
+    try {
+      const parsed = JSON.parse(stored);
+      return parsed.id || parsed;
+    } catch {
+      return stored;
+    }
+  })();
 
   // Hooking directly into your exact production backend capture logic
   const {
@@ -34,12 +50,17 @@ export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: Me
     stopRecording,
     clearRecording,
     handleSubmit
-  } = useCaptureMemory(safeMemoirId, () => {
+  } = useCaptureMemory(effectiveMemoirId, () => {
     setActiveCaptureMode(null);
     if (onSuccess) onSuccess();
   });
 
   const handleCardClick = (mode: "text" | "audio" | "combined") => {
+    // Guard capture actions if neither prop nor localStorage has a valid ID
+    if (!effectiveMemoirId) {
+      alert("Please select an active memoir before attempting to capture new entries.");
+      return;
+    }
     setActiveCaptureMode(activeCaptureMode === mode ? null : mode);
   };
 
@@ -247,29 +268,6 @@ export function MemoryFeed({ memories, memoirId, onOptionSelect, onSuccess }: Me
                 </button>
               </div>
             </form>
-          </div>
-        )}
-      </div>
-
-      {/* --- CHRONICLE FEED LIST --- */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif font-bold text-lg text-memory-primary">Chronicle Entries</h3>
-          <span className="text-xs text-memory-muted bg-memory-light border border-memory-border px-2.5 py-1 rounded-full font-medium">
-            Live Feed ({memories.length})
-          </span>
-        </div>
-
-        {memories.length === 0 ? (
-          <div className="bg-memory-card border border-memory-border rounded-2xl p-12 text-center space-y-2">
-            <p className="font-serif font-medium text-memory-primary">No entries recorded yet.</p>
-            <p className="text-xs text-memory-muted">Click the action arrow on any capture card above to add your first story or voice note.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {memories.map((memory) => (
-              <MemoryCard key={memory.id} memory={memory} onOptionSelect={onOptionSelect} />
-            ))}
           </div>
         )}
       </div>
