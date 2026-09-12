@@ -1,80 +1,137 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BookCoverExperienceProps {
   children: React.ReactNode;
-  title?: string;
-  subtitle?: string;
+  userName?: string;
 }
 
 export function BookCoverExperience({
   children,
-  title = "A Lifetime Remembered",
-  subtitle = "A Living Archive of Stories & Voices"
+  userName = "Sara"
 }: BookCoverExperienceProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [particles, setParticles] = useState<{ 
+    id: number; top: string; left: string; moveX: string; size: number; duration: number; delay: number; isPaper: boolean 
+  }[]>([]);
+
+  useEffect(() => {
+    // Generate particles originating from both left and right sides
+    const generated = Array.from({ length: 30 }).map((_, i) => {
+      const fromLeft = Math.random() > 0.5;
+      return {
+        id: i,
+        top: `${Math.random() * 100}%`,
+        left: fromLeft ? `${-10 - Math.random() * 20}%` : `${110 + Math.random() * 20}%`,
+        moveX: fromLeft ? "120vw" : "-120vw", // Move across the entire screen to the opposite side
+        size: Math.random() > 0.6 ? Math.random() * 15 + 10 : Math.random() * 3 + 1,
+        duration: Math.random() * 8 + 12, 
+        delay: Math.random() * 3,
+        isPaper: Math.random() > 0.6, 
+      };
+    });
+    setParticles(generated);
+
+    // Increased sequence time from 7.5s to 9s
+    const timer = setTimeout(() => setIsVisible(false), 9000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-memory-bg relative overflow-x-hidden perspective-[2000px]">
+    <div className="relative min-h-screen bg-memory-bg overflow-x-hidden">
       
-      {/* --- UNDERLYING DASHBOARD CONTENT --- */}
       <div className="w-full min-h-screen">
         {children}
       </div>
 
-      {/* --- CREATIVE BOOK COVER / PAGE THAT SWINGS OPEN --- */}
-      <motion.div
-        initial={false}
-        animate={isOpen ? { rotateY: -180, opacity: 0 } : { rotateY: 0, opacity: 1 }}
-        transition={{ duration: 1.0, ease: [0.645, 0.045, 0.355, 1.0] }}
-        style={{ transformOrigin: "left center", backfaceVisibility: "hidden" }}
-        className={`absolute inset-0 z-50 w-full h-full bg-memory-primary text-memory-light shadow-[25px_0_60px_rgba(0,0,0,0.3)] flex flex-col items-center justify-between p-10 sm:p-16 select-none ${
-          isOpen ? "pointer-events-none" : "pointer-events-auto"
-        }`}
-      >
-        {/* Real Book Spine Crease & Shadow on Left Edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-black/50 via-black/15 to-transparent pointer-events-none" />
-
-        {/* Elegant Inner Foil Border Frame with Corner Accents */}
-          <div className="flex justify-between items-center text-memory-accent/60 font-serif text-lg">
-          </div>
-          <div className="flex justify-between items-center text-memory-accent/60 font-serif text-lg">
-          </div>
-        <div />
-
-        {/* Center Cover Art & Typography */}
-        <div className="text-center space-y-6 z-10 max-w-md mx-auto px-4">
-          <span className="text-memory-accent text-xs tracking-[0.3em] uppercase font-serif block">
-            Private Collection
-          </span>
-          <h1 className="font-serif text-4xl sm:text-5xl font-normal text-memory-light tracking-wide leading-tight">
-            {title}
-          </h1>
-          <p className="font-serif italic text-sm sm:text-base text-memory-border/80 font-light tracking-wide">
-            {subtitle}
-          </p>
-        </div>
-
-        {/* Bottom Footer & Interactive Open Button */}
-        <div className="text-center pb-6 z-10 space-y-4">
-          <motion.button 
-            type="button"
-            onClick={() => setIsOpen(true)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center justify-center bg-memory-accent text-memory-primary font-serif font-semibold text-xs tracking-[0.3em] uppercase px-10 py-4 rounded-xl shadow-xl cursor-pointer transition-colors hover:bg-white"
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            key="overlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.5, ease: "easeInOut" }} 
+            className="absolute inset-0 z-50 w-full h-full bg-memory-primary flex flex-col items-center justify-center select-none overflow-hidden perspective-[1000px]"
           >
-            Open Memoir ⟶
-          </motion.button>
-          <p className="text-[10px] tracking-[0.2em] text-memory-muted uppercase font-serif">
-            Click to break the seal & enter
-          </p>
-        </div>
+            {/* Breathing Background Overlay */}
+            <motion.div 
+              initial={{ opacity: 0.2 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+              className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/10 pointer-events-none"
+            />
 
-      </motion.div>
+            {/* Cross-Directional Natural Wind & Paper Drift */}
+            {particles.map((p) => (
+              <motion.div
+                key={p.id}
+                initial={{ x: 0, y: 0, opacity: 0, rotateX: 0, rotateY: 0, rotateZ: 0 }}
+                animate={{ 
+                  x: p.moveX, 
+                  y: "-20vh", 
+                  opacity: [0, p.isPaper ? 0.4 : 0.2, 0], 
+                  rotateX: p.isPaper ? [0, 360] : 0, 
+                  rotateY: p.isPaper ? [0, 180, 360] : 0,
+                  rotateZ: p.isPaper ? [0, p.moveX === "120vw" ? 90 : -90] : 0
+                }}
+                transition={{ 
+                  duration: p.duration, 
+                  delay: p.delay, 
+                  ease: "linear" 
+                }}
+                className={`absolute pointer-events-none ${p.isPaper ? 'bg-memory-light/80 shadow-sm rounded-sm' : 'bg-memory-light rounded-full blur-[1px]'}`}
+                style={{ 
+                  top: p.top, 
+                  left: p.left, 
+                  width: p.isPaper ? p.size * 1.2 : p.size, 
+                  height: p.size 
+                }}
+              />
+            ))}
 
+            {/* Text Content */}
+            <div className="relative z-10 text-center max-w-lg px-6 space-y-8">
+              
+              {/* First Line: Standard gentle fade in */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.5, delay: 1, ease: "easeOut" }}
+              >
+                <p className="font-serif italic text-2xl sm:text-3xl text-memory-light tracking-wide font-light drop-shadow-md">
+                  The story isn't lost, {userName}.
+                </p>
+              </motion.div>
+
+              {/* Second Line: Gentle pulse/shimmer effect */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.5, delay: 3.5, ease: "easeOut" }} 
+              >
+                <motion.p
+                  animate={{ 
+                    opacity: [0.75, 1, 0.75],
+                    textShadow: [
+                      "0px 0px 0px rgba(255,255,255,0)", 
+                      "0px 0px 12px rgba(255,255,255,0.25)", 
+                      "0px 0px 0px rgba(255,255,255,0)"
+                    ]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="font-serif text-lg sm:text-xl text-memory-light tracking-wide font-light leading-relaxed drop-shadow-md"
+                >
+                  It is just scattered across the people who loved them. Let's bring it all together.
+                </motion.p>
+              </motion.div>
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
     </div>
   );
 }
