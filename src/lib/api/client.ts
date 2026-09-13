@@ -1,5 +1,5 @@
 const API_BASE_URL = "http://127.0.0.1:8000";
-
+import { ApiError, readErrorDetail } from "./errors";
 function getAuthHeaders(): Record<string, string> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
@@ -94,19 +94,24 @@ export const api = {
   },
 
   async createMemory(payload: MemoryCreatePayload) {
-    const res = await fetch(`${API_BASE_URL}/api/memories`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(
-        JSON.stringify(errData.detail) ||
-          errData.message ||
-          "Failed to create memory",
-      );
+    const url = `${API_BASE_URL}/api/memories`;
+    let res: Response;
+
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+    } catch (networkErr) {
+      throw ApiError.network(url, networkErr);
     }
+
+    if (!res.ok) {
+      const userFriendlyMessage = await readErrorDetail(res);
+      throw ApiError.http(url, res.status, userFriendlyMessage);
+    }
+
     return res.json();
   },
 
