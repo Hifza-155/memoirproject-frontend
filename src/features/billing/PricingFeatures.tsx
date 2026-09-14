@@ -97,7 +97,7 @@ export default function PricingFeatures() {
                         {feature.title}
                       </h2>
 
-                      <p className="mt-1 text-xs leading-5 text-memory-muted">
+                      <p className="mt-2 text-[13px] leading-5 text-memory-muted">
                         {feature.description}
                       </p>
                     </motion.div>
