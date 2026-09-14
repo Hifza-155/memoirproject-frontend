@@ -1,14 +1,33 @@
-
 "use client";
 
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { BookOpen, Camera, Mic, PenLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const features = [
-  "Written Memories",
-  "Voice Memories & Transcriptions",
-  "Photos & Videos",
+  {
+    icon: PenLine,
+    title: "Written Memories",
+    description: "Write and preserve your stories",
+  },
+  {
+    icon: Mic,
+    title: "Voice Memories",
+    description: "Keep voice memories and transcriptions",
+  },
+  {
+    icon: Camera,
+    title: "Photos & Videos",
+    description: "Add the moments you want to remember",
+  },
+  {
+    icon: BookOpen,
+    title: "Final Memoir",
+    description: "Create your memoir and beautiful PDF",
+  },
+];
+
+const includedFeatures = [
   "Family Contributions",
   "Final Memoir",
   "Beautiful PDF",
@@ -22,150 +41,137 @@ export default function PricingFeatures() {
   };
 
   return (
-    <main className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-4 py-10 md:px-8 md:py-16">
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-6xl"
-      >
-        {/* Open Journal */}
-        <div className="relative flex flex-col lg:flex-row items-stretch">
-          {/* LEFT PAGE */}
-          <section className="relative w-full lg:w-1/2 min-h-145 lg:min-h-160 bg-[#FBF8F1] border border-memory-accent/40 rounded-t-[4px] lg:rounded-l-[5px] lg:rounded-r-none px-8 py-10 md:px-12 md:py-14 shadow-[0_18px_40px_rgba(80,45,35,0.10)]">
-            {/* Page border */}
-            <div className="absolute inset-3 border border-memory-primary/10 pointer-events-none" />
+    <main className="min-h-screen bg-memory-bg px-6 py-10 text-memory-primary md:px-10 md:py-14">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-5xl items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full overflow-hidden border border-memory-primary/15 bg-[#FBF8F1] shadow-[0_20px_55px_rgba(80,45,35,0.10)]"
+        >
+          {/* Header */}
+          <div className="border-b border-memory-primary/15 px-7 py-8 text-center md:px-12">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-memory-accent">
+              MEMOIR
+            </p>
 
-            {/* Paper lines */}
-            <div className="absolute inset-x-8 md:inset-x-12 bottom-12 top-36 opacity-40 pointer-events-none">
-              <div className="h-full bg-[repeating-linear-gradient(to_bottom,transparent_0px,transparent_31px,rgba(118,85,72,0.08)_32px)]" />
-            </div>
+            <h1 className="mt-3 font-serif text-3xl md:text-4xl">
+              Pricing & Features
+            </h1>
 
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-semibold text-memory-accent mb-8">
-                  Your Memoir
-                </p>
-
-                <h1 className="max-w-md font-serif text-4xl md:text-5xl leading-[1.08] text-memory-primary">
-                  Your Story Deserves to Be Remembered.
-                </h1>
-
-                <div className="mt-8 max-w-md space-y-5 font-serif text-[15px] md:text-base leading-7 text-memory-muted">
-                  <p>
-                    Every life holds stories worth keeping — the little
-                    moments, the voices, the photographs, and the memories
-                    shared by the people who were there.
-                  </p>
-
-                  <p>
-                    Bring them together and turn them into something you can
-                    return to, share, and pass down.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <div className="w-16 border-t border-memory-accent/60 mb-4" />
-
-                <p className="font-serif italic text-memory-primary/70">
-                  One story. One beautiful keepsake. Forever.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* CENTER SPIRAL / BINDING */}
-          <div className="relative z-20 hidden lg:flex w-12 shrink-0 items-center justify-center bg-[#EDE4D7] border-y border-memory-accent/30">
-            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-memory-primary/15" />
-
-            <div className="relative h-[88%] flex flex-col justify-between py-2">
-              {Array.from({ length: 12 }).map((_, index) => (
-                <span
-                  key={index}
-                  className="relative block w-9 h-4 rounded-full border-2 border-memory-accent/70 bg-[#F6F0E6] shadow-[0_1px_2px_rgba(80,45,35,0.18)]"
-                />
-              ))}
-            </div>
+            <p className="mt-2 text-sm text-memory-muted">
+              Everything you need to create your memoir.
+            </p>
           </div>
 
-          {/* MOBILE SPIRAL */}
-          <div className="relative z-20 flex lg:hidden h-10 w-full items-center justify-center bg-[#EDE4D7] border-x border-memory-accent/30">
-            <div className="flex w-[82%] justify-between">
-              {Array.from({ length: 9 }).map((_, index) => (
-                <span
-                  key={index}
-                  className="block w-5 h-3 rounded-full border-2 border-memory-accent/70 bg-[#F6F0E6]"
-                />
-              ))}
-            </div>
-          </div>
+          {/* Main Content */}
+          <div className="grid md:grid-cols-[1.2fr_0.8fr]">
+            {/* Features */}
+            <section className="px-7 py-8 md:px-12 md:py-10">
+              <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.3em] text-memory-accent">
+                WHAT'S INCLUDED
+              </p>
 
-          {/* RIGHT PAGE */}
-          <section className="relative w-full lg:w-1/2 min-h-145 lg:min-h-160 bg-[#FBF8F1] border border-memory-accent/40 rounded-b-[4px] lg:rounded-r-[5px] lg:rounded-l-none px-8 py-10 md:px-12 md:py-14 shadow-[0_18px_40px_rgba(80,45,35,0.10)]">
-            {/* Page border */}
-            <div className="absolute inset-3 border border-memory-primary/10 pointer-events-none" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {features.map((feature, index) => {
+                  const Icon = feature.icon;
 
-            <div className="relative z-10 flex h-full flex-col">
-              <div className="text-center border-b border-memory-primary/15 pb-7">
-                <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-semibold text-memory-primary/65">
-                  Create Your Memoir
-                </p>
+                  return (
+                    <motion.div
+                      key={feature.title}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.35,
+                        delay: index * 0.08,
+                      }}
+                      className="border border-memory-primary/10 bg-memory-bg/40 p-5"
+                    >
+                      <Icon
+                        size={21}
+                        strokeWidth={1.5}
+                        className="mb-4 text-memory-accent"
+                      />
 
-                <div className="mt-4 flex items-end justify-center">
-                  <span className="font-serif text-6xl md:text-7xl leading-none text-memory-primary">
-                    $3
-                  </span>
-                </div>
+                      <h2 className="font-serif text-lg">
+                        {feature.title}
+                      </h2>
 
-                <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-memory-muted">
-                  One-Time Payment
-                </p>
+                      <p className="mt-1 text-xs leading-5 text-memory-muted">
+                        {feature.description}
+                      </p>
+                    </motion.div>
+                  );
+                })}
               </div>
 
-              <div className="flex-1 py-7">
-                <p className="mb-5 font-serif text-sm italic text-memory-primary/65">
-                  Everything you need to preserve your story:
-                </p>
-
-                <ul className="space-y-4">
-                  {features.map((feature) => (
+              <div className="mt-7 border-t border-memory-primary/10 pt-6">
+                <ul className="grid gap-3 sm:grid-cols-3">
+                  {includedFeatures.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-start gap-3 text-[14px] md:text-[15px] text-memory-primary"
+                      className="flex items-center gap-2 text-xs text-memory-primary"
                     >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-memory-accent/60 text-memory-accent">
-                        <Check size={12} strokeWidth={2.5} />
-                      </span>
-
-                      <span>{feature}</span>
+                      <span className="text-memory-accent">✓</span>
+                      {feature}
                     </li>
                   ))}
                 </ul>
               </div>
+            </section>
 
-              <div>
-                <button
-                  type="button"
-                  onClick={handleContinue}
-                  className="w-full rounded-sm bg-memory-primary px-6 py-4 text-sm font-semibold tracking-wide text-memory-light transition-all duration-300 hover:bg-memory-maroon hover:shadow-md"
-                >
-                  Continue for $3 →
-                </button>
+            {/* Pricing */}
+            <section className="flex flex-col justify-center border-t border-memory-primary/15 bg-memory-primary px-7 py-9 text-memory-light md:border-l md:border-t-0 md:px-10">
+              <div className="text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-memory-light/65">
+                  CREATE YOUR MEMOIR
+                </p>
 
-                <p className="mt-5 text-center text-[10px] md:text-[11px] leading-5 text-memory-muted">
-                  One-time payment • No subscription • No recurring charges
+                <div className="mt-5">
+                  <span className="font-serif text-7xl leading-none">
+                    $3
+                  </span>
+                </div>
+
+                <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-memory-light/60">
+                  ONE-TIME PAYMENT
                 </p>
               </div>
-            </div>
-          </section>
-        </div>
 
-        {/* Small caption beneath the journal */}
-        <p className="mt-6 text-center font-serif text-xs italic text-memory-muted">
-          Your memories, gathered in one place.
-        </p>
-      </motion.div>
+              <div className="my-8 h-px bg-memory-light/15" />
+
+              <div className="space-y-3 text-sm">
+                <p className="flex items-center justify-between">
+                  <span className="text-memory-light/70">Access</span>
+                  <span>Full Memoir Experience</span>
+                </p>
+
+                <p className="flex items-center justify-between">
+                  <span className="text-memory-light/70">Payment</span>
+                  <span>One-time</span>
+                </p>
+
+                <p className="flex items-center justify-between">
+                  <span className="text-memory-light/70">Subscription</span>
+                  <span>None</span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="mt-8 w-full rounded-sm bg-memory-light px-6 py-4 text-sm font-semibold tracking-wide text-memory-primary transition-all duration-300 hover:bg-[#F1E3DF]"
+              >
+                Continue for $3 →
+              </button>
+
+              <p className="mt-4 text-center text-[10px] text-memory-light/50">
+                No recurring charges
+              </p>
+            </section>
+          </div>
+        </motion.div>
+      </div>
     </main>
   );
 }
