@@ -55,7 +55,7 @@ export default function PricingFeatures() {
               MEMOIR
             </p>
 
-            <h1 className="mt-3 font-serif text-3xl md:text-4xl">
+            <h1 className="font-serif text-[32px] font-normal leading-tight tracking-[-0.02em] md:text-[38px]">
               Pricing & Features
             </h1>
 
