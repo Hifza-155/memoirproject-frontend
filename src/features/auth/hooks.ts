@@ -6,6 +6,7 @@ import { LoginInput, SignupInput } from "./schemas";
 export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [missingMemoirError, setMissingMemoirError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
@@ -33,19 +34,63 @@ export function useAuth() {
     startAuthAction();
 
     try {
+      // 1. Authenticate the user
       const res = await api.login({
         email: data.email,
         password: data.password,
       });
 
-      // Extract and store access token in localStorage for Bearer auth
+      // 2. Extract and store access token
       const accessToken = res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
+        // Force the API client to use the new token immediately
+        window.dispatchEvent(new Event("storage")); 
       }
 
+      // --- SMART MEMOIR CHECK & CREATION LOGIC ---
+      try {
+        // Check the database: Does this user already have memoirs?
+        const memoirs = await api.getUserMemoirs();
+
+        if (!memoirs || memoirs.length === 0) {
+          // NO MEMOIRS FOUND: Check if we have data from the onboarding screen
+          const pendingMemoirStr = localStorage.getItem("pending_memoir");
+          
+          if (pendingMemoirStr) {
+            // We have onboarding data! Create the memoir right now.
+            const pendingMemoir = JSON.parse(pendingMemoirStr);
+            const createdMemoir = await api.createMemoir(pendingMemoir);
+            const activeMemoir = createdMemoir.data || createdMemoir;
+            
+            // Save it to session and clean up the pending data
+            localStorage.setItem("active_memoir", JSON.stringify(activeMemoir));
+            localStorage.removeItem("pending_memoir");
+          } else {
+            // Edge case: No memoirs in DB AND they somehow skipped onboarding
+            setMissingMemoirError(
+              "Account verified, but no memoir setup data was found. Please complete the setup."
+            );
+            setLoading(false);
+            return false; // Halt execution
+          }
+        } else {
+          // MEMOIRS EXIST: The user is logging in again. 
+          // Do NOT create a new one. Just load their existing memoir.
+          localStorage.setItem("active_memoir", JSON.stringify(memoirs[0]));
+          
+          // Safety cleanup: If they re-did onboarding by accident, wipe the stale pending data
+          localStorage.removeItem("pending_memoir");
+        }
+      } catch (memoirCheckError) {
+        console.error("Could not verify or create memoir during login", memoirCheckError);
+      }
+      // ------------------------------------------
+
+      // 3. Everything is ready, send them to the dashboard
       router.push("/dashboard");
       return true;
+      
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An error occurred during login";
@@ -95,6 +140,7 @@ export function useAuth() {
     successMessage,
     setServerError,
     setSuccessMessage,
+    missingMemoirError,
     handleLogin,
     handleSignup,
   };
