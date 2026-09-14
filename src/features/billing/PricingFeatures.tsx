@@ -128,7 +128,7 @@ export default function PricingFeatures() {
                 </p>
 
                 <div className="mt-5">
-                  <span className="font-serif text-7xl leading-none">
+                  <span className="font-serif text-[68px] font-normal leading-none tracking-[-0.03em] md:text-[76px]">
                     $3
                   </span>
                 </div>
