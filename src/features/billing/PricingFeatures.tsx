@@ -160,7 +160,7 @@ export default function PricingFeatures() {
               <button
                 type="button"
                 onClick={handleContinue}
-                className="mt-8 w-full rounded-sm bg-memory-light px-6 py-4 text-sm font-semibold tracking-wide text-memory-primary shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-[#F1E3DF] hover:shadow-[0_8px_20px_rgba(80,45,35,0.25)]"
+                className="mt-8 w-full rounded-full bg-memory-light px-6 py-4 text-sm font-semibold tracking-wide text-memory-primary shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-[#F1E3DF] hover:shadow-[0_8px_20px_rgba(80,45,35,0.25)]"
               >
                 Continue for $3 →
               </button>
