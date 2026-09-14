@@ -123,7 +123,7 @@ export default function PricingFeatures() {
             {/* Pricing */}
             <section className="flex flex-col justify-center border-t border-memory-primary/15 bg-memory-primary px-7 py-9 text-memory-light md:border-l md:border-t-0 md:px-10">
               <div className="text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-memory-light/65">
+                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-memory-light/70">
                   CREATE YOUR MEMOIR
                 </p>
 
@@ -133,7 +133,7 @@ export default function PricingFeatures() {
                   </span>
                 </div>
 
-                <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-memory-light/60">
+                <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.22em] text-memory-light/65">
                   ONE-TIME PAYMENT
                 </p>
               </div>
