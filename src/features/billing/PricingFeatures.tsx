@@ -93,7 +93,7 @@ export default function PricingFeatures() {
                         className="mb-4 text-memory-accent"
                       />
 
-                      <h2 className="font-serif text-lg">
+                      <h2 className="font-serif text-[18px] font-normal leading-snug tracking-[-0.01em]">
                         {feature.title}
                       </h2>
 
