@@ -170,18 +170,41 @@ export const api = {
   },
 
   // Memory
+  // 1. ADD THIS: To check if the user has an active memoir during login
+  async getUserMemoirs() {
+    const res = await apiFetch("/api/memoirs/", {
+      method: "GET",
+    });
+    
+    // Graceful fallback if the backend route (405) isn't fully ready yet
+    if (res.status === 405 || res.status === 404) {
+      console.warn("GET /api/memoirs/ not available yet. Returning empty array.");
+      return []; 
+    }
+    
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to fetch user memoirs"));
+    }
+    
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.data || [];
+  },
+
+  // 2. FIX THIS: Remove the duplicate/crashing !res.ok block
   async createMemory(payload: MemoryCreatePayload) {
     const res = await apiFetch("/api/memories/", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
       throw new Error(parseErrorDetail(errData, "Failed to create memory"));
     }
+
     return res.json();
   },
-
   async deleteMemory(memoryId: string) {
     const res = await apiFetch(`/api/memories/${memoryId}/`, {
       method: "DELETE",
