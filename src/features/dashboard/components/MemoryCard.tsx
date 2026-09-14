@@ -7,7 +7,7 @@ import { Play, Image as ImageIcon, Mic, PenLine, MoreHorizontal, Edit2, Trash2, 
 import { MemoryItem } from "../types";
 
 interface MemoryCardProps {
-  memory: MemoryItem;
+  memory: MemoryItem & { audioUrl?: string };
   onOptionSelect?: (action: string, memoryId: string) => void;
   onPlayAudio?: (memoryId: string) => void;
 }
@@ -42,7 +42,7 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
           </div>
           <div className="flex flex-col">
             <span className="font-sans text-[15px] font-medium text-stone-800 leading-tight">
-              Added by {memory.author}
+              Added by {memory.author || "Owner"}
             </span>
             <span className="text-[10px] font-sans uppercase tracking-widest text-stone-400 font-semibold mt-0.5">
               {memory.date}
@@ -93,13 +93,14 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
         {(memory.kind === "text" || memory.kind === "combined") && (
           <div>
             {memory.title && <h4 className="font-sans font-bold text-xl text-stone-900 mb-3 leading-tight">{memory.title}</h4>}
+            
             {memory.mediaUrl && (
               <div className="mb-4">
                 <figure className="inline-block p-2.5 bg-white shadow-md border border-stone-200 rounded-sm transform -rotate-1">
                   <div className="relative w-55 aspect-4/3 bg-stone-100 overflow-hidden border border-stone-200/50 rounded-sm">
                     <Image 
                       src={memory.mediaUrl} 
-                      alt={memory.title} 
+                      alt={memory.title || "Memory Photo"} 
                       fill
                       className="object-cover"
                       unoptimized
@@ -108,7 +109,25 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
                 </figure>
               </div>
             )}
-            <p className="font-sans text-[15px] text-stone-700 leading-relaxed whitespace-pre-wrap book-text">{memory.content}</p>
+            
+            {memory.content && (
+              <p className="font-sans text-[15px] text-stone-700 leading-relaxed whitespace-pre-wrap book-text mb-4">
+                {memory.content}
+              </p>
+            )}
+
+            {/* CRITICAL FIX: Audio player added for combined cards (e.g. Photo + Audio) */}
+            {memory.audioUrl && (
+              <div className="bg-white border border-stone-300 py-2 px-3 rounded-xl shadow-sm max-w-sm mb-4">
+                <audio 
+                  controls 
+                  src={memory.audioUrl} 
+                  className="w-full h-10 outline-none" 
+                  controlsList="nodownload"
+                />
+              </div>
+            )}
+
             {memory.transcription && memory.kind === "combined" && (
               <div className="mt-4 pt-3 border-t border-stone-300/60 border-dashed">
                 <p className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-400 mb-1 font-semibold">Voice Transcription</p>
@@ -125,7 +144,7 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
                 <div className="relative w-55 aspect-4/3 bg-stone-100 overflow-hidden border border-stone-200/50 rounded-sm">
                   <Image 
                     src={memory.mediaUrl} 
-                    alt={memory.title} 
+                    alt={memory.title || "Memory Photo"} 
                     fill
                     className="object-cover"
                     unoptimized
@@ -143,20 +162,34 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
         {memory.kind === "audio" && (
           <div className="space-y-5">
             {memory.title && <h4 className="font-sans font-bold text-xl text-stone-900 mb-1">{memory.title}</h4>}
+            
             <p className="font-sans text-[15px] text-stone-700 leading-relaxed book-text">{memory.content}</p>
-            <div className="flex items-center gap-4 bg-[#FAF7F2] border border-stone-300 p-3 rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] max-w-xs">
-              <button
-                type="button"
-                onClick={() => onPlayAudio?.(memory.id)}
-                className="w-12 h-12 rounded-xl bg-[#EFECE6] flex items-center justify-center hover:bg-memory-primary hover:text-memory-light text-stone-700 transition-colors shadow-sm border border-stone-300 shrink-0 cursor-pointer"
-              >
-                <Play size={16} className="ml-0.5" />
-              </button>
-              <div className="flex flex-col">
-                <span className="font-sans text-[14px] font-medium text-stone-800">Voice Note</span>
-                {memory.duration && <span className="text-[10px] font-sans uppercase tracking-widest text-stone-400 font-semibold mt-0.5">{memory.duration}</span>}
+            
+            {memory.audioUrl ? (
+              <div className="bg-white border border-stone-300 py-2 px-3 rounded-xl shadow-sm max-w-sm mt-3">
+                <audio 
+                  controls 
+                  src={memory.audioUrl} 
+                  className="w-full h-10 outline-none" 
+                  controlsList="nodownload"
+                />
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-4 bg-[#FAF7F2] border border-stone-300 p-3 rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] max-w-xs">
+                <button
+                  type="button"
+                  onClick={() => onPlayAudio?.(memory.id)}
+                  className="w-12 h-12 rounded-xl bg-[#EFECE6] flex items-center justify-center hover:bg-memory-primary hover:text-memory-light text-stone-700 transition-colors shadow-sm border border-stone-300 shrink-0 cursor-pointer"
+                >
+                  <Play size={16} className="ml-0.5" />
+                </button>
+                <div className="flex flex-col">
+                  <span className="font-sans text-[14px] font-medium text-stone-800">Voice Note</span>
+                  {memory.duration && <span className="text-[10px] font-sans uppercase tracking-widest text-stone-400 font-semibold mt-0.5">{memory.duration}</span>}
+                </div>
+              </div>
+            )}
+
             {memory.transcription && (
               <div className="mt-4 pt-4 border-t border-stone-300/60 border-dashed">
                 <p className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-400 mb-2 font-semibold">Transcription</p>
