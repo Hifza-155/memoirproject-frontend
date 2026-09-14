@@ -2,8 +2,8 @@
 
 import Hero from "../features/landingPage/Hero";
 import LandingPageScroll from "../features/landingPage/LandingPageScroll";
-import AnnouncementBar from "../components/ui/AnnouncementBar";
-import Navbar from "../components/ui/Navbar";
+import AnnouncementBar from "../components/AnnouncementBar";
+import Navbar from "../components/Navbar";
 
 export default function Home() {
   

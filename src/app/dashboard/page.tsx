@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Modular Imports
-import { mockMemories, contributorNames } from "@/features/dashboard/data/mockData";
+import { contributorNames } from "@/features/dashboard/data/mockData"; // mockMemories removed
 import { BookCoverExperience } from "@/features/dashboard/components/BookCoverExperience";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
@@ -12,8 +12,9 @@ import { MemoryInputSection } from "@/features/dashboard/components/MemoryInputS
 import { MemoryArchive } from "@/features/dashboard/components/MemoryArchive";
 import { ContributorsOverlay } from "@/features/dashboard/components/ContributorsOverlay";
 
-// Custom Hook
+// Custom Hooks
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
+import { useMemoirFeed } from "@/hooks/useMemoirFeed"; // New hook imported
 
 export default function OwnerDashboard() {
   const [memoirId, setMemoirId] = useState<string>("");
@@ -30,18 +31,30 @@ export default function OwnerDashboard() {
 
   // 1. Resolve active memoir UUID from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("active_memoir");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setMemoirId(parsed.id || parsed.data?.id || "");
+    const timer = setTimeout(() => {
+      try {
+        const stored = localStorage.getItem("active_memoir");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setMemoirId(parsed.id || parsed.data?.id || "");
+        }
+      } catch (e) {
+        console.error("Could not resolve active_memoir from localStorage", e);
       }
-    } catch (e) {
-      console.error("Could not resolve active_memoir from localStorage", e);
-    }
+    }, 0);
+
+    return () => clearTimeout(timer); 
   }, []);
 
-  // 2. Initialize real capture pipeline
+  // 2. Fetch real data using the new hook
+  const { 
+    memories, 
+    loading: feedLoading, 
+    error: feedError, 
+    refreshFeed 
+  } = useMemoirFeed(memoirId);
+
+  // 3. Initialize real capture pipeline
   const {
     draft,
     setDraft,
@@ -60,6 +73,9 @@ export default function OwnerDashboard() {
     // Reset view state when memory successfully persists to DB/storage
     setActiveInput("none");
     setIsTextExpanded(false);
+    
+    // Instantly refresh the visual archive with the newly saved memory
+    refreshFeed();
   });
 
   const toggleStack = (kind: string) => {
@@ -118,7 +134,7 @@ export default function OwnerDashboard() {
 
           <div className="max-w-3xl mx-auto w-full px-6 pt-10">
 
-            {/* Error and Success Notifications */}
+            {/* Error and Success Notifications for the Capture Form */}
             {error && (
               <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
                 {error}
@@ -158,13 +174,24 @@ export default function OwnerDashboard() {
               handleLocalSubmit={handleSubmit}
             />
 
-            <MemoryArchive 
-              expandedStacks={expandedStacks} 
-              toggleStack={toggleStack} 
-              mockMemories={mockMemories} 
-            />
+            {/* Dynamic Archive Rendering */}
+            {feedLoading && !memories.length ? (
+              <div className="py-24 text-center text-memory-muted text-sm tracking-widest uppercase animate-pulse">
+                Unpacking Archive...
+              </div>
+            ) : feedError ? (
+              <div className="py-24 text-center text-red-600 text-sm font-medium">
+                Failed to load archive: {feedError}
+              </div>
+            ) : (
+              <MemoryArchive 
+                expandedStacks={expandedStacks} 
+                toggleStack={toggleStack} 
+                mockMemories={memories} // Passing the real normalized database objects here
+              />
+            )}
+            
           </div>
-
         </main>
       </div>
     </BookCoverExperience>
