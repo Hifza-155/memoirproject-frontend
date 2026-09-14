@@ -69,7 +69,7 @@ export default function PricingFeatures() {
             {/* Features */}
             <section className="px-7 py-8 md:px-12 md:py-10">
               <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.3em] text-memory-accent">
-                WHAT'S INCLUDED
+                WHAT&apos;S INCLUDED
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
