@@ -1,146 +1,205 @@
 /**
  * @file InviteFamilyFriends.tsx
- * @description Component rendering the family and friends invitation screen,
+ * @description Component rendering the family and friends invitation screen.
  */
 
-'use client';
-
-import {
-  ArrowLeft,
-  Heart,
-  Users,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+"use client";
+import Image from "next/image";
+import { ArrowLeft, Heart, Link2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function InviteFamilyFriends() {
   const router = useRouter();
 
   return (
-    <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
-      <motion.div 
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-memory-bg px-6 py-12 text-memory-primary font-sans">
+      {/* Very subtle background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-1/2 h-105 w-105 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50 blur-3xl" />
+      </div>
+
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-170 bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm flex flex-col"
+        transition={{ duration: 0.6 }}
+        className="relative w-full max-w-xl"
       >
-
         {/* Back */}
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
-          >
-            <ArrowLeft size={18} strokeWidth={1.7} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="absolute -top-1 left-0 z-50 flex cursor-pointer items-center gap-2 text-memory-muted transition hover:text-memory-primary"
+        >
+          <ArrowLeft size={17} strokeWidth={1.5} />
+          <span className="font-serif text-sm">Back</span>
+        </button>
 
-        {/* Main Content */}
-        <div className="flex flex-1 flex-col items-center justify-center text-center">
-
+        {/* Content */}
+        <div className="pt-14 text-center">
           {/* Heading */}
-          <h1 className="font-serif text-3xl md:text-4xl text-memory-primary mb-3">
-            Some memories are
+          <motion.h1
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.7 }}
+            className="font-serif text-3xl leading-tight md:text-4xl"
+          >
+            You remember it.
             <br />
-            better shared.
-          </h1>
+            <span className="italic">They might too.</span>
+          </motion.h1>
 
-          {/* Supporting Text */}
-          <p className="text-memory-muted text-[15px] md:text-base leading-relaxed max-w-105 mx-auto font-serif italic mb-8">
-            Invite the people who were part of the story.
-          </p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="mx-auto mt-4 max-w-sm font-serif text-[15px] leading-6 text-memory-muted"
+          >
+            Invite someone who shared that moment with you.
+          </motion.p>
 
-          {/* Visual Network Graphic */}
-          <div className="relative mb-10 flex h-60 w-full max-w-md items-center justify-center rounded-2xl border border-memory-border bg-memory-card shadow-2xs overflow-hidden">
-
-            {/* Horizontal Connection */}
-            <div className="absolute h-px w-36 bg-memory-border" />
-
-            {/* Vertical Connection */}
-            <div className="absolute h-28 w-px bg-memory-border" />
-
-            {/* Center Memory */}
-            <motion.div 
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="relative z-10 flex h-18 w-18 items-center justify-center rounded-full border border-memory-border bg-white shadow-xs"
+          {/* Interactive Memory Scene */}
+          <div className="group relative mx-auto mt-10 h-85 w-full max-w-107.5">
+            {/* TOP-RIGHT POPUP */}
+            <div
+              className="
+                absolute right-0 top-0 z-40
+                translate-x-11.25 translate-y-13.75
+                scale-90 opacity-0
+                pointer-events-none
+                transition-all duration-500 ease-out
+                group-hover:pointer-events-auto
+                group-hover:translate-x-0
+                group-hover:translate-y-0
+                group-hover:scale-100
+                group-hover:opacity-100
+              "
             >
-              <Heart
-                size={28}
-                fill="var(--memory-card)"
-                className="text-memory-primary"
-                strokeWidth={1.5}
-              />
-            </motion.div>
+              <div className="relative w-61.25 rounded-2xl rounded-bl-md border border-memory-border bg-white px-5 py-4 text-left shadow-xl">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-memory-card">
+                    <Link2
+                      size={15}
+                      strokeWidth={1.5}
+                      className="text-memory-primary"
+                    />
+                  </div>
 
-            {/* Person 1 */}
-            <motion.div 
-              animate={{ y: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="absolute left-[16%]"
-              style={{ top: '25%' }}
+                  <div>
+                    <p className="font-serif text-[11px] text-memory-muted">
+                      A memory was shared
+                    </p>
+
+                    <p className="mt-1 font-serif text-[13px] italic leading-5 text-memory-primary">
+                      “I thought you’d remember this too.”
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tail */}
+                <span className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 border-b border-r border-memory-border bg-white" />
+              </div>
+            </div>
+
+            {/* BOTTOM-LEFT POPUP */}
+            <div
+              className="
+                absolute bottom-4 left-0 z-40
+                translate-x-11.25 translate-y-8.75
+                scale-90 opacity-0
+                pointer-events-none
+                transition-all duration-500 ease-out
+                group-hover:pointer-events-auto
+                group-hover:translate-x-0
+                group-hover:translate-y-0
+                group-hover:scale-100
+                group-hover:opacity-100
+              "
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
+              <div className="relative w-51.25 rounded-2xl rounded-tr-md border border-memory-border bg-white px-5 py-4 text-left shadow-xl">
+                <p className="font-serif text-[11px] text-memory-muted">
+                  Maybe they remember...
+                </p>
+
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="font-serif text-[13px] italic text-memory-primary">
+                    “I do.”
+                  </span>
+
+                  <Heart
+                    size={14}
+                    strokeWidth={1.4}
+                    className="text-memory-primary"
+                  />
+                </div>
+
+                {/* Tail */}
+                <span className="absolute -right-2 top-5 h-4 w-4 rotate-45 border-t border-r border-memory-border bg-white" />
+              </div>
+            </div>
+
+            {/* MEMORY PHOTO */}
+            <motion.div
+              whileHover={{
+                rotate: -1,
+                scale: 1.025,
+              }}
+              transition={{ duration: 0.35 }}
+              className="
+                absolute left-1/2 top-5 z-30
+                h-62.5 w-48.75
+                -translate-x-1/2
+                cursor-pointer
+                overflow-hidden
+                rounded-sm
+                border-[7px]
+                border-white
+                bg-white
+                shadow-xl
+              "
+            >
+              <div className="relative h-full w-full">
+                <Image
+                  src="/invite family.jpg"
+                  alt="A cherished family memory"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </motion.div>
 
-            {/* Person 2 */}
-            <motion.div 
-              animate={{ y: [2, -2, 2] }}
-              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-              className="absolute right-[16%]"
-              style={{ top: '25%' }}
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
-              </div>
-            </motion.div>
-
-            {/* Person 3 */}
-            <motion.div 
-              animate={{ y: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
-              className="absolute bottom-[14%] left-1/2 -translate-x-1/2"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-memory-border bg-white text-memory-primary shadow-xs">
-                <Users size={20} strokeWidth={1.5} />
-              </div>
-            </motion.div>
-
-            {/* Visual Caption */}
-            <p className="absolute bottom-3 text-xs font-serif italic text-memory-muted">
-              The people who make the story yours
-            </p>
-
+            {/* Interaction hint */}
+            <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 -translate-x-1/2 transition-opacity duration-300 group-hover:opacity-0">
+              <p className="font-serif text-[11px] italic text-memory-muted">
+                Hover over the memory
+              </p>
+            </div>
           </div>
 
-          {/* Buttons */}
-          <div className="w-full max-w-md flex flex-col gap-3">
-            {/* Primary */}
-            <motion.button
-              type="button"
-              onClick={() => router.push('/')}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-memory-primary text-white hover:bg-memory-maroon shadow-md shadow-memory-primary/10"
-            >
-              Invite Family & Friends
-            </motion.button>
-
-            {/* Secondary */}
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.5 }}
+            className="mx-auto mt-7 flex w-full max-w-sm flex-col gap-2"
+          >
             <button
               type="button"
-              onClick={() => router.push('/signup')}
-              className="py-2 text-sm font-medium text-memory-muted hover:text-memory-primary transition cursor-pointer font-serif"
+              onClick={() => router.push("/")}
+              className="w-full cursor-pointer rounded-xl bg-memory-primary py-4 text-[15px] font-semibold text-white shadow-md shadow-memory-primary/10 transition hover:bg-memory-maroon"
+            >
+              Invite Family & Friends
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/signup")}
+              className="cursor-pointer py-2 font-serif text-sm text-memory-muted transition hover:text-memory-primary"
             >
               Maybe later
             </button>
-          </div>
-
+          </motion.div>
         </div>
-
       </motion.div>
     </section>
   );
