@@ -50,9 +50,12 @@ export function useAuth() {
 
       // --- SMART MEMOIR CHECK & CREATION LOGIC ---
       try {
+        // FIX: Add a tiny 500ms delay to prevent the 'iat' clock skew race condition
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         // Check the database: Does this user already have memoirs?
         const memoirs = await api.getUserMemoirs();
-
+        
         if (!memoirs || memoirs.length === 0) {
           // NO MEMOIRS FOUND: Check if we have data from the onboarding screen
           const pendingMemoirStr = localStorage.getItem("pending_memoir");
@@ -114,21 +117,31 @@ export function useAuth() {
       });
 
       const accessToken = res.access_token || res.token || res.data?.access_token;
+      
+      // If we got the token, the user is brand new and successfully created!
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
+        window.dispatchEvent(new Event("storage"));
         await processPendingMemoir();
+        
+        // Return true immediately. 
+        // This tells SignupForm.tsx to run router.push("/dashboard") smoothly.
+        return true; 
+      } else {
+        // Fallback in case Supabase blocks it
+        throw new Error("Registration failed to start a session. Please try logging in.");
       }
 
-      setSuccessMessage(
-        "Account created successfully! Please proceed to log in."
-      );
-      setTimeout(() => router.push("/login"), 2000);
-      return true;
     } catch (err: unknown) {
+      // THIS CATCHES THE DUPLICATE EMAIL ERROR FROM THE BACKEND
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred during signup";
-      setServerError(errorMessage);
-      return false;
+      
+      // Sets the red error banner
+      setServerError(errorMessage); 
+      
+      // Returning false tells SignupForm.tsx NOT to redirect to the dashboard
+      return false; 
     } finally {
       setLoading(false);
     }

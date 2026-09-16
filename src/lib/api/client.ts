@@ -124,7 +124,7 @@ export interface CommentCreatePayload {
 
 export const api = {
   async signup(payload: SignupPayload) {
-    const res = await apiFetch("/api/auth/signup/", {
+    const res = await apiFetch("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -136,7 +136,7 @@ export const api = {
   },
 
   async login(payload: { email: string; password: string }) {
-    const res = await apiFetch("/api/auth/login/", {
+    const res = await apiFetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(payload),
     });

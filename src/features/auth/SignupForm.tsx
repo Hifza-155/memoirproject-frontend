@@ -94,7 +94,7 @@ export default function SignupForm() {
 
         {/* Server Success / Error Banners with Accessibility Role */}
         {serverError && (
-          <div role="alert" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
             Signup Failed: {serverError}
           </div>
         )}
