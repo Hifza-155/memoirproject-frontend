@@ -68,10 +68,10 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                 onClick={() => setActiveInput("text")}
                 whileHover={{ scale: 1.02, y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white border-2 border-dashed border-stone-300 p-6 shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden cursor-pointer"
+                className="bg-white border-2 border-dashed border-memory-primary p-6 shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden cursor-pointer"
                 style={{ borderRadius: "4px 16px 16px 4px" }}
               >
-                <div className="absolute top-0 right-0 w-8 h-8 bg-stone-100 border-b border-l border-stone-300 transform rotate-45 translate-x-4 -translate-y-4"></div>
+                <div className="absolute top-0 right-0 w-8 h-8 bg-stone-100 border-b border-l border-memory-primary transform rotate-45 translate-x-4 -translate-y-4"></div>
                 <div className="flex items-center gap-3 text-memory-primary">
                   <PenLine size={18} />
                   <span className="font-sans font-semibold text-[16px] text-stone-800">Written Reflection</span>
@@ -89,7 +89,7 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                 onClick={() => setActiveInput("audio")}
                 whileHover={{ scale: 1.02, y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white border-2 border-stone-300 p-6 rounded-full shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden px-10 cursor-pointer"
+                className="bg-white border-2 border-memory-primary p-6 rounded-full shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden px-10 cursor-pointer"
               >
                 <div className="flex items-center gap-3 text-memory-primary pt-1">
                   <Mic size={18} />
@@ -104,24 +104,30 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                 <span className="text-[12px] font-sans font-medium text-stone-500 group-hover:text-memory-primary transition-colors pb-1 text-center">Record audio &rarr;</span>
               </motion.button>
 
-              {/* 3. PHOTOGRAPH */}
+              {/* 3. PHOTOGRAPH (Creative Polaroid Aesthetic) */}
               <motion.button
                 type="button"
                 onClick={() => setActiveInput("media")}
                 whileHover={{ scale: 1.02, y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white border border-stone-300 p-5 pb-6 rounded-sm shadow-md flex flex-col justify-between h-40 text-left group relative overflow-hidden transform -rotate-1 cursor-pointer"
+                // Classic Polaroid Shape: Tight padding on top/sides (p-3), thick padding on bottom (pb-8)
+                className="bg-[#FAFAFA] border-2 border-memory-primary p-3 pb-8 rounded-[3px] shadow-md flex flex-col justify-start h-40 text-left group relative overflow-hidden transform -rotate-2 cursor-pointer"
               >
-                <div className="flex items-center gap-3 text-memory-primary">
-                  <Camera size={18} />
-                  <span className="font-sans font-semibold text-[16px] text-stone-800">Photograph</span>
+                {/* The "Film" Area */}
+                <div className="w-full flex-1 bg-stone-200 border border-stone-300 shadow-inner flex items-center justify-center relative overflow-hidden">
+                  {/* Subtle glossy glare effect over the dark film area */}
+                  <div className="absolute inset-0 bg-linear-to-tr from-white/40 via-transparent to-black/5 pointer-events-none"></div>
+                  <ImageIcon size={22} className="text-stone-400 group-hover:text-memory-primary transition-colors relative z-10" />
                 </div>
-                <div className="w-full aspect-video bg-stone-100 border border-stone-300 p-1 shadow-inner flex items-center justify-center overflow-hidden my-2">
-                  <div className="w-full h-full bg-white flex items-center justify-center">
-                    <ImageIcon size={18} className="text-stone-400 group-hover:text-memory-primary transition-colors" />
+                
+                {/* The Labels on the thick bottom lip of the Polaroid */}
+                <div className="mt-3 flex items-center justify-between w-full px-1">
+                  <div className="flex items-center gap-2 text-memory-primary">
+                    <Camera size={14} />
+                    <span className="font-sans font-semibold text-[15px] text-stone-800 leading-none mt-0.5">Photograph</span>
                   </div>
+                  <span className="text-[11px] font-sans font-medium text-stone-500 group-hover:text-memory-primary transition-colors mt-0.5">Attach plate &rarr;</span>
                 </div>
-                <span className="text-[12px] font-sans font-medium text-stone-500 group-hover:text-memory-primary transition-colors">Attach plate &rarr;</span>
               </motion.button>
 
               {/* 4. COMBINED MEMORY */}
@@ -130,7 +136,7 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                 onClick={() => setActiveInput("combined")}
                 whileHover={{ scale: 1.02, y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white border-4 border-double border-stone-400 p-6 rounded-sm shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden transform rotate-1 cursor-pointer"
+                className="bg-white border-4 border-double border-memory-primary p-6 rounded-sm shadow-sm flex flex-col justify-between h-40 text-left group relative overflow-hidden transform rotate-1 cursor-pointer"
               >
                 <div className="flex items-center gap-3 text-memory-primary">
                   <FileText size={18} />
@@ -180,7 +186,7 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                     
                     {/* HEADING PIECE */}
                     <div 
-                      className="p-8 bg-white border-2 border-stone-300 shadow-md relative flex flex-col justify-between"
+                      className="p-8 bg-white border-2 border-memory-primary shadow-md relative flex flex-col justify-between"
                       style={{ borderRadius: "28px 18px 22px 32px" }}
                     >
                       <div className="space-y-3">
@@ -199,7 +205,7 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
 
                     {/* DATE PIECE */}
                     <div 
-                      className="p-8 bg-white border-2 border-stone-300 shadow-md relative flex flex-col justify-between"
+                      className="p-8 bg-white border-2 border-memory-primary shadow-md relative flex flex-col justify-between"
                       style={{ borderRadius: "18px 32px 28px 16px" }}
                     >
                       <div className="space-y-3">
@@ -216,7 +222,7 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                     {/* CONTENT PIECE */}
                     <div 
                       onClick={() => setIsTextExpanded(true)}
-                      className={`p-8 bg-white border-2 border-stone-300 shadow-md relative transition-all duration-300 ${isTextExpanded ? 'ring-2 ring-memory-primary/20 md:col-span-3' : 'cursor-pointer hover:border-memory-primary flex flex-col justify-between'}`}
+                      className={`p-8 bg-white border-2 border-memory-primary shadow-md relative transition-all duration-300 ${isTextExpanded ? 'ring-2 ring-memory-primary/20 md:col-span-3' : 'cursor-pointer hover:border-memory-primary flex flex-col justify-between'}`}
                       style={{ borderRadius: "22px 20px 32px 18px" }}
                     >
                       <div className="space-y-3 w-full">
