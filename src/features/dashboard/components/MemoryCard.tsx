@@ -3,16 +3,28 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Play, MoreHorizontal, Edit2, Trash2} from "lucide-react";
+import { Play, MoreHorizontal, Edit2, Trash2, FolderOutput } from "lucide-react";
 import { MemoryItem } from "../types";
 
 interface MemoryCardProps {
-  memory: MemoryItem & { audioUrl?: string };
-  onOptionSelect?: (action: string, memoryId: string) => void;
+  // Extending the type locally to resolve all TS property errors
+  memory: MemoryItem & { 
+    audioUrl?: string; 
+    chapter_id?: string;
+    mediaUrl?: string;
+    transcription?: string;
+    duration?: string;
+    content?: string;
+    title?: string;
+    date?: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  availableChapters?: any[];
+  onOptionSelect?: (action: string, memoryId: string, targetChapterId?: string) => void;
   onPlayAudio?: (memoryId: string) => void;
 }
 
-export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardProps) {
+export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapters }: MemoryCardProps) {
   const [showOptions, setShowOptions] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -26,30 +38,24 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🎨 DYNAMIC CONTAINER STYLES BASED ON MEMORY KIND
+  // DYNAMIC CONTAINER STYLES BASED ON MEMORY KIND
   const getContainerStyles = (kind: string) => {
-    // Note: Moved 'group' to the outer wrapper and added 'z-10' here to sit cleanly above our new strokes
     const base = "relative z-10 p-6 md:p-8 transition-all duration-300 shadow-[0_4px_16px_rgba(122,46,57,0.02)] hover:shadow-[0_8px_24px_rgba(122,46,57,0.06)] ";
     
     switch (kind) {
       case "text":
-        // Soft cream with a delicate solid maroon-pink stroke
         return base + "bg-[#FAF7F2] border border-[#7a2e39]/15 rounded-2xl";
       case "photo":
-        // Crisp white with a physical scrapbook dashed maroon-pink stroke
         return base + "bg-white border-2 border-dashed border-[#7a2e39]/25 rounded-xl";
       case "audio":
-        // Organic, highly rounded bubble with a faint, soft maroon stroke
         return base + "bg-[#FDFBF9] border border-[#7a2e39]/10 rounded-[2rem]";
       case "combined":
-        // The Masterpiece: Bright white with a thick, elegant double maroon-pink stroke
         return base + "bg-white border-4 border-double border-[#7a2e39]/30 rounded-2xl";
       default:
         return base + "bg-[#FAF7F2] border border-stone-200 rounded-2xl";
     }
   };
 
-  // Helper to ensure the noise texture overlay respects the specific border-radius of the container
   const getRadiusClass = (kind: string) => {
     if (kind === "audio") return "rounded-[2rem]";
     if (kind === "photo") return "rounded-xl";
@@ -63,22 +69,18 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
           CREATIVE, DISTINCT BACKGROUND EFFECTS (DARK MAROON)
       ======================================================== */}
       
-      {/* 1. TEXT: The Stitched Journal Page (Deep maroon dashed outline offset) */}
       {memory.kind === "text" && (
         <div className="absolute -inset-1.5 border-2 border-dashed border-[#3a0f18]/60 rounded-2xl transform rotate-1 transition-all duration-300 group-hover:rotate-2 group-hover:border-[#3a0f18]/80 z-0 pointer-events-none"></div>
       )}
       
-      {/* 2. PHOTO: The Archival Matboard (Clean, solid deep maroon drop-shadow) */}
       {memory.kind === "photo" && (
         <div className="absolute inset-0 bg-[#3a0f18]/90 rounded-xl transform translate-x-2.5 translate-y-2.5 transition-all duration-300 group-hover:translate-x-3.5 group-hover:translate-y-3.5 shadow-sm z-0 pointer-events-none"></div>
       )}
       
-      {/* 3. COMBINED: The Folio Binding (Thick dark maroon book spine edge on the left) */}
       {memory.kind === "combined" && (
         <div className="absolute -inset-y-1.5 -left-2.5 right-0 border-l-8 border-[#3a0f18]/90 bg-[#3a0f18]/5 rounded-2xl transform transition-all duration-300 group-hover:-left-3.5 group-hover:border-[#3a0f18] z-0 pointer-events-none"></div>
       )}
       
-      {/* 4. AUDIO: The Vellum Soundwaves (Soft expanding concentric rings in dark maroon) */}
       {memory.kind === "audio" && (
         <>
           <div className="absolute -inset-2.5 border-[1.5px] border-[#3a0f18]/40 rounded-[2.3rem] transform transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#3a0f18]/60 z-0 pointer-events-none"></div>
@@ -91,13 +93,11 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
           MAIN ARTICLE CONTENT
       ======================================================== */}
       <article className={getContainerStyles(memory.kind)}>
-        {/* Subtle Noise Texture for Warmth */}
         <div 
           className={`absolute inset-0 opacity-[0.035] pointer-events-none ${getRadiusClass(memory.kind)}`}
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
         />
 
-        {/* MINIMAL HEADER - Only the Date and Options */}
         <div className="relative flex items-start justify-between mb-6 z-10">
           <div className="flex items-center">
             <span className="text-[11px] font-sans uppercase tracking-[0.2em] text-[#7a2e39]/70 font-bold">
@@ -122,7 +122,7 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-1 w-36 bg-[#FAF7F2] border border-[#7a2e39]/20 rounded-xl shadow-xl py-1.5 z-20"
+                  className="absolute right-0 mt-1 w-44 bg-[#FAF7F2] border border-[#7a2e39]/20 rounded-xl shadow-xl py-1.5 z-20"
                 >
                   <button
                     type="button"
@@ -138,6 +138,26 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio }: MemoryCardPr
                   >
                     <Trash2 size={14} /> Remove
                   </button>
+
+                  {/* FR5: Move to Chapter Override */}
+                  {availableChapters && availableChapters.length > 0 && (
+                    <>
+                      <div className="h-px bg-stone-200 my-1 mx-2"></div>
+                      <div className="px-4 py-1.5 text-[10px] font-bold text-stone-400 uppercase tracking-wider">Move to Chapter</div>
+                      {availableChapters.map(chapter => (
+                        <button
+                          key={chapter.id}
+                          type="button"
+                          onClick={() => { setShowOptions(false); onOptionSelect?.("move", memory.id, chapter.id); }}
+                          className={`w-full text-left px-4 py-2 text-[12px] font-sans font-medium hover:bg-[#EFECE6] transition-colors flex items-center gap-2 cursor-pointer ${memory.chapter_id === chapter.id ? 'text-memory-primary bg-stone-100/50' : 'text-stone-600'}`}
+                        >
+                          <FolderOutput size={12} className="shrink-0" /> 
+                          <span className="truncate">{chapter.title}</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+
                 </motion.div>
               )}
             </AnimatePresence>

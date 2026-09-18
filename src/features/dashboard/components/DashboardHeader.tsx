@@ -1,9 +1,6 @@
 "use client";
-
-import React from "react";
 import { motion } from "framer-motion";
 import { Search, Lock, Copy, Check } from "lucide-react";
-
 interface DashboardHeaderProps {
   name: string;
   setName: (name: string) => void;

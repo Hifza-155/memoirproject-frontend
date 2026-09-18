@@ -5,6 +5,7 @@ export interface MemoryItem {
   content: string;
   date: string;
   author: string;
+  chapter_id?: string;
   mediaUrl?: string | null;
   duration?: string;
   transcription?: string | null;
