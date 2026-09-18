@@ -6,7 +6,6 @@ import { LoginInput, SignupInput } from "./schemas";
 export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [missingMemoirError, setMissingMemoirError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
@@ -44,45 +43,35 @@ export function useAuth() {
       const accessToken = res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
-        // Force the API client to use the new token immediately
         window.dispatchEvent(new Event("storage")); 
       }
 
       // --- SMART MEMOIR CHECK & CREATION LOGIC ---
       try {
-        // FIX: Add a tiny 500ms delay to prevent the 'iat' clock skew race condition
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Check the database: Does this user already have memoirs?
         const memoirs = await api.getUserMemoirs();
         
         if (!memoirs || memoirs.length === 0) {
-          // NO MEMOIRS FOUND: Check if we have data from the onboarding screen
           const pendingMemoirStr = localStorage.getItem("pending_memoir");
           
           if (pendingMemoirStr) {
-            // We have onboarding data! Create the memoir right now.
             const pendingMemoir = JSON.parse(pendingMemoirStr);
             const createdMemoir = await api.createMemoir(pendingMemoir);
             const activeMemoir = createdMemoir.data || createdMemoir;
             
-            // Save it to session and clean up the pending data
             localStorage.setItem("active_memoir", JSON.stringify(activeMemoir));
             localStorage.removeItem("pending_memoir");
           } else {
-            // Edge case: No memoirs in DB AND they somehow skipped onboarding
-            setMissingMemoirError(
-              "Account verified, but no memoir setup data was found. Please complete the setup."
-            );
-            setLoading(false);
-            return false; // Halt execution
+            // Edge case: Logged in, no memoirs in DB, AND skipped onboarding.
+            // Silently redirect to start onboarding naturally.
+            router.push("/memory-subject-selection");
+            return false; 
           }
         } else {
-          // MEMOIRS EXIST: The user is logging in again. 
-          // Do NOT create a new one. Just load their existing memoir.
+          // MEMOIRS EXIST: Load their existing memoir.
           localStorage.setItem("active_memoir", JSON.stringify(memoirs[0]));
-          
-          // Safety cleanup: If they re-did onboarding by accident, wipe the stale pending data
           localStorage.removeItem("pending_memoir");
         }
       } catch (memoirCheckError) {
@@ -118,29 +107,23 @@ export function useAuth() {
 
       const accessToken = res.access_token || res.token || res.data?.access_token;
       
-      // If we got the token, the user is brand new and successfully created!
       if (accessToken) {
+        // User created and session started!
         localStorage.setItem("access_token", accessToken);
         window.dispatchEvent(new Event("storage"));
         await processPendingMemoir();
-        
-        // Return true immediately. 
-        // This tells SignupForm.tsx to run router.push("/dashboard") smoothly.
         return true; 
       } else {
-        // Fallback in case Supabase blocks it
-        throw new Error("Registration failed to start a session. Please try logging in.");
+        // FIX: Registration successful, but awaiting email verification.
+        // Set success message and return FALSE so the UI does NOT redirect.
+        setSuccessMessage("Account created successfully! Please check your email to verify your account.");
+        return false;
       }
 
     } catch (err: unknown) {
-      // THIS CATCHES THE DUPLICATE EMAIL ERROR FROM THE BACKEND
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred during signup";
-      
-      // Sets the red error banner
       setServerError(errorMessage); 
-      
-      // Returning false tells SignupForm.tsx NOT to redirect to the dashboard
       return false; 
     } finally {
       setLoading(false);
@@ -153,7 +136,6 @@ export function useAuth() {
     successMessage,
     setServerError,
     setSuccessMessage,
-    missingMemoirError,
     handleLogin,
     handleSignup,
   };

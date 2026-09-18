@@ -12,8 +12,7 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   
-  // Added missingMemoirError from useAuth
-  const { loading, serverError, setServerError, missingMemoirError, handleLogin } = useAuth();
+  const { loading, serverError, setServerError, handleLogin } = useAuth();
 
   const {
     register,
@@ -54,31 +53,15 @@ export default function LoginForm() {
           </h1>
         </div>
 
-        {/* 1. Missing Memoir Critical Alert */}
-        {missingMemoirError && (
-          <div role="alert" className="mb-6 p-5 bg-amber-50 border-2 border-amber-300 text-amber-900 rounded-xl text-sm flex flex-col gap-3 shadow-sm">
-            <p className="font-medium text-[15px]">
-              <span className="font-bold uppercase tracking-wider text-amber-700 text-xs block mb-1">Setup Incomplete</span>
-              {missingMemoirError}
-            </p>
-            <Link 
-              href="/onboarding" 
-              className="inline-block bg-amber-200 text-amber-900 font-bold px-4 py-2 rounded-lg text-center hover:bg-amber-300 transition-colors"
-            >
-              Complete Memoir Setup &rarr;
-            </Link>
-          </div>
-        )}
-
         {/* Server Error / Info Banners */}
-        {serverError && !missingMemoirError && (
-          <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+        {serverError && (
+          <div role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium">
             Login Failed: {serverError}
           </div>
         )}
 
-        {infoMessage && !missingMemoirError && (
-          <div role="status" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+        {infoMessage && (
+          <div role="status" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm font-medium">
             {infoMessage}
           </div>
         )}
