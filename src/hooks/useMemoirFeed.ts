@@ -24,6 +24,7 @@ interface BackendMemory {
   body_text?: string;
   occurred_start?: string;
   created_at?: string;
+  chapter_id?: string; // Added chapter_id mapping
   media_assets?: BackendAsset[];
   memory_media?: Array<{ media_asset?: BackendAsset } | BackendAsset>;
 }
@@ -39,7 +40,6 @@ export function useMemoirFeed(memoirId: string) {
     if (!memoirId) return;
     
     // Only trigger a new loading state if this is a manual refresh
-    // This clears the "Calling setState synchronously within an effect" warning
     if (isRefresh) {
       setLoading(true);
     }
@@ -49,10 +49,10 @@ export function useMemoirFeed(memoirId: string) {
       
       const normalizedMemories: MemoryItem[] = data.map((item: BackendMemory) => {
         const mediaList: BackendAsset[] = item.media_assets || 
-                          (Array.isArray(item.memory_media) 
-                            ? item.memory_media.map((mm) => ('media_asset' in mm ? mm.media_asset : mm) as BackendAsset) 
-                            : []) || 
-                          [];
+                        (Array.isArray(item.memory_media) 
+                          ? item.memory_media.map((mm) => ('media_asset' in mm ? mm.media_asset : mm) as BackendAsset) 
+                          : []) || 
+                        [];
         
         const photoAsset = mediaList.find((m) => m.kind === 'photo' || m.kind === 'image' || m.mime_type?.includes('image'));
         const audioAsset = mediaList.find((m) => m.kind === 'audio' || m.mime_type?.includes('audio'));
@@ -84,6 +84,7 @@ export function useMemoirFeed(memoirId: string) {
           date: item.occurred_start || item.created_at?.split("T")[0] || "",
           kind: kind,
           author: "Owner",
+          chapter_id: item.chapter_id, // Attached chapter_id here
           mediaUrl: getUrl(photoAsset), 
           audioUrl: getUrl(audioAsset), 
           transcription: transcriptText,
@@ -107,5 +108,6 @@ export function useMemoirFeed(memoirId: string) {
 
     return () => clearTimeout(timer);
   }, [fetchFeed]);
+
   return { memories, loading, error, refreshFeed: () => fetchFeed(true) };
 }
