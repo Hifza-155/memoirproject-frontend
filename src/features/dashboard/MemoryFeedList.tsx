@@ -6,7 +6,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { api } from "@/lib/api/client";
 
 interface MediaAsset {
@@ -32,6 +31,45 @@ interface MemoryRecord {
   created_at: string;
   media_assets?: MediaAsset[];
   memory_media?: Array<{ media_asset?: MediaAsset }>;
+}
+
+/**
+ * Safely resolves media URLs to prevent Next.js image parser crashes.
+ */
+function resolveMediaUrl(asset?: MediaAsset): string | null {
+  if (!asset) return null;
+
+  // 1. Prefer playback_url if valid absolute URL
+  if (asset.playback_url && typeof asset.playback_url === "string") {
+    if (
+      asset.playback_url.startsWith("http://") ||
+      asset.playback_url.startsWith("https://") ||
+      asset.playback_url.startsWith("/")
+    ) {
+      return asset.playback_url;
+    }
+  }
+
+  // 2. If storage_key is an absolute URL or local path
+  if (asset.storage_key && typeof asset.storage_key === "string") {
+    if (
+      asset.storage_key.startsWith("http://") ||
+      asset.storage_key.startsWith("https://") ||
+      asset.storage_key.startsWith("/")
+    ) {
+      return asset.storage_key;
+    }
+
+    // 3. Fallback: Convert relative storage key to Supabase public storage URL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (supabaseUrl) {
+      const cleanBase = supabaseUrl.replace(/\/+$/, "");
+      const cleanKey = asset.storage_key.replace(/^\/+/, "");
+      return `${cleanBase}/storage/v1/object/public/memoir-media/${cleanKey}`;
+    }
+  }
+
+  return null;
 }
 
 export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
@@ -90,7 +128,6 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
   return (
     <div className="space-y-8 w-full max-w-4xl mx-auto">
       {memories.map((memory) => {
-        // Match backend response structure (media_assets)
         const mediaItems =
           memory.media_assets ||
           memory.memory_media
@@ -102,6 +139,9 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
 
         const isAudioMemory = Boolean(audioAsset);
         const isPhotoMemory = Boolean(photoAsset);
+
+        const photoUrl = resolveMediaUrl(photoAsset);
+        const audioUrl = resolveMediaUrl(audioAsset);
 
         const dateFormatted = memory.occurred_start
           ? new Date(memory.occurred_start).toLocaleDateString(undefined, {
@@ -115,7 +155,6 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
 
         return (
           <div key={memory.id} className="relative w-full">
-            {/* Paper stack background effect */}
             <div className="absolute inset-x-2 top-2 bottom-1 rounded-sm border border-memory-maroon/20 bg-memory-maroon/5" />
 
             <div className="relative z-10 bg-white p-6 md:p-8 rounded-2xl border border-memory-maroon/20 shadow-xs space-y-4">
@@ -125,7 +164,6 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
                   {dateFormatted}
                 </span>
 
-                {/* Visual badge indicating memory type */}
                 {isAudioMemory && (
                   <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
                     🎙️ Voice Recording
@@ -150,20 +188,25 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
                     {memory.title}
                   </h3>
                 )}
-                <p className="font-serif text-sm text-memory-primary/90 leading-relaxed whitespace-pre-line">
-                  {resolvedText}
-                </p>
+                {resolvedText && (
+                  <p className="font-serif text-sm text-memory-primary/90 leading-relaxed whitespace-pre-line">
+                    {resolvedText}
+                  </p>
+                )}
               </div>
 
               {/* PHOTO MEMORY VISUAL */}
-              {photoAsset && (
+              {photoAsset && photoUrl && (
                 <div className="mt-4 pt-4 border-t border-memory-maroon/10 text-center">
                   <div className="rounded-xl overflow-hidden relative w-full h-72 max-w-md mx-auto border border-memory-maroon/15 bg-memory-bg">
-                    <Image
-                      src={photoAsset.playback_url || photoAsset.storage_key || ""}
-                      alt={photoAsset.caption || "Memory photo"}
-                      fill
-                      className="object-cover"
+                    {/* Plain img tag: next/image's optimizer silently fails on
+                        Supabase Storage URLs that aren't whitelisted in next.config.js,
+                        which is why photos weren't appearing in the feed. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photoUrl}
+                      alt={photoAsset.caption || memory.title || "Memory photo"}
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   </div>
                   {photoAsset.caption && (
@@ -175,12 +218,12 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
               )}
 
               {/* AUDIO MEMORY VISUAL & TRANSCRIPT */}
-              {audioAsset && (
+              {audioAsset && audioUrl && (
                 <div className="mt-4 pt-4 border-t border-memory-maroon/10 bg-memory-light p-4 rounded-xl space-y-3">
                   <div className="flex items-center gap-4">
-                    <audio 
+                    <audio
                       id={`audio-player-${memory.id}`}
-                      src={audioAsset.playback_url || audioAsset.storage_key} 
+                      src={audioUrl}
                       onEnded={() => setPlayingAudioId(null)}
                       preload="metadata"
                     />
@@ -188,14 +231,18 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
                     <button
                       type="button"
                       onClick={() => {
-                        const audioEl = document.getElementById(`audio-player-${memory.id}`) as HTMLAudioElement;
+                        const audioEl = document.getElementById(
+                          `audio-player-${memory.id}`
+                        ) as HTMLAudioElement;
                         if (!audioEl) return;
 
                         if (playingAudioId === memory.id) {
                           audioEl.pause();
                           setPlayingAudioId(null);
                         } else {
-                          document.querySelectorAll("audio").forEach((el) => el.pause());
+                          document
+                            .querySelectorAll("audio")
+                            .forEach((el) => el.pause());
                           audioEl.play();
                           setPlayingAudioId(memory.id);
                         }
@@ -210,18 +257,22 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
 
                     <div className="flex-1 w-full space-y-1">
                       <div className="flex justify-between text-[11px] text-memory-muted font-mono">
-                        <span>{playingAudioId === memory.id ? "Playing voice recording..." : "Voice Note Recording"}</span>
+                        <span>
+                          {playingAudioId === memory.id
+                            ? "Playing voice recording..."
+                            : "Voice Note Recording"}
+                        </span>
                         <span>AssemblyAI Audio</span>
                       </div>
-                      <audio 
-                        controls 
-                        src={audioAsset.playback_url || audioAsset.storage_key} 
-                        className="w-full h-8 mt-1 opacity-90" 
+                      <audio
+                        controls
+                        src={audioUrl}
+                        className="w-full h-8 mt-1 opacity-90"
                       />
                     </div>
                   </div>
 
-                  {/* --- AI TRANSCRIPTION DISPLAY BOX --- */}
+                  {/* AI TRANSCRIPTION DISPLAY BOX */}
                   <div className="bg-white/80 border border-memory-maroon/10 rounded-lg p-3 space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-memory-accent">
@@ -229,13 +280,18 @@ export default function MemoryFeedList({ memoirId }: { memoirId: string }) {
                       </span>
                       {audioAsset.transcript?.confidence && (
                         <span className="text-[10px] text-memory-muted font-mono">
-                          Confidence: {Math.round(audioAsset.transcript.confidence * 100)}%
+                          Confidence:{" "}
+                          {Math.round(
+                            audioAsset.transcript.confidence * 100
+                          )}
+                          %
                         </span>
                       )}
                     </div>
-                    
+
                     <p className="font-serif text-xs text-memory-primary/90 italic leading-relaxed">
-                      {audioAsset.transcript?.display_text || "Transcript not available yet (requires public audio URL access for cloud transcription)."}
+                      {audioAsset.transcript?.display_text ||
+                        "Transcript not available yet."}
                     </p>
                   </div>
                 </div>

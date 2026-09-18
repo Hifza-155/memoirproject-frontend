@@ -1,48 +1,83 @@
-/**
- * @file OwnerDashboardPage.tsx
- * @description Main dashboard view incorporating the MemoryFeed input capture component
- * and the MemoryFeedList live database renderer.
- */
-
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { MetricsGrid } from "./components/MetricsGrid";
 import { MemoryFeed } from "./components/MemoryFeed";
 import MemoryFeedList from "./MemoryFeedList";
 import { BookCoverExperience } from "./BookCoverExperience";
-import { useRouter } from "next/navigation";
+import { ChapterOrganizer } from "./components/ChapterOrganizer";
+
+interface MemoirData {
+  id?: string;
+  subject_name?: string;
+  subject_born_on?: string;
+  subject_died_on?: string;
+  subject_is_living?: boolean;
+}
 
 interface MemoirLocalStorageData {
-  data?: {
-    id?: string;
-  };
+  data?: MemoirData;
   id?: string;
+  subject_name?: string;
+  subject_born_on?: string;
+  subject_died_on?: string;
+  subject_is_living?: boolean;
 }
 
 export default function OwnerDashboardPage() {
-  // State management for active navigation tab and active memoir container ID
   const [activeTab, setActiveTab] = useState<string>("feed");
   const [memoirId, setMemoirId] = useState<string>("");
+  const [subjectName, setSubjectName] = useState<string>("Ahmad Khan");
+  const [dob, setDob] = useState<string>("1942");
+  const [dod, setDod] = useState<string>("2024");
+
   const router = useRouter();
 
-  // Retrieve active memoir identifier securely from local storage on mount
+  // Changes whenever a new memory is successfully created.
+  // This forces MemoryFeedList to remount and fetch the latest data.
+  const [feedRefreshKey, setFeedRefreshKey] = useState<number>(0);
+
   useEffect(() => {
     try {
       const savedMemoir = localStorage.getItem("active_memoir");
+
       if (savedMemoir) {
-        const parsed = JSON.parse(savedMemoir) as MemoirLocalStorageData;
-        const activeId = parsed.data?.id || parsed.id || "";
-        setMemoirId(activeId);
+        const parsed = JSON.parse(
+          savedMemoir
+        ) as MemoirLocalStorageData;
+
+        const memoirObj = parsed.data || parsed;
+
+        if (memoirObj.id) {
+          setMemoirId(memoirObj.id);
+        }
+
+        if (memoirObj.subject_name) {
+          setSubjectName(memoirObj.subject_name);
+        }
+
+        if (memoirObj.subject_born_on) {
+          setDob(memoirObj.subject_born_on.substring(0, 4));
+        }
+
+        if (memoirObj.subject_died_on) {
+          setDod(memoirObj.subject_died_on.substring(0, 4));
+        } else if (memoirObj.subject_is_living) {
+          setDod("Present");
+        }
       }
     } catch (err: unknown) {
-      console.error("Failed to read active memoir from localStorage", err);
+      console.error(
+        "Failed to read active memoir from localStorage",
+        err
+      );
     }
   }, []);
 
-  // Metrics data configuration for dashboard overview
   const metricsData = [
     {
       label: "Total Entries",
@@ -58,10 +93,10 @@ export default function OwnerDashboardPage() {
     },
   ];
 
-  // Handle user logout action and clear authentication tokens
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("active_memoir");
+
     router.push("/");
   };
 
@@ -71,24 +106,21 @@ export default function OwnerDashboardPage() {
       subtitle="A preserved record of personal stories, reflections, and voice notes."
     >
       <div className="flex min-h-screen overflow-hidden rounded-2xl border border-memory-border bg-memory-bg text-memory-primary shadow-lg">
-        {/* =========================
-            SIDEBAR NAVIGATION
-        ========================= */}
-        <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <DashboardSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          memoirId={memoirId}
+        />
 
-        {/* =========================
-            MAIN CONTENT AREA
-        ========================= */}
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           <DashboardHeader
-            subjectName="Ahmad Khan"
-            dob="1942"
-            dod="2024"
+            subjectName={subjectName}
+            dob={dob}
+            dod={dod}
             onLogout={handleLogout}
           />
 
           <div className="mx-auto w-full max-w-6xl px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
-            {/* Dashboard Banner Intro */}
             <div className="mb-7">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-memory-accent">
                 Living Archive
@@ -104,82 +136,76 @@ export default function OwnerDashboardPage() {
               </p>
             </div>
 
-            {/* Metrics Overview Grid */}
             <div className="mb-9">
               <MetricsGrid metrics={metricsData} />
             </div>
 
-            {/* =========================================
-                TAB: FEED (Capture Form + Live Feed List)
-            ========================================= */}
+            {/* =========================
+                FEED TAB
+               ========================= */}
             {activeTab === "feed" && (
               <div className="space-y-10">
-                {/* 1. MemoryFeed Component: Interactive entry capture cards & forms */}
-                <MemoryFeed 
-                  memories={[]} 
-                  memoirId={memoirId} 
+                <MemoryFeed
+                  memories={[]}
+                  memoirId={memoirId}
                   onSuccess={() => {
-                    // Automatically reload feed view when a new memory is successfully saved
-                    window.location.reload();
+                    // Incrementing this value changes the key on
+                    // MemoryFeedList, causing it to remount and
+                    // retrieve the newly-created memory.
+                    setFeedRefreshKey((prev) => prev + 1);
                   }}
                 />
 
-                {/* 2. MemoryFeedList Component: Fetches and displays live database records */}
+                {/* The comment must be outside the ternary expression. */}
                 {memoirId ? (
-                  <MemoryFeedList memoirId={memoirId} />
+                  <MemoryFeedList
+                    key={feedRefreshKey}
+                    memoirId={memoirId}
+                  />
                 ) : (
-                  <div className="text-center py-12 text-memory-muted text-sm bg-white rounded-2xl border border-memory-maroon/20 p-6">
-                    No active memoir container found. Please complete onboarding.
+                  <div className="rounded-2xl border border-memory-maroon/20 bg-white p-6 py-12 text-center text-sm text-memory-muted">
+                    No active memoir container found. Please complete
+                    onboarding.
                   </div>
                 )}
               </div>
             )}
 
             {/* =========================
-                TAB: MEDIA VAULT
-            ========================= */}
-            {activeTab === "media" && (
-              <section className="rounded-3xl border border-memory-border bg-memory-card p-10 text-center shadow-sm">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-memory-accent bg-memory-light font-serif text-xl font-bold text-memory-maroon">
-                  M
-                </div>
-
-                <h3 className="mt-5 font-serif text-xl font-bold text-memory-maroon">
-                  Media Vault
-                </h3>
-
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-memory-muted">
-                  Your photographs and other preserved media will appear here.
-                </p>
-
-                <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-memory-accent">
-                  Coming soon
-                </p>
-              </section>
+                CHAPTERS TAB
+               ========================= */}
+            {activeTab === "chapters" && (
+              <ChapterOrganizer memoirId={memoirId} />
             )}
 
             {/* =========================
-                TAB: COLLABORATORS
-            ========================= */}
+                MEDIA TAB
+               ========================= */}
+            {activeTab === "media" && (
+              <div className="rounded-2xl border border-memory-border bg-white p-8">
+                <h2 className="font-serif text-xl font-semibold text-memory-maroon">
+                  Media Vault
+                </h2>
+
+                <p className="mt-2 text-sm text-memory-muted">
+                  Your media collection will appear here.
+                </p>
+              </div>
+            )}
+
+            {/* =========================
+                TEAM TAB
+               ========================= */}
             {activeTab === "team" && (
-              <section className="rounded-3xl border border-memory-border bg-memory-card p-10 text-center shadow-sm">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-memory-accent bg-memory-light font-serif text-xl font-bold text-memory-maroon">
-                  M
-                </div>
-
-                <h3 className="mt-5 font-serif text-xl font-bold text-memory-maroon">
+              <div className="rounded-2xl border border-memory-border bg-white p-8">
+                <h2 className="font-serif text-xl font-semibold text-memory-maroon">
                   Collaborators
-                </h3>
+                </h2>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-memory-muted">
-                  Family members and invited contributors will be managed from
-                  this space.
+                <p className="mt-2 text-sm text-memory-muted">
+                  Your collaborators and team members will appear here.
                 </p>
-
-                <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-memory-accent">
-                  Coming soon
-                </p>
-              </section>
+              </div>
             )}
           </div>
         </main>

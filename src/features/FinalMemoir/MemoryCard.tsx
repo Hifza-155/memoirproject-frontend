@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import { MemoryItem } from "./types";
 
 interface ReplyItem {
@@ -28,7 +27,6 @@ interface MemoryCardProps {
   commentInputValue: string;
   setCommentInputValue: (val: string) => void;
   handlePostComment: (id: string) => void;
-  // Added optional handlers/state for replies to support full comment-reply threads
   handlePostReply?: (commentId: string, replyText: string) => void;
 }
 
@@ -38,7 +36,6 @@ export default function MemoryCard({
   commentInputValue, setCommentInputValue, handlePostComment,
   handlePostReply
 }: MemoryCardProps) {
-  // Local state to track which comment currently has an active reply input box open
   const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
   const [replyTextMap, setReplyTextMap] = useState<{ [commentId: string]: string }>({});
 
@@ -53,70 +50,70 @@ export default function MemoryCard({
   };
 
   return (
-    <article className="relative group flex flex-col pt-1 pb-2">
-      <div className="relative book-text font-serif leading-[1.7] text-[15px] text-stone-800 text-justify w-full clearfix">
+    <article className="relative group flex flex-col pt-1 pb-4 mb-2">
+      <div className="relative book-text font-serif leading-[1.7] text-[15px] text-stone-800 w-full">
         
-        {/* Floated Image */}
-        {mem.imageUrl && (
-          <figure className="float-left w-[45%] md:w-[40%] max-w-[220px] bg-white p-2 shadow-sm border border-stone-200 transform -rotate-1 mr-5 mb-4 mt-1 relative z-10 group-hover:shadow-md transition-shadow">
-            <div className="relative w-full aspect-[4/3] bg-stone-100 overflow-hidden">
-              <Image src={mem.imageUrl} alt={mem.imageCaption || "Memory archive photo"} fill className="object-cover" />
-            </div>
-            {mem.imageCaption && (
-              <figcaption className="pt-2 text-[10px] font-serif italic text-stone-600 text-center leading-tight">
-                {mem.imageCaption}
-              </figcaption>
-            )}
-          </figure>
-        )}
+        {mem.text && mem.text.trim() !== "" ? (
+          mem.text.split('\n\n').map((para, pIdx) => {
+            const paragraphs = mem.text.split('\n\n');
+            if (pIdx === 0) {
+              let firstSentence = "";
+              let restOfPara = para;
 
-        {/* Standard Typeset Paragraphs */}
-        {mem.text && mem.text.split('\n\n').map((para, pIdx) => {
-          if (pIdx === 0) {
-            let firstSentence = "";
-            let restOfPara = para;
+              if (isHighlighted) {
+                const firstDot = para.indexOf('.');
+                firstSentence = para.substring(0, firstDot + 1);
+                restOfPara = para.substring(firstDot + 1);
+              }
 
-            if (isHighlighted) {
-              const firstDot = para.indexOf('.');
-              firstSentence = para.substring(0, firstDot + 1);
-              restOfPara = para.substring(firstDot + 1);
+              return (
+                <p key={pIdx} className="mb-2.5">
+                  {mem.title && (
+                    <span className="font-bold text-stone-900 uppercase tracking-widest text-[11px] mr-3">
+                      {mem.title}
+                    </span>
+                  )}
+                  {isHighlighted ? (
+                    <>
+                      <span className="font-bold text-memory-maroon">{firstSentence}</span>
+                      {restOfPara}
+                    </>
+                  ) : (
+                    para
+                  )}
+                </p>
+              );
+            } else {
+              return (
+                <p key={pIdx} className="indent-6 mb-2.5">
+                  {para}
+                  {pIdx === paragraphs.length - 1 && (
+                    <span className="text-[10px] font-sans uppercase tracking-[0.1em] text-stone-400 font-semibold ml-3 whitespace-nowrap">
+                      — Remembered by {mem.author} &middot; {mem.date}
+                    </span>
+                  )}
+                </p>
+              );
             }
-
-            return (
-              <p key={pIdx} className="mb-2.5">
-                {mem.title && (
-                  <span className="font-bold text-stone-900 uppercase tracking-widest text-[11px] mr-3">
-                    {mem.title}
-                  </span>
-                )}
-                {isHighlighted ? (
-                  <>
-                    <span className="font-bold text-memory-maroon">{firstSentence}</span>
-                    {restOfPara}
-                  </>
-                ) : (
-                  para
-                )}
-              </p>
-            );
-          } else {
-            return (
-              <p key={pIdx} className="indent-6 mb-2.5">
-                {para}
-                {pIdx === mem.text.split('\n\n').length - 1 && (
-                  <span className="text-[10px] font-sans uppercase tracking-[0.1em] text-stone-400 font-semibold ml-3 whitespace-nowrap">
-                    — Remembered by {mem.author} &middot; {mem.date}
-                  </span>
-                )}
-              </p>
-            );
-          }
-        })}
-        <div className="clear-both"></div>
+          })
+        ) : (
+          mem.title && (
+             <p className="mb-2.5 text-stone-600 italic">
+               <span className="font-bold text-stone-900 uppercase tracking-widest text-[11px] mr-3 not-italic">
+                 {mem.title}
+               </span>
+               A memory shared by {mem.author} &middot; {mem.date}
+             </p>
+          )
+        )}
       </div>
 
+      {/* 🔴 REMOVED: per-memory image gallery block.
+          Images for the whole chapter are now rendered ONCE, 
+          in the horizontal gallery at the top of the chapter (page.tsx). */}
+
       {/* ACTION BUTTONS */}
-      <div className="flex justify-start items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 mb-4">
+      <div className="flex justify-start items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1 mb-4">
         <button 
           type="button"
           onClick={() => handleToggleReaction(mem.id)}
@@ -138,7 +135,6 @@ export default function MemoryCard({
         </button>
       </div>
 
-      {/* MARGINALIA SECTION (Comments & Replies) */}
       {isCommentsOpen && (
         <div className="mb-4 pt-3 border-t border-stone-200/50 space-y-3 text-xs font-sans animate-fadeIn px-4">
           <h5 className="font-serif uppercase tracking-widest text-memory-maroon font-semibold text-[9px] text-center">
@@ -158,7 +154,6 @@ export default function MemoryCard({
                   </div>
                   <p className="text-stone-600 text-[11px] font-serif italic">{c.text}</p>
                   
-                  {/* Nested Replies Stream */}
                   {c.replies && c.replies.length > 0 && (
                     <div className="pl-3 mt-2 border-l border-stone-200 space-y-2">
                       {c.replies.map((r) => (
@@ -173,7 +168,6 @@ export default function MemoryCard({
                     </div>
                   )}
 
-                  {/* Reply Action Trigger */}
                   <div className="pt-1 flex justify-end">
                     <button
                       type="button"
@@ -184,7 +178,6 @@ export default function MemoryCard({
                     </button>
                   </div>
 
-                  {/* Inline Reply Input Box */}
                   {activeReplyCommentId === c.id && (
                     <div className="flex gap-2 pt-1 pl-2 items-center">
                       <input 
@@ -208,7 +201,6 @@ export default function MemoryCard({
             )}
           </div>
 
-          {/* Main Comment Input Box */}
           <div className="flex gap-2 pt-2 justify-center">
             <input 
               type="text"
