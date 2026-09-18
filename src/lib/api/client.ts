@@ -9,8 +9,6 @@ function getAuthHeaders(): Record<string, string> {
   };
 }
 
-// Centralized wrapper to make sure every request sent to your 
-// FastAPI backend is properly formatted, secure, and pointed to the right address
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -122,9 +120,17 @@ export interface CommentCreatePayload {
   body: string;
 }
 
+export interface ChapterProposalPayload {
+  chapters: {
+    title: string;
+    summary?: string; // Added summary
+    memories: { id: string; title: string; date: string | null }[];
+  }[];
+}
+
 export const api = {
   async signup(payload: SignupPayload) {
-    const res = await apiFetch("/api/auth/signup/", {
+    const res = await apiFetch("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -136,7 +142,7 @@ export const api = {
   },
 
   async login(payload: { email: string; password: string }) {
-    const res = await apiFetch("/api/auth/login/", {
+    const res = await apiFetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -159,7 +165,15 @@ export const api = {
     return res.json();
   },
 
-  // Aligned with backend prefix /api/memories/feed/{memoir_id}
+  async getLiveMemoir(memoirId: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/live`, {
+      method: "GET",
+    });
+    if (!res.ok) throw new Error("Failed to fetch live memoir data");
+    const json = await res.json();
+    return json.data || json;
+  },
+
   async getMemoirFeed(memoirId: string) {
     const res = await apiFetch(`/api/memories/feed/${memoirId}`, {
       method: "GET",
@@ -169,9 +183,8 @@ export const api = {
     return json.data || json;
   },
 
-  // Memory
   async createMemory(payload: MemoryCreatePayload) {
-    const res = await apiFetch("/api/memories/", {
+    const res = await apiFetch("/api/memories", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -183,14 +196,13 @@ export const api = {
   },
 
   async deleteMemory(memoryId: string) {
-    const res = await apiFetch(`/api/memories/${memoryId}/`, {
+    const res = await apiFetch(`/api/memories/${memoryId}`, {
       method: "DELETE",
     });
     if (!res.ok) throw new Error("Failed to delete memory");
     return res.json();
   },
 
-  // Presigned Url for object storage storing 
   async getPresignedUrl(payload: PresignedUrlPayload) {
     const res = await apiFetch("/api/media/presigned-url", {
       method: "POST",
@@ -205,7 +217,6 @@ export const api = {
     return responseJson.data || responseJson;
   },
 
-  // To upload meta data
   async registerMediaMetadata(payload: MediaMetadataPayload) {
     const res = await apiFetch("/api/media/metadata", {
       method: "POST",
@@ -221,7 +232,6 @@ export const api = {
     return responseJson.data || responseJson;
   },
 
-  // Comments
   async getComments(memoryId: string): Promise<CommentEntity[]> {
     const res = await apiFetch(`/api/comments/?memory_id=${memoryId}`, {
       method: "GET",
@@ -255,7 +265,6 @@ export const api = {
     return data.comment || data;
   },
 
-  // PDF Export
   async requestMemoirExport(memoirId: string) {
     if (!memoirId) {
       throw new Error("No active memoir ID found.");
@@ -274,7 +283,6 @@ export const api = {
     return res.json();
   },
 
-  // PDF Export Status Polling
   async getLatestExportStatus(memoirId: string) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/export/latest`, {
       method: 'GET',
@@ -285,16 +293,43 @@ export const api = {
     }
 
     return res.json();
-  }
-,
-  // Search
+  },
+
   async searchMemories(memoirId: string, query: string) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`, {
-    method: "GET",
-  });
-  if (!res.ok) throw new Error("Failed to search archive");
-  const json = await res.json();
-  return json.data || json;
+      method: "GET",
+    });
+    if (!res.ok) throw new Error("Failed to search archive");
+    const json = await res.json();
+    return json.data || json;
+  },
+
+   async proposeChapters(memoirId: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/propose`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to generate AI chapter proposal");
+    const json = await res.json();
+    return json.data;
+  },
+
+  // ADD THIS NEW METHOD
+  async refineChapters(memoirId: string, currentProposal: ChapterProposalPayload, prompt: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/refine`, {
+      method: "POST",
+      body: JSON.stringify({ current_proposal: currentProposal, user_prompt: prompt }),
+    });
+    if (!res.ok) throw new Error("Failed to refine AI chapter proposal");
+    const json = await res.json();
+    return json.data;
+  },
+
+  async applyChapters(memoirId: string, payload: ChapterProposalPayload) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/apply`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error("Failed to apply chapter layout");
+    return res.json();
   },
 };
-

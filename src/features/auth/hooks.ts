@@ -1,3 +1,4 @@
+// src/features/auth/hooks.ts
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
@@ -38,10 +39,10 @@ export function useAuth() {
         password: data.password,
       });
 
-      // Extract and store access token in localStorage for Bearer auth
       const accessToken = res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
         localStorage.setItem("access_token", accessToken);
+        await processPendingMemoir(); // FIX: Added pending memoir creation for logging in
       }
 
       router.push("/dashboard");
