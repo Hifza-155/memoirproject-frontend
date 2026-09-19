@@ -5,7 +5,7 @@
 
 'use client';
 
-import { ArrowLeft, Heart} from 'lucide-react';
+import { ArrowLeft, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -14,13 +14,12 @@ export default function MemoryMoment() {
 
   return (
     <section className="min-h-screen bg-memory-bg text-memory-primary flex items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="w-full max-w-180 bg-white border border-memory-border rounded-3xl px-8 md:px-12 py-10 shadow-sm"
       >
-
         {/* Back */}
         <div className="mb-6">
           <button
@@ -34,7 +33,6 @@ export default function MemoryMoment() {
 
         {/* Heading */}
         <div className="text-center mb-8">
-          
           <h1 className="font-serif text-3xl md:text-4xl text-memory-primary mb-3">
             Your first memory is ready
           </h1>
@@ -46,7 +44,7 @@ export default function MemoryMoment() {
 
         {/* Memoir Preview Container (Mirrors Final Memoir Structure) */}
         <div className="mb-8">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="overflow-hidden rounded-2xl border border-memory-border bg-memory-card p-6 md:p-8 shadow-xs relative"
@@ -54,9 +52,15 @@ export default function MemoryMoment() {
             {/* Header simulation */}
             <div className="flex items-center justify-between border-b border-memory-border pb-4 mb-6">
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-memory-accent font-bold">Chapter I</span>
-                <h3 className="font-serif text-lg text-memory-primary">Early Roots & Childhood</h3>
+                <span className="text-[10px] uppercase tracking-widest text-memory-accent font-bold">
+                  Chapter I
+                </span>
+
+                <h3 className="font-serif text-lg text-memory-primary">
+                  Early Roots & Childhood
+                </h3>
               </div>
+
               <span className="text-[11px] text-memory-muted font-mono bg-white px-3 py-1 rounded-lg border border-memory-border">
                 Curated Memory
               </span>
@@ -69,12 +73,23 @@ export default function MemoryMoment() {
                   <div className="w-9 h-9 rounded-full bg-memory-primary text-white text-xs font-bold flex items-center justify-center">
                     FH
                   </div>
+
                   <div>
-                    <h4 className="font-serif text-sm font-semibold text-memory-primary">Hafsa Hashmi</h4>
-                    <p className="text-[11px] text-memory-muted">Recorded recently • Voice & Text Memoir</p>
+                    <h4 className="font-serif text-sm font-semibold text-memory-primary">
+                      Hafsa Hashmi
+                    </h4>
+
+                    <p className="text-[11px] text-memory-muted">
+                      Recorded recently • Voice & Text Memoir
+                    </p>
                   </div>
                 </div>
-                <Heart size={16} fill="var(--memory-primary)" className="text-memory-primary" />
+
+                <Heart
+                  size={16}
+                  fill="var(--memory-primary)"
+                  className="text-memory-primary"
+                />
               </div>
 
               <p className="font-serif text-[16px] leading-relaxed text-memory-primary/90 italic">
@@ -100,14 +115,13 @@ export default function MemoryMoment() {
         {/* Continue */}
         <motion.button
           type="button"
-          onClick={() => router.push('/invite-family-friends')}
+          onClick={() => router.push('/pricing')}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-memory-primary text-white hover:bg-memory-maroon shadow-md shadow-memory-primary/10"
         >
           Continue Memoir
         </motion.button>
-
       </motion.div>
     </section>
   );
