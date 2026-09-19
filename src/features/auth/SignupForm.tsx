@@ -18,17 +18,20 @@ import { useAuth } from "./hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const extendedSignupSchema = signupSchema.extend({
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match!",
-  path: ["confirmPassword"],
-});
+const extendedSignupSchema = signupSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match!",
+    path: ["confirmPassword"],
+  });
 
 type ExtendedSignupInput = z.infer<typeof extendedSignupSchema>;
 
 export default function SignupForm() {
   const router = useRouter();
+
   const { loading, serverError, successMessage, handleSignup } = useAuth();
 
   const {
@@ -48,6 +51,7 @@ export default function SignupForm() {
   const onSubmit = async (data: ExtendedSignupInput) => {
     try {
       const success = await handleSignup(data);
+
       if (success) {
         router.push("/dashboard");
       }
@@ -67,7 +71,7 @@ export default function SignupForm() {
         {/* Back */}
         <div className="mb-8">
           <Link
-            href="/invite-family-friends"
+            href="/pricing"
             className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1"
           >
             ←
@@ -83,6 +87,7 @@ export default function SignupForm() {
 
           <div className="flex flex-col text-[15px] text-memory-muted whitespace-nowrap">
             <span>Have an account?</span>
+
             <Link
               href="/login"
               className="text-memory-primary font-semibold hover:underline transition mt-0.5"
@@ -94,18 +99,28 @@ export default function SignupForm() {
 
         {/* Server Success / Error Banners with Accessibility Role */}
         {serverError && (
-          <div role="alert" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div
+            role="alert"
+            className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm"
+          >
             Signup Failed: {serverError}
           </div>
         )}
 
         {successMessage && (
-          <div role="status" className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm">
+          <div
+            role="status"
+            className="mb-6 p-4 bg-memory-card border border-memory-border text-memory-primary rounded-xl text-sm"
+          >
             {successMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
           {/* Full Name */}
           <div>
             <label
@@ -113,16 +128,22 @@ export default function SignupForm() {
               className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
             >
               Full Name
-              <span aria-hidden="true" className="ml-1 text-memory-required">
+              <span
+                aria-hidden="true"
+                className="ml-1 text-memory-required"
+              >
                 *
               </span>
             </label>
+
             <input
               id="signup-fullname"
               type="text"
               placeholder="John Doe"
               aria-invalid={Boolean(errors.full_name)}
-              aria-describedby={errors.full_name ? "signup-fullname-error" : undefined}
+              aria-describedby={
+                errors.full_name ? "signup-fullname-error" : undefined
+              }
               {...register("full_name")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.full_name
@@ -130,8 +151,13 @@ export default function SignupForm() {
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
+
             {errors.full_name && (
-              <p id="signup-fullname-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
+              <p
+                id="signup-fullname-error"
+                role="alert"
+                className="mt-1 text-xs text-red-600 font-medium"
+              >
                 {errors.full_name.message}
               </p>
             )}
@@ -144,16 +170,22 @@ export default function SignupForm() {
               className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
             >
               Email
-              <span aria-hidden="true" className="ml-1 text-memory-required">
+              <span
+                aria-hidden="true"
+                className="ml-1 text-memory-required"
+              >
                 *
               </span>
             </label>
+
             <input
               id="signup-email"
               type="email"
               placeholder="john@example.com"
               aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "signup-email-error" : undefined}
+              aria-describedby={
+                errors.email ? "signup-email-error" : undefined
+              }
               {...register("email")}
               className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                 errors.email
@@ -161,8 +193,13 @@ export default function SignupForm() {
                   : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
               }`}
             />
+
             {errors.email && (
-              <p id="signup-email-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
+              <p
+                id="signup-email-error"
+                role="alert"
+                className="mt-1 text-xs text-red-600 font-medium"
+              >
                 {errors.email.message}
               </p>
             )}
@@ -176,16 +213,22 @@ export default function SignupForm() {
                 className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5"
               >
                 Password
-                <span aria-hidden="true" className="ml-1 text-memory-required">
+                <span
+                  aria-hidden="true"
+                  className="ml-1 text-memory-required"
+                >
                   *
                 </span>
               </label>
+
               <input
                 id="signup-password"
                 type="password"
                 placeholder="Enter your password"
                 aria-invalid={Boolean(errors.password)}
-                aria-describedby={errors.password ? "signup-password-error" : undefined}
+                aria-describedby={
+                  errors.password ? "signup-password-error" : undefined
+                }
                 {...register("password")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.password
@@ -193,8 +236,13 @@ export default function SignupForm() {
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
+
               {errors.password && (
-                <p id="signup-password-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
+                <p
+                  id="signup-password-error"
+                  role="alert"
+                  className="mt-1 text-xs text-red-600 font-medium"
+                >
                   {errors.password.message}
                 </p>
               )}
@@ -206,16 +254,24 @@ export default function SignupForm() {
                 className="block text-xs uppercase tracking-widest font-bold text-memory-primary/70 mb-1.5 ml-1"
               >
                 Confirm Password
-                <span aria-hidden="true" className="ml-1 text-memory-required">
+                <span
+                  aria-hidden="true"
+                  className="ml-1 text-memory-required"
+                >
                   *
                 </span>
               </label>
+
               <input
                 id="signup-confirmpassword"
                 type="password"
                 placeholder="Confirm your password"
                 aria-invalid={Boolean(errors.confirmPassword)}
-                aria-describedby={errors.confirmPassword ? "signup-confirmpassword-error" : undefined}
+                aria-describedby={
+                  errors.confirmPassword
+                    ? "signup-confirmpassword-error"
+                    : undefined
+                }
                 {...register("confirmPassword")}
                 className={`w-full rounded-xl border bg-memory-bg px-5 py-4 text-[16px] text-memory-primary placeholder:text-memory-muted/60 outline-none transition-all duration-300 shadow-2xs ${
                   errors.confirmPassword
@@ -223,8 +279,13 @@ export default function SignupForm() {
                     : "border-memory-border focus:border-memory-accent focus:ring-2 focus:ring-memory-accent/20"
                 }`}
               />
+
               {errors.confirmPassword && (
-                <p id="signup-confirmpassword-error" role="alert" className="mt-1 text-xs text-red-600 font-medium">
+                <p
+                  id="signup-confirmpassword-error"
+                  role="alert"
+                  className="mt-1 text-xs text-red-600 font-medium"
+                >
                   {errors.confirmPassword.message}
                 </p>
               )}
