@@ -37,7 +37,7 @@ export default function PricingFeatures() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push("/subscription");
+    router.push("/signup");
   };
 
   return (
@@ -54,11 +54,9 @@ export default function PricingFeatures() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-memory-accent">
               MEMOIR
             </p>
-
             <h1 className="font-serif text-[32px] font-normal leading-tight tracking-[-0.02em] md:text-[38px]">
               Pricing & Features
             </h1>
-
             <p className="mt-2 text-sm text-memory-muted">
               Everything you need to create your memoir.
             </p>
