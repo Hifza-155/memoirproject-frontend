@@ -1,14 +1,21 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 function getAuthHeaders(): Record<string, string> {
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") || localStorage.getItem("token") : null;
+    typeof window !== "undefined"
+      ? localStorage.getItem("access_token") ||
+        localStorage.getItem("token")
+      : null;
+
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
+// Centralized wrapper to make sure every request sent to your
+// FastAPI backend is properly formatted, secure, and pointed to the right address
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -17,6 +24,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
       ...options.headers,
     },
   });
+
   return res;
 }
 
@@ -30,20 +38,33 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-function parseErrorDetail(errData: ApiErrorResponse | null | undefined, defaultMessage: string): string {
+function parseErrorDetail(
+  errData: ApiErrorResponse | null | undefined,
+  defaultMessage: string
+): string {
   if (!errData) return defaultMessage;
-  if (typeof errData.detail === "string") return errData.detail;
+
+  if (typeof errData.detail === "string") {
+    return errData.detail;
+  }
 
   if (Array.isArray(errData.detail)) {
     return errData.detail
       .map((err: ApiErrorDetail) => {
-        const field = err.loc && err.loc.length > 0 ? err.loc[err.loc.length - 1] : "Field";
+        const field =
+          err.loc && err.loc.length > 0
+            ? err.loc[err.loc.length - 1]
+            : "Field";
+
         return `${field}: ${err.msg || "Invalid value"}`;
       })
       .join(" | ");
   }
 
-  if (errData.message) return errData.message;
+  if (errData.message) {
+    return errData.message;
+  }
+
   return defaultMessage;
 }
 
@@ -120,36 +141,32 @@ export interface CommentCreatePayload {
   body: string;
 }
 
-export interface ChapterProposalPayload {
-  chapters: {
-    title: string;
-    summary?: string; // Added summary
-    memories: { id: string; title: string; date: string | null }[];
-  }[];
-}
-
 export const api = {
   async signup(payload: SignupPayload) {
-    const res = await apiFetch("/api/auth/signup", {
+    const res = await apiFetch("/api/auth/signup/", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
       throw new Error(parseErrorDetail(errData, "Signup failed"));
     }
+
     return res.json();
   },
 
   async login(payload: { email: string; password: string }) {
-    const res = await apiFetch("/api/auth/login", {
+    const res = await apiFetch("/api/auth/login/", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
       throw new Error(parseErrorDetail(errData, "Login failed"));
     }
+
     return res.json();
   },
 
@@ -158,65 +175,79 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to create memoir"));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to create memoir")
+      );
     }
+
     return res.json();
   },
 
-  async getLiveMemoir(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/live`, {
-      method: "GET",
-    });
-    if (!res.ok) throw new Error("Failed to fetch live memoir data");
-    const json = await res.json();
-    return json.data || json;
-  },
-
+  // Aligned with backend prefix /api/memories/feed/{memoir_id}
   async getMemoirFeed(memoirId: string) {
     const res = await apiFetch(`/api/memories/feed/${memoirId}`, {
       method: "GET",
     });
-    if (!res.ok) throw new Error("Failed to fetch memoir feed");
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch memoir feed");
+    }
+
     const json = await res.json();
     return json.data || json;
   },
 
+  // Memory
   async createMemory(payload: MemoryCreatePayload) {
-    const res = await apiFetch("/api/memories", {
+    const res = await apiFetch("/api/memories/", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to create memory"));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to create memory")
+      );
     }
+
     return res.json();
   },
 
   async deleteMemory(memoryId: string) {
-    const res = await apiFetch(`/api/memories/${memoryId}`, {
+    const res = await apiFetch(`/api/memories/${memoryId}/`, {
       method: "DELETE",
     });
-    if (!res.ok) throw new Error("Failed to delete memory");
+
+    if (!res.ok) {
+      throw new Error("Failed to delete memory");
+    }
+
     return res.json();
   },
 
+  // Presigned Url for object storage storing
   async getPresignedUrl(payload: PresignedUrlPayload) {
     const res = await apiFetch("/api/media/presigned-url", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to get presigned URL"));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to get presigned URL")
+      );
     }
 
     const responseJson = await res.json();
     return responseJson.data || responseJson;
   },
 
+  // To upload meta data
   async registerMediaMetadata(payload: MediaMetadataPayload) {
     const res = await apiFetch("/api/media/metadata", {
       method: "POST",
@@ -225,17 +256,26 @@ export const api = {
 
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to register media metadata"));
+      throw new Error(
+        parseErrorDetail(
+          errData,
+          "Failed to register media metadata"
+        )
+      );
     }
 
     const responseJson = await res.json();
     return responseJson.data || responseJson;
   },
 
+  // Comments
   async getComments(memoryId: string): Promise<CommentEntity[]> {
-    const res = await apiFetch(`/api/comments/?memory_id=${memoryId}`, {
-      method: "GET",
-    });
+    const res = await apiFetch(
+      `/api/comments/?memory_id=${memoryId}`,
+      {
+        method: "GET",
+      }
+    );
 
     if (res.status === 404) {
       return [];
@@ -243,14 +283,18 @@ export const api = {
 
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to fetch comments"));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to fetch comments")
+      );
     }
 
     const data = await res.json();
     return Array.isArray(data) ? data : data.comments || [];
   },
 
-  async createComment(payload: CommentCreatePayload): Promise<CommentEntity> {
+  async createComment(
+    payload: CommentCreatePayload
+  ): Promise<CommentEntity> {
     const res = await apiFetch("/api/comments/", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -258,11 +302,31 @@ export const api = {
 
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to post comment"));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to post comment")
+      );
     }
 
     const data = await res.json();
     return data.comment || data;
+  },
+
+  // PDF Export
+  async getMyMemoir() {
+    const res = await apiFetch("/api/memoirs/", {
+      method: "GET",
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error(
+        "Backend memoir lookup error response:",
+        errorBody
+      );
+      throw new Error("Failed to fetch memoir for PDF export.");
+    }
+
+    return res.json();
   },
 
   async requestMemoirExport(memoirId: string) {
@@ -270,23 +334,37 @@ export const api = {
       throw new Error("No active memoir ID found.");
     }
 
-    const res = await apiFetch(`/api/memoirs/${memoirId}/export`, {
-      method: 'POST',
-    });
+    const res = await apiFetch(
+      `/api/memoirs/${memoirId}/export`,
+      {
+        method: "POST",
+      }
+    );
 
     if (!res.ok) {
       const errorBody = await res.text();
-      console.error("Backend export error response:", errorBody);
-      throw new Error(`Failed to initiate PDF export: ${res.status} ${res.statusText}`);
+
+      console.error(
+        "Backend export error response:",
+        errorBody
+      );
+
+      throw new Error(
+        `Failed to initiate PDF export: ${res.status} ${res.statusText}`
+      );
     }
 
     return res.json();
   },
 
+  // PDF Export Status Polling
   async getLatestExportStatus(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/export/latest`, {
-      method: 'GET',
-    });
+    const res = await apiFetch(
+      `/api/memoirs/${memoirId}/export/latest`,
+      {
+        method: "GET",
+      }
+    );
 
     if (!res.ok) {
       throw new Error("Failed to check export status.");
@@ -295,41 +373,20 @@ export const api = {
     return res.json();
   },
 
+  // Search
   async searchMemories(memoirId: string, query: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`, {
-      method: "GET",
-    });
-    if (!res.ok) throw new Error("Failed to search archive");
+    const res = await apiFetch(
+      `/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to search archive");
+    }
+
     const json = await res.json();
     return json.data || json;
-  },
-
-   async proposeChapters(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/propose`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error("Failed to generate AI chapter proposal");
-    const json = await res.json();
-    return json.data;
-  },
-
-  // ADD THIS NEW METHOD
-  async refineChapters(memoirId: string, currentProposal: ChapterProposalPayload, prompt: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/refine`, {
-      method: "POST",
-      body: JSON.stringify({ current_proposal: currentProposal, user_prompt: prompt }),
-    });
-    if (!res.ok) throw new Error("Failed to refine AI chapter proposal");
-    const json = await res.json();
-    return json.data;
-  },
-
-  async applyChapters(memoirId: string, payload: ChapterProposalPayload) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters/apply`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error("Failed to apply chapter layout");
-    return res.json();
   },
 };
