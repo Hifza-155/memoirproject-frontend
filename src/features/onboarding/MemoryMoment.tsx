@@ -120,7 +120,7 @@ export default function MemoryMoment() {
           whileTap={{ scale: 0.99 }}
           className="w-full py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-memory-primary text-white hover:bg-memory-maroon shadow-md shadow-memory-primary/10"
         >
-          Continue Memoir
+          See Your Memory Space
         </motion.button>
       </motion.div>
     </section>
