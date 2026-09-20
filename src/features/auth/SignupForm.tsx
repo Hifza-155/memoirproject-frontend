@@ -303,7 +303,7 @@ export default function SignupForm() {
                 : "bg-memory-border text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
-            {loading ? "Creating account..." : "Continue"}
+            {loading ? "Creating account..." : "Create Account"}
           </motion.button>
         </form>
 
