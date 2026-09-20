@@ -238,7 +238,7 @@ export default function UnfoldMemory() {
                 : "bg-memory-border/70 text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
-            Continue
+            Keep This Memory 
           </motion.button>
         </motion.div>
       </div>
