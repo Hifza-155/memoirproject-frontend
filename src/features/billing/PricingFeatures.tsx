@@ -54,7 +54,7 @@ export default function PricingFeatures() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full overflow-hidden border border-memory-primary/15 bg-[#FBF8F1] shadow-[0_20px_55px_rgba(80,45,35,0.10)]"
+          className="w-full overflow-hidden rounded-3xl border border-memory-primary/15 bg-[#FBF8F1] shadow-[0_20px_55px_rgba(80,45,35,0.10)]"
         >
           {/* Back Button */}
           <div className="px-7 pt-6 md:px-12">
