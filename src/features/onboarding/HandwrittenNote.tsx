@@ -11,7 +11,6 @@ import Link from 'next/link';
 export default function HandwrittenNote() {
   return (
     <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
-
       {/* Keepsake Note Card (Elevated from torn paper to premium stationery) */}
       <div
         className="relative w-full max-w-90 bg-white border border-memory-border/50 shadow-2xl shadow-memory-primary/10 -rotate-1 transition-transform hover:rotate-0 duration-500 p-10 sm:p-12 rounded-3xl"
@@ -21,7 +20,6 @@ export default function HandwrittenNote() {
           <h2 className="font-caveat text-[40px] font-bold text-memory-primary mb-4">
             Dear Hafsa!
           </h2>
-
           <p className="font-caveat text-[28px] text-memory-primary leading-10">
             Every family has a story worth keeping, the quiet mornings,
             the faded photographs, and the voices you never want to lose.
@@ -39,16 +37,13 @@ export default function HandwrittenNote() {
         >
           Back
         </Link>
-
         <Link
           href="/unfold-memory"
           className="flex-1 text-center bg-memory-primary text-white text-[16px] font-semibold py-4 rounded-2xl hover:bg-memory-maroon transition shadow-md"
         >
-          Continue
+          Turn the Page 
         </Link>
       </div>
-
     </section>
   );
 }
-
