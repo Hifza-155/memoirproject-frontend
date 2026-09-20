@@ -8,8 +8,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
+
+import { ArrowLeft } from "lucide-react";
 
 // Defined outside the component to provide a stable reference across renders
 const PROMPTS = [
@@ -25,14 +29,14 @@ const PROMPTS = [
 
 // Coordinates to create the "round effect" fanning out from behind the central paper
 const SCATTER_POSITIONS = [
-  { x: -330, y: -180, rotate: -8 },  // Top Left 
-  { x: -360, y: -80, rotate: -5 },   // Far High Left
-  { x: 370, y: -60, rotate: 6 },     // Far High Right
-  { x: -370, y: 40, rotate: -12 },   // Far Mid Left 
-  { x: 350, y: 50, rotate: 8 },      // Far Mid Right
-  { x: -310, y: 150, rotate: -15 },  // Bottom Left
-  { x: 310, y: 140, rotate: 12 },    // Bottom Right
-  { x: 360, y: -160, rotate: 5 },  // next to the first prompt
+  { x: -330, y: -180, rotate: -8 }, // Top Left
+  { x: -360, y: -80, rotate: -5 }, // Far High Left
+  { x: 370, y: -60, rotate: 6 }, // Far High Right
+  { x: -370, y: 40, rotate: -12 }, // Far Mid Left
+  { x: 350, y: 50, rotate: 8 }, // Far Mid Right
+  { x: -310, y: 150, rotate: -15 }, // Bottom Left
+  { x: 310, y: 140, rotate: 12 }, // Bottom Right
+  { x: 360, y: -160, rotate: 5 }, // next to the first prompt
 ];
 
 // Component that types out each prompt while moving it to its scattered position behind the paper
@@ -52,6 +56,7 @@ function HandwrittenPromptItem({
 
   useEffect(() => {
     if (!isStarted) return;
+
     let currentIndex = 0;
 
     const interval = setInterval(() => {
@@ -101,6 +106,7 @@ function HandwrittenPromptItem({
       style={{ pointerEvents: isStarted ? "auto" : "none" }}
     >
       <span>{displayedText}</span>
+
       {isStarted && !isComplete && (
         <span className="inline-block w-1.5 h-4 bg-memory-accent animate-pulse" />
       )}
@@ -110,6 +116,7 @@ function HandwrittenPromptItem({
 
 export default function UnfoldMemory() {
   const router = useRouter();
+
   const [story, setStory] = useState("");
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
 
@@ -133,6 +140,7 @@ export default function UnfoldMemory() {
       if (current.trim()) {
         return `${current}\n\n${prompt}: `;
       }
+
       return `${prompt}: `;
     });
   };
@@ -147,7 +155,7 @@ export default function UnfoldMemory() {
             onClick={() => router.back()}
             className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
           >
-            ←
+            <ArrowLeft size={18} strokeWidth={1.7} />
           </button>
         </div>
 
@@ -160,6 +168,7 @@ export default function UnfoldMemory() {
           <h1 className="text-3xl md:text-4xl text-memory-primary leading-snug mb-3">
             Hold onto a moment that matters.
           </h1>
+
           <p className="text-memory-muted text-[15px] md:text-base leading-relaxed">
             Start with a moment that still stays with you.
           </p>
@@ -238,7 +247,7 @@ export default function UnfoldMemory() {
                 : "bg-memory-border/70 text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
-            Keep This Memory 
+            Keep This Memory
           </motion.button>
         </motion.div>
       </div>
