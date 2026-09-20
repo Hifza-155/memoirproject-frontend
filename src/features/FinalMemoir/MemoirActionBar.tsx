@@ -34,7 +34,7 @@ export default function MemoirActionBar({
           disabled={isExporting}
           className="bg-memory-maroon text-white px-3 py-1.5 rounded-sm text-[10px] font-sans font-medium uppercase tracking-wider hover:bg-stone-800 transition shadow-sm cursor-pointer disabled:opacity-50"
         >
-          {isExporting ? "Exporting..." : "Download"}
+          {isExporting ? "Exporting..." : "Download PDF"}
         </button>
       </div>
 
