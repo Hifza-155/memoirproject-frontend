@@ -1,7 +1,14 @@
+/**
+ * @file PricingFeatures.tsx
+ * @description Pricing and features screen for the memoir experience.
+ */
+
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Camera, Mic, PenLine } from "lucide-react";
+
+import { ArrowLeft, BookOpen, Camera, Mic, PenLine } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 
 const features = [
@@ -49,14 +56,28 @@ export default function PricingFeatures() {
           transition={{ duration: 0.5 }}
           className="w-full overflow-hidden border border-memory-primary/15 bg-[#FBF8F1] shadow-[0_20px_55px_rgba(80,45,35,0.10)]"
         >
+          {/* Back Button */}
+          <div className="px-7 pt-6 md:px-12">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
+            >
+              <ArrowLeft size={18} strokeWidth={1.7} />
+            </button>
+          </div>
+
           {/* Header */}
           <div className="border-b border-memory-primary/15 px-7 py-8 text-center md:px-12">
             <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-memory-accent">
               MEMOIR
             </p>
+
             <h1 className="font-serif text-[32px] font-normal leading-tight tracking-[-0.02em] md:text-[38px]">
               Pricing & Features
             </h1>
+
             <p className="mt-2 text-sm text-memory-muted">
               Everything you need to create your memoir.
             </p>
