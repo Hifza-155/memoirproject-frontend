@@ -186,6 +186,23 @@ export const api = {
     return res.json();
   },
 
+  // Live memoir data
+  async getLiveMemoir(memoirId: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/live`, {
+      method: "GET",
+    });
+
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(
+        parseErrorDetail(errData, "Failed to fetch live memoir")
+      );
+    }
+
+    const json = await res.json();
+    return json.data || json;
+  },
+
   // Aligned with backend prefix /api/memories/feed/{memoir_id}
   async getMemoirFeed(memoirId: string) {
     const res = await apiFetch(`/api/memories/feed/${memoirId}`, {
@@ -319,10 +336,12 @@ export const api = {
 
     if (!res.ok) {
       const errorBody = await res.text();
+
       console.error(
         "Backend memoir lookup error response:",
         errorBody
       );
+
       throw new Error("Failed to fetch memoir for PDF export.");
     }
 
