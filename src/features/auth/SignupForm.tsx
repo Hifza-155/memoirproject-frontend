@@ -1,22 +1,32 @@
 /**
  * @file signupForm.tsx
  * @description Client-side React component that renders the user registration form,
- * manages form field validation via React Hook Form and Zod, and delegates network actions 
- * and submission states to the useAuth custom hook while maintaining side-by-side 
+ * manages form field validation via React Hook Form and Zod, and delegates network actions
+ * and submission states to the useAuth custom hook while maintaining side-by-side
  * password fields, exact login styling specs, and strict accessibility attributes.
  */
 
 "use client";
 
 import { signupSchema } from "./schemas";
+
 import Link from "next/link";
+
 import { motion } from "framer-motion";
+
 import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import { z } from "zod";
+
 import { useAuth } from "./hooks";
+
 import { useRouter } from "next/navigation";
+
 import { useEffect } from "react";
+
+import { ArrowLeft } from "lucide-react";
 
 const extendedSignupSchema = signupSchema
   .extend({
@@ -72,9 +82,10 @@ export default function SignupForm() {
         <div className="mb-8">
           <Link
             href="/pricing"
+            aria-label="Go back"
             className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1"
           >
-            ←
+            <ArrowLeft size={18} strokeWidth={1.7} />
           </Link>
         </div>
 
