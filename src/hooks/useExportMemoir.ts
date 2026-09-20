@@ -1,7 +1,4 @@
-/**
- * @file hooks/useExportMemoir.ts
- * @description React hook for handling memoir PDF export requests, status polling, and blob-based custom filename downloads.
- */
+"use client";
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -17,8 +14,6 @@ export function useExportMemoir(memoirId: string) {
     setExportMessage("Preparing your printable memoir PDF...");
 
     try {
-      // Use the provided memoir ID when available.
-      // If it is missing, fetch the current user's memoir from the backend.
       let currentMemoirId = memoirId;
 
       if (!currentMemoirId) {
@@ -34,12 +29,10 @@ export function useExportMemoir(memoirId: string) {
         throw new Error("No active memoir found.");
       }
 
-      // 1. Trigger the existing backend PDF export job
       await api.requestMemoirExport(currentMemoirId);
 
       setExportMessage("Formatting book layout in the background...");
 
-      // 2. Poll for job completion
       let attempts = 0;
       const maxAttempts = 15;
 
@@ -47,7 +40,6 @@ export function useExportMemoir(memoirId: string) {
         attempts++;
 
         try {
-          // Use the same memoir ID that was used to start the export
           const data = await api.getLatestExportStatus(currentMemoirId);
 
           if (data.status === "ready" && data.download_url) {
@@ -58,10 +50,8 @@ export function useExportMemoir(memoirId: string) {
               "PDF downloaded successfully! Check your downloads folder."
             );
 
-            // 3. Fetch the generated backend PDF and force local download
             const fileResponse = await fetch(data.download_url);
             const blob = await fileResponse.blob();
-
             const blobUrl = window.URL.createObjectURL(blob);
 
             const link = document.createElement("a");
