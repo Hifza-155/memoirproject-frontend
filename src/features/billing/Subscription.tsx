@@ -7,17 +7,25 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 import Link from "next/link";
+
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+
+import { ArrowLeft } from "lucide-react";
 
 export default function Subscription() {
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
+
     setLoading(true);
 
     // Simulate payment processing
@@ -39,9 +47,10 @@ export default function Subscription() {
         <div className="mb-8">
           <Link
             href="/login"
+            aria-label="Go back"
             className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1"
           >
-            ←
+            <ArrowLeft size={18} strokeWidth={1.7} />
           </Link>
         </div>
 
