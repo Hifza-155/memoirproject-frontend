@@ -21,22 +21,17 @@ export function BookCoverExperience({
   useEffect(() => {
     setIsClient(true);
     
-    // =====================================================================
-    // DEVELOPMENT OVERRIDE: 
-    // We have commented out the sessionStorage check so you can actually 
-    // see the animation while coding! Uncomment this block for production.
-    // =====================================================================
+    // Check localStorage to see if the user has ever seen this intro
+    const hasSeen = localStorage.getItem("hasSeenBookCover");
     
-    /* 
-    const hasSeen = sessionStorage.getItem("hasSeenBookCover");
     if (hasSeen) {
-      setTimeout(() => setIsVisible(false), 0);
+      // User has seen it before - skip animation entirely
+      setIsVisible(false);
       return; 
     } 
-    */
 
-    // Set the flag for when you uncomment the code above
-    sessionStorage.setItem("hasSeenBookCover", "true");
+    // This is the user's first time. Record it so they never see it again.
+    localStorage.setItem("hasSeenBookCover", "true");
     
     // Lock scroll while experience is active so the user stays perfectly centered
     document.body.style.overflow = "hidden";
