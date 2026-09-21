@@ -1,6 +1,6 @@
 /**
  * @file hooks/useExportMemoir.ts
- * @description React hook for handling memoir PDF export requests, status polling, and blob-based custom filename downloads.
+ * @description React hook for handling memoir PDF export requests, status polling, and direct browser attachment downloads.
  */
 
 import { useState } from 'react';
@@ -41,22 +41,23 @@ export function useExportMemoir(memoirId: string) {
             setIsExporting(false);
             setExportMessage('PDF downloaded successfully! Check your downloads folder.');
 
-            // 3. Fetch as blob to bypass cross-origin restrictions and force local download
-            const fileResponse = await fetch(data.download_url);
-            const blob = await fileResponse.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            
-            // Set user-defined file name or fallback safely
             const fileName = customFileName?.trim() ? `${customFileName.trim()}.pdf` : 'my-memoir-archive.pdf';
-            link.download = fileName;
+            const hasQueryParams = data.download_url.includes('?');
+            const finalUrl = `${data.download_url}${hasQueryParams ? '&' : '?'}download=${encodeURIComponent(fileName)}`;
 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(blobUrl);
+            // BULLETPROOF DOWNLOAD TRIGGER: Hidden Iframe
+            // This safely bypasses Next.js router rules, CORS, and popup blockers.
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = finalUrl;
+            document.body.appendChild(iframe);
+
+            // Clean up the iframe after the download has safely started
+            setTimeout(() => {
+              if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+              }
+            }, 10000);
 
           } else if (data.status === 'failed') {
             clearInterval(pollInterval);
