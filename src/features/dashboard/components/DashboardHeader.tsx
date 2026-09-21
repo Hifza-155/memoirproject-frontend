@@ -1,58 +1,77 @@
 "use client";
+
 import { motion } from "framer-motion";
-import { Search, Lock, Copy, Check } from "lucide-react";
+import { Lock, Copy, Check, FileDown } from "lucide-react"; // Added FileDown icon
+
 interface DashboardHeaderProps {
   name: string;
   setName: (name: string) => void;
   dates: string;
   setDates: (dates: string) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
   handleCopyLink: () => void;
   isLinkCopied: boolean;
+  // PDF Export Props
+  pdfFileName: string;
+  setPdfFileName: (val: string) => void;
+  triggerExport: (name: string) => void;
+  isExporting: boolean;
 }
 
 export function DashboardHeader({
-  name, setName, dates, setDates, searchQuery, setSearchQuery, handleCopyLink, isLinkCopied
+  name, 
+  setName, 
+  dates, 
+  setDates, 
+  handleCopyLink, 
+  isLinkCopied,
+  pdfFileName,
+  setPdfFileName,
+  triggerExport,
+  isExporting
 }: DashboardHeaderProps) {
   return (
     <>
-      {/* Slightly darkened the bottom border to match */}
       <header className="w-full border-b border-stone-400/80 bg-memory-bg/80 backdrop-blur-sm px-8 py-5 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-4">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            // Changed font-normal to font-bold to highlight
             className="bg-transparent font-sans text-2xl text-memory-primary font-bold tracking-tight placeholder:text-stone-400 border-none outline-none focus:ring-0 p-0 w-40"
           />
-          {/* Darkened the slash to stone-600 and made it bold */}
           <span className="text-stone-600 font-bold">/</span>
           <input
             type="text"
             value={dates}
             onChange={(e) => setDates(e.target.value)}
-            // Changed text-stone-500 to text-stone-800 and added font-bold to highlight
             className="bg-transparent text-xs font-sans uppercase tracking-[0.15em] text-stone-800 font-bold placeholder:text-stone-400 border-none outline-none focus:ring-0 p-0 w-28"
           />
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Search Bar - Darkened border from stone-300 to stone-500 */}
-          <div className="relative p-2 shadow-sm bg-white border border-stone-500 w-48 transform -rotate-1 hover:rotate-0 transition-all z-10"
-               style={{ borderRadius: "2px 20px 4px 15px / 15px 4px 20px 3px" }}>
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b border-stone-400/50 border-dashed pl-6 py-0.5 text-[12px] font-sans text-stone-900 font-medium placeholder-stone-500 outline-none focus:border-memory-primary transition-colors"
+          
+          {/* COMPACT PDF Export Tool */}
+          <div className="flex items-center gap-2 bg-white h-11 px-2 border border-stone-500 shadow-sm rounded-sm transition-all z-10">
+            <FileDown size={14} className="text-stone-500 ml-1" />
+            <div className="h-4 w-px bg-stone-300"></div>
+            <input
+              type="text"
+              value={pdfFileName}
+              onChange={(e) => setPdfFileName(e.target.value)}
+              placeholder="Filename"
+              className="w-24 bg-transparent border-none px-1 text-[13px] font-serif text-stone-800 placeholder-stone-400 outline-none focus:ring-0"
             />
+            <button
+              type="button"
+              onClick={() => triggerExport(pdfFileName)}
+              disabled={isExporting}
+              className="bg-memory-primary text-white px-3 py-1.5 rounded-sm text-[10px] font-sans font-medium uppercase tracking-wider hover:bg-[#240d14] transition shadow-sm cursor-pointer disabled:opacity-50 flex-shrink-0"
+            >
+              {isExporting ? "..." : "PDF"}
+            </button>
           </div>
 
-          {/* Share Button - Darkened border from stone-300 to stone-500 */}
+          {/* Share Button */}
           <motion.button 
             type="button"
             onClick={handleCopyLink}
@@ -60,7 +79,6 @@ export function DashboardHeader({
             whileTap={{ y: 1 }}
             className="relative w-40 h-11 bg-white shadow-sm border border-stone-500 rounded-r-md rounded-l-sm flex items-center justify-between pl-5 pr-3 cursor-pointer overflow-hidden group"
           >
-            {/* The dark "book spine" accent on the left */}
             <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-[#240d14]" />
             <span className="font-sans text-[12px] text-stone-800 font-bold tracking-wide">
               {isLinkCopied ? "Link Copied." : "Share Memoir"}
@@ -70,7 +88,7 @@ export function DashboardHeader({
             </div>
           </motion.button>
 
-          {/* Lock Button - Darkened outer border to match the dark maroon */}
+          {/* Lock Button */}
           <motion.button 
             type="button"
             whileHover={{ scale: 1.05 }}
@@ -84,7 +102,6 @@ export function DashboardHeader({
       </header>
 
       <div className="w-full flex items-center justify-center py-2 px-12">
-        {/* Darkened pulsing line from stone-400 to stone-500 */}
         <div className="w-full h-0.5 bg-stone-500 animate-smooth-pulse rounded-full"></div>
       </div>
     </>
