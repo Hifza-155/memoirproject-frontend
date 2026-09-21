@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { LoginInput, SignupInput } from "./schemas";
+import { createSession } from "@/app/actions/auth";
 
 export function useAuth() {
   const [loading, setLoading] = useState(false);
@@ -9,20 +10,61 @@ export function useAuth() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
+  // 1. The unified processor that handles both the Memoir and the Memory
   const processPendingMemoir = async () => {
+    let activeMemoir = null;
+
+    // STEP A: Create the Memoir if it's pending
     const pendingMemoirData = localStorage.getItem("pending_memoir");
     if (pendingMemoirData) {
       try {
         const memoirPayload = JSON.parse(pendingMemoirData);
         const createdMemoir = await api.createMemoir(memoirPayload);
-        localStorage.setItem("active_memoir", JSON.stringify(createdMemoir));
+        activeMemoir = createdMemoir.data || createdMemoir;
+        
+        localStorage.setItem("active_memoir", JSON.stringify(activeMemoir));
         localStorage.removeItem("pending_memoir");
       } catch (err) {
-        console.error("Failed to auto-create memoir during onboarding:", err);
+        console.error("Failed to auto-create memoir:", err);
+      }
+    } else {
+      // Fallback: If it was already created, grab it from storage
+      const stored = localStorage.getItem("active_memoir");
+      if (stored) activeMemoir = JSON.parse(stored);
+    }
+
+    // STEP B: Create the initial memory if it exists
+    const savedMemory = localStorage.getItem("onboarding_initial_memory");
+    const savedDate = localStorage.getItem("onboarding_memory_date");
+    
+    // Generate today's date as a bulletproof fallback
+    const today = new Date().toISOString().split("T")[0];
+    const finalDate = savedDate || today;
+    
+    if (savedMemory && activeMemoir && activeMemoir.id) {
+      try {
+        await api.createMemory({
+          memoir_id: activeMemoir.id,
+          title: "First Memory",
+          body_text: savedMemory,
+          
+          occurred_start: finalDate,
+          occurred_end: finalDate,
+          occurred_precision: "day",
+          
+          // @ts-expect-error - 'kind' is used by frontend UI grouping
+          kind: "text",
+        });
+        localStorage.removeItem("onboarding_initial_memory");
+        localStorage.removeItem("onboarding_memory_date");
+      } catch (err) {
+        console.error("Failed to auto-create initial memory:", err);
       }
     }
-  };
 
+    return activeMemoir;
+  };
+  
   const startAuthAction = () => {
     setLoading(true);
     setServerError(null);
@@ -33,56 +75,112 @@ export function useAuth() {
     startAuthAction();
 
     try {
-      // 1. Authenticate the user
       const res = await api.login({
         email: data.email,
         password: data.password,
       });
-
-      // 2. Extract and store access token
-      const accessToken = res.access_token || res.token || res.data?.access_token;
+      const accessToken =
+        res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
-        localStorage.setItem("access_token", accessToken);
-        window.dispatchEvent(new Event("storage")); 
+        await createSession(accessToken);
       }
-
       // --- SMART MEMOIR CHECK & CREATION LOGIC ---
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Check the database: Does this user already have memoirs?
         const memoirs = await api.getUserMemoirs();
-        
+
         if (!memoirs || memoirs.length === 0) {
           const pendingMemoirStr = localStorage.getItem("pending_memoir");
-          
+
           if (pendingMemoirStr) {
             const pendingMemoir = JSON.parse(pendingMemoirStr);
             const createdMemoir = await api.createMemoir(pendingMemoir);
             const activeMemoir = createdMemoir.data || createdMemoir;
-            
+
             localStorage.setItem("active_memoir", JSON.stringify(activeMemoir));
             localStorage.removeItem("pending_memoir");
+
+            
+            // INSTANTLY CREATE THE ONBOARDING MEMORY
+            const savedMemory = localStorage.getItem("onboarding_initial_memory");
+            const savedDate = localStorage.getItem("onboarding_memory_date");
+            
+            const today = new Date().toISOString().split("T")[0];
+            const finalDate = savedDate || today;
+            
+            if (savedMemory && activeMemoir && activeMemoir.id) {
+              try {
+                await api.createMemory({
+                  memoir_id: activeMemoir.id,
+                  title: "First Memory",
+                  body_text: savedMemory,
+                  
+                  occurred_start: finalDate,
+                  occurred_end: finalDate,
+                  occurred_precision: "day",
+                  
+                  // @ts-expect-error - 'kind' is used by frontend UI grouping
+                  kind: "text",
+                });
+                // Wipe it so it doesn't accidentally trigger again later
+                localStorage.removeItem("onboarding_initial_memory");
+                localStorage.removeItem("onboarding_memory_date");
+              } catch (err) {
+                console.error("Failed to auto-create initial memory:", err);
+              }
+            }
+            // ==========================================
+
           } else {
             // Edge case: Logged in, no memoirs in DB, AND skipped onboarding.
             // Silently redirect to start onboarding naturally.
             router.push("/memory-subject-selection");
-            return false; 
+            return false;
           }
         } else {
           // MEMOIRS EXIST: Load their existing memoir.
           localStorage.setItem("active_memoir", JSON.stringify(memoirs[0]));
           localStorage.removeItem("pending_memoir");
+          
+          // Failsafe: Just in case a returning user went through onboarding again
+          const savedMemory = localStorage.getItem("onboarding_initial_memory");
+          const savedDate = localStorage.getItem("onboarding_memory_date");
+          
+          const today = new Date().toISOString().split("T")[0];
+          const finalDate = savedDate || today;
+          
+          if (savedMemory && memoirs[0] && memoirs[0].id) {
+              try {
+                await api.createMemory({
+                  memoir_id: memoirs[0].id,
+                  title: "First Memory",
+                  body_text: savedMemory,
+                  
+                  occurred_start: finalDate,
+                  occurred_end: finalDate,
+                  occurred_precision: "day",
+                  
+                  // @ts-expect-error
+                  kind: "text",
+                });
+                localStorage.removeItem("onboarding_initial_memory");
+                localStorage.removeItem("onboarding_memory_date");
+              } catch(e) {}
+          }
         }
       } catch (memoirCheckError) {
-        console.error("Could not verify or create memoir during login", memoirCheckError);
+        console.error(
+          "Could not verify or create memoir during login",
+          memoirCheckError,
+        );
       }
       // ------------------------------------------
 
       // 3. Everything is ready, send them to the dashboard
       router.push("/dashboard");
       return true;
-      
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An error occurred during login";
@@ -94,7 +192,7 @@ export function useAuth() {
   };
 
   const handleSignup = async (
-    data: SignupInput & { confirmPassword?: string }
+    data: SignupInput & { confirmPassword?: string },
   ): Promise<boolean> => {
     startAuthAction();
 
@@ -105,26 +203,25 @@ export function useAuth() {
         password: data.password,
       });
 
-      const accessToken = res.access_token || res.token || res.data?.access_token;
-      
+      const accessToken =
+        res.access_token || res.token || res.data?.access_token;
       if (accessToken) {
-        // User created and session started!
-        localStorage.setItem("access_token", accessToken);
-        window.dispatchEvent(new Event("storage"));
+        await createSession(accessToken);
         await processPendingMemoir();
-        return true; 
+        return true;
       } else {
-        // FIX: Registration successful, but awaiting email verification.
-        // Set success message and return FALSE so the UI does NOT redirect.
-        setSuccessMessage("Account created successfully! Please check your email to verify your account.");
+        setSuccessMessage(
+          "Account created successfully! Please check your email to verify your account.",
+        );
         return false;
       }
-
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred during signup";
-      setServerError(errorMessage); 
-      return false; 
+        err instanceof Error
+          ? err.message
+          : "An unknown error occurred during signup";
+      setServerError(errorMessage);
+      return false;
     } finally {
       setLoading(false);
     }
