@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api/client";
+import { useExportMemoir } from "@/hooks/useExportMemoir";
 
 // Modular Imports
 import { contributorNames } from "@/features/dashboard/data/mockData";
@@ -13,7 +14,7 @@ import { MemoryInputSection } from "@/features/dashboard/components/MemoryInputS
 import { MemoryArchive } from "@/features/dashboard/components/MemoryArchive";
 import { ContributorsOverlay } from "@/features/dashboard/components/ContributorsOverlay";
 import { ArchiveChatWidget } from "@/features/dashboard/components/ArchiveChatWidget";
-import { ShareModal } from "@/features/dashboard/components/ShareModal"; // NEW: Import Share Modal
+import { ShareModal } from "@/features/dashboard/components/ShareModal";
 
 // Custom Hooks
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
@@ -30,7 +31,11 @@ export default function OwnerDashboard() {
   >("none");
   const [isTextExpanded, setIsTextExpanded] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [pdfFileName, setPdfFileName] = useState("My_Memoir");
+  
+  // Cleaned up unused exportMessage and exportError
+  const { triggerExport, isExporting } = useExportMemoir(memoirId);
+
   const [showContributors, setShowContributors] = useState(false);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [expandedStacks, setExpandedStacks] = useState<string[]>([]);
@@ -38,12 +43,11 @@ export default function OwnerDashboard() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [chapters, setChapters] = useState<any[]>([]);
   const [isGeneratingChapters, setIsGeneratingChapters] = useState(false);
-  
+
   // Share Modal States
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState("");
 
-  // 1. Resolve active memoir details and owner profile from localStorage on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -70,7 +74,6 @@ export default function OwnerDashboard() {
 
           if (data.id) setMemoirId(data.id);
 
-          // Safely extract name using either field convention
           if (data.name) {
             setName(data.name);
           } else if (data.subject_name) {
@@ -79,7 +82,6 @@ export default function OwnerDashboard() {
             setName("My Memoir");
           }
 
-          // Safely extract and format dates using either field convention
           if (data.dates) {
             setDates(data.dates);
           } else {
@@ -108,15 +110,14 @@ export default function OwnerDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Fetch real data using the hook
   const {
     memories,
     loading: feedLoading,
     error: feedError,
     refreshFeed,
+    setMemories,
   } = useMemoirFeed(memoirId);
 
-  // Fetch chapters
   useEffect(() => {
     if (!memoirId) return;
     const fetchChapters = async () => {
@@ -130,7 +131,6 @@ export default function OwnerDashboard() {
     fetchChapters();
   }, [memoirId]);
 
-  // 3. Capture pipeline
   const {
     draft,
     setDraft,
@@ -157,7 +157,6 @@ export default function OwnerDashboard() {
     );
   };
 
-  // Opens the Share Modal instead of copying directly
   const handleOpenShareModal = async () => {
     if (!memoirId) return;
     try {
@@ -172,7 +171,6 @@ export default function OwnerDashboard() {
     }
   };
 
-  // Saves the optional password to backend and copies link
   const handleSavePasswordAndCopy = async (password: string) => {
     if (!memoirId) return;
     try {
@@ -192,36 +190,30 @@ export default function OwnerDashboard() {
   const handleGenerateTimeline = async () => {
     if (!memoirId) return;
     setIsGeneratingChapters(true);
-    
+
     try {
-      // 1. Trigger the background AI job
       await api.generateTimeline(memoirId);
-      
-      // 2. Poll the database every 4 seconds to see if the AI finished
+
       const pollInterval = setInterval(async () => {
         try {
           const freshChapters = await api.getChapters(memoirId);
-          // If we got chapters back, the AI is done!
           if (freshChapters && freshChapters.length > 0) {
             setChapters(freshChapters);
             setIsGeneratingChapters(false);
             clearInterval(pollInterval);
-            refreshFeed(); // Refresh memories so they attach to the new chapters
+            refreshFeed();
           }
         } catch (pollErr) {
-          // Ignore polling errors, just wait for the next tick
+          // Ignore polling errors
         }
       }, 4000);
 
-      // 3. Safety timeout: Stop spinning after 60 seconds if it's taking too long
       setTimeout(() => {
         clearInterval(pollInterval);
         if (isGeneratingChapters) {
           setIsGeneratingChapters(false);
-          // Optional: Show a toast here saying "Organization taking longer than expected. Please refresh."
         }
       }, 60000);
-
     } catch (e) {
       console.error("Failed to start timeline generation", e);
       setIsGeneratingChapters(false);
@@ -241,15 +233,26 @@ export default function OwnerDashboard() {
       console.error("Failed to rename chapter", e);
     }
   };
-const handleUpdateWovenText = async (memoryId: string, newText: string) => {
+
+  const handleUpdateWovenText = async (memoryId: string, newText: string) => {
     if (!memoirId) return;
+
+    if (setMemories) {
+      setMemories((prev: any[]) =>
+        prev.map((m) =>
+          m.id === memoryId ? { ...m, ai_woven_text: newText } : m,
+        ),
+      );
+    }
+
     try {
       await api.updateWovenText(memoirId, memoryId, newText);
-            refreshFeed();
+      refreshFeed();
     } catch (e) {
       console.error("Failed to update narrative text", e);
     }
   };
+
   return (
     <BookCoverExperience userName={ownerName || "Author"}>
       <div className="min-h-screen bg-memory-bg text-stone-900 font-sans selection:bg-memory-primary/20 flex overflow-x-hidden relative">
@@ -284,16 +287,17 @@ const handleUpdateWovenText = async (memoryId: string, newText: string) => {
         <DashboardSidebar setShowContributors={setShowContributors} />
 
         <main className="flex-1 flex flex-col min-h-screen pb-32">
-          {/*UPDATED: Passing handleOpenShareModal instead of direct copy */}
           <DashboardHeader
             name={name}
             setName={setName}
             dates={dates}
             setDates={setDates}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
             handleCopyLink={handleOpenShareModal}
             isLinkCopied={isLinkCopied}
+            pdfFileName={pdfFileName}
+            setPdfFileName={setPdfFileName}
+            triggerExport={triggerExport}
+            isExporting={isExporting}
           />
 
           <div className="max-w-3xl mx-auto w-full px-6 pt-10">
@@ -354,13 +358,12 @@ const handleUpdateWovenText = async (memoryId: string, newText: string) => {
                 isGenerating={isGeneratingChapters}
                 onGenerateTimeline={handleGenerateTimeline}
                 onRenameChapter={handleRenameChapter}
-                onUpdateWovenText={handleUpdateWovenText} 
+                onUpdateWovenText={handleUpdateWovenText}
               />
             )}
           </div>
         </main>
 
-        {/* Share Modal Component */}
         <ShareModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
@@ -369,7 +372,6 @@ const handleUpdateWovenText = async (memoryId: string, newText: string) => {
           isLinkCopied={isLinkCopied}
         />
 
-        {/* Clean, modular chat widget */}
         {memoirId && <ArchiveChatWidget memoirId={memoirId} />}
       </div>
     </BookCoverExperience>
