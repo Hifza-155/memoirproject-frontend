@@ -1,8 +1,6 @@
 /**
  * @file StoryPrompt.tsx
  * @description Component rendering the centered story prompt interface.
- * Prompts animate radially from behind the notepad step by step.
- * On hover, they pop in front of the notepad so the whole sentence is fully visible.
  */
 
 "use client";
@@ -11,7 +9,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
-// Defined outside the component to provide a stable reference across renders
 const PROMPTS = [
   "A moment that still makes me smile",
   "Something they used to say",
@@ -23,19 +20,17 @@ const PROMPTS = [
   "Quiet afternoons together",
 ];
 
-// Coordinates to create the "round effect" fanning out from behind the central paper
 const SCATTER_POSITIONS = [
-  { x: -330, y: -180, rotate: -8 },  // Top Left 
-  { x: -360, y: -80, rotate: -5 },   // Far High Left
-  { x: 370, y: -60, rotate: 6 },     // Far High Right
-  { x: -370, y: 40, rotate: -12 },   // Far Mid Left 
-  { x: 350, y: 50, rotate: 8 },      // Far Mid Right
-  { x: -310, y: 150, rotate: -15 },  // Bottom Left
-  { x: 310, y: 140, rotate: 12 },    // Bottom Right
-  { x: 360, y: -160, rotate: 5 },  // next to the first prompt
+  { x: -330, y: -180, rotate: -8 },  
+  { x: -360, y: -80, rotate: -5 },   
+  { x: 370, y: -60, rotate: 6 },     
+  { x: -370, y: 40, rotate: -12 },   
+  { x: 350, y: 50, rotate: 8 },      
+  { x: -310, y: 150, rotate: -15 },  
+  { x: 310, y: 140, rotate: 12 },    
+  { x: 360, y: -160, rotate: 5 },  
 ];
 
-// Component that types out each prompt while moving it to its scattered position behind the paper
 function HandwrittenPromptItem({
   promptText,
   isStarted,
@@ -71,7 +66,6 @@ function HandwrittenPromptItem({
     <motion.button
       type="button"
       onClick={() => isComplete && onSelect(promptText)}
-      // Starts scaled down and hidden behind the paper with zIndex 10
       initial={{ opacity: 0, x: 0, y: 0, scale: 0.5, rotate: 0, zIndex: 10 }}
       animate={
         isStarted
@@ -86,7 +80,6 @@ function HandwrittenPromptItem({
           : { opacity: 0, x: 0, y: 0, scale: 0.5, rotate: 0, zIndex: 10 }
       }
       transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
-      // On hover: Pops to the very front (zIndex 50) and enlarges, background removed as requested
       whileHover={
         isComplete
           ? {
@@ -111,6 +104,8 @@ function HandwrittenPromptItem({
 export default function UnfoldMemory() {
   const router = useRouter();
   const [story, setStory] = useState("");
+  // NEW: State for the memory date
+  const [memoryDate, setMemoryDate] = useState(""); 
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
 
   useEffect(() => {
@@ -127,7 +122,6 @@ export default function UnfoldMemory() {
     }
   }, [currentPromptIndex]);
 
-  // Restored: Clicking the prompt writes it automatically into the textarea
   const handlePromptClick = (prompt: string) => {
     setStory((current) => {
       if (current.trim()) {
@@ -168,7 +162,7 @@ export default function UnfoldMemory() {
 
       {/* Central Interactive Area */}
       <div className="relative flex flex-col items-center justify-center w-full max-w-lg flex-1 mt-4">
-        {/* THE CLOUD OF PROMPTS (Layered behind the notepad initially) */}
+        {/* THE CLOUD OF PROMPTS */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           {PROMPTS.map((prompt, index) => (
             <HandwrittenPromptItem
@@ -183,22 +177,18 @@ export default function UnfoldMemory() {
           ))}
         </div>
 
-        {/* THE NOTEPAD (Layered in front with z-20) */}
+        {/* THE NOTEPAD */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-20 w-full mb-6 pointer-events-auto group"
         >
-          {/* Background Sheet 1 (Bottom of stack) - Changed to aged paper tone */}
           <div className="absolute inset-0 bg-[#DFD8CE] border border-memory-border/50 rounded-[8px_4px_12px_4px] shadow-sm transform rotate-2 translate-x-2 translate-y-1 transition-transform duration-500 group-hover:rotate-1 group-hover:translate-x-1" />
-
-          {/* Background Sheet 2 (Middle of stack) - Changed to lighter aged paper tone */}
           <div className="absolute inset-0 bg-[#E8E2D9] border border-memory-border/50 rounded-[4px_12px_4px_8px] shadow-sm transform -rotate-2 -translate-x-1 translate-y-2 transition-transform duration-500 group-hover:-rotate-1" />
 
-          {/* Main Top Sheet */}
           <div
-            className="relative w-full rounded-[2px_12px_4px_16px] border border-memory-border bg-white shadow-[0_15px_40px_rgba(56,28,36,0.1)] transition-transform duration-500 group-hover:rotate-0 overflow-hidden"
+            className="relative w-full rounded-[2px_12px_4px_16px] border border-memory-border bg-white shadow-[0_15px_40px_rgba(56,28,36,0.1)] transition-transform duration-500 group-hover:rotate-0 overflow-hidden flex flex-col"
             style={{
               transform: "rotate(-0.8deg)",
               backgroundImage:
@@ -206,7 +196,6 @@ export default function UnfoldMemory() {
               backgroundPositionY: "12px",
             }}
           >
-            {/* Classic Vertical Margin Line */}
             <div className="absolute top-0 bottom-0 left-10 md:left-12 w-[1.5px] bg-memory-maroon/20 z-0 pointer-events-none" />
 
             <textarea
@@ -216,6 +205,20 @@ export default function UnfoldMemory() {
               rows={7}
               className="w-full resize-none bg-transparent pl-14 md:pl-16 pr-7 py-7 text-[20px] leading-9 text-memory-primary placeholder:text-memory-muted outline-none font-caveat relative z-10"
             />
+
+            {/* NEW: Journal-style Date Input */}
+            <div className="relative z-10 w-full flex justify-end px-7 pb-4">
+              <div className="flex items-center gap-2 text-memory-muted/70 font-caveat text-xl">
+                <span>Date:</span>
+                <input
+                  type="date"
+                  value={memoryDate}
+                  onChange={(e) => setMemoryDate(e.target.value)}
+                  className="bg-transparent outline-none cursor-pointer text-memory-primary font-sans text-sm"
+                />
+              </div>
+            </div>
+            
           </div>
         </motion.div>
 
@@ -230,7 +233,11 @@ export default function UnfoldMemory() {
             type="button"
             onClick={() => {
               if (story.trim()) {
-                sessionStorage.setItem("onboarding_initial_memory", story.trim());
+                localStorage.setItem("onboarding_initial_memory", story.trim());
+                // NEW: Save the date if the user entered one
+                if (memoryDate) {
+                  localStorage.setItem("onboarding_memory_date", memoryDate);
+                }
               }
               router.push("/memory-moment");
             }}

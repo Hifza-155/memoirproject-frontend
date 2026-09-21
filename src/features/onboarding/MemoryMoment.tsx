@@ -68,8 +68,7 @@ export default function MemoryMoment() {
           }
         }
 
-        // 3. Retrieve the actual memory typed in UnfoldMemory step
-        const onboardingMem = sessionStorage.getItem("onboarding_initial_memory");
+        const onboardingMem = localStorage.getItem("onboarding_initial_memory");
         if (onboardingMem) {
           memoryText = onboardingMem;
         }

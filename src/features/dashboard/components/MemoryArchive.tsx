@@ -1,29 +1,32 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Wand2, Edit2, LayoutGrid, ListTree } from "lucide-react";
+import { Layers, Wand2, Edit2, LayoutGrid, ListTree, Check, X } from "lucide-react";
 import { MemoryItem } from "../types";
 import { MemoryCard } from "./MemoryCard";
 
 interface MemoryArchiveProps {
   expandedStacks: string[];
   toggleStack: (kind: string) => void;
-  // Extended type ensures TypeScript knows about the media fields
   mockMemories: (MemoryItem & { 
     audioUrl?: string; 
     mediaUrl?: string; 
     transcription?: string; 
     chapter_id?: string; 
     content?: string;
+    body_text?: string;
+    ai_woven_text?: string;
     title?: string;
   })[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chapters?: any[]; 
+  memoirId: string; // Added memoirId to support inline saving
   isGenerating?: boolean;
   onGenerateTimeline?: () => void;
   onRenameChapter?: (chapterId: string, newTitle: string) => void;
-  onMemoryOptionSelect?: (action: string, memoryId: string, targetChapterId?: string) => void;
+  onUpdateWovenText?: (memoryId: string, newText: string) => void;
 }
 
 export function MemoryArchive({ 
@@ -34,18 +37,29 @@ export function MemoryArchive({
   isGenerating = false,
   onGenerateTimeline,
   onRenameChapter,
-  onMemoryOptionSelect
+  onUpdateWovenText
 }: MemoryArchiveProps) {
   
   const [viewMode, setViewMode] = useState<"material" | "timeline">("material");
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
+  // Inline Memory Text Editing States
+  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
+  const [editWovenText, setEditWovenText] = useState("");
+
   const handleSaveChapterTitle = (chapterId: string) => {
     if (editTitle.trim() && onRenameChapter) {
       onRenameChapter(chapterId, editTitle.trim());
     }
     setEditingChapterId(null);
+  };
+
+  const handleSaveWovenText = (memoryId: string) => {
+    if (onUpdateWovenText) {
+      onUpdateWovenText(memoryId, editWovenText);
+    }
+    setEditingMemoryId(null);
   };
 
   return (
@@ -92,7 +106,7 @@ export function MemoryArchive({
             </div>
           </div>
 
-          {/* ORIGINAL MATERIAL VIEW - WORKSPACE */}
+          {/* MATERIAL VIEW */}
           {viewMode === "material" && (
             <div className="space-y-20">
               {[
@@ -132,11 +146,6 @@ export function MemoryArchive({
                                 <MemoryCard 
                                   memory={memory} 
                                   availableChapters={chapters}
-                                  onOptionSelect={(action, id, targetChapterId) => {
-                                    if (onMemoryOptionSelect) {
-                                      onMemoryOptionSelect(action, id, targetChapterId);
-                                    }
-                                  }}
                                   onPlayAudio={(id) => console.log("Play audio", id)}
                                 />
                               </div>
@@ -165,7 +174,7 @@ export function MemoryArchive({
             </div>
           )}
 
-          {/* PUBLISHED BIOGRAPHY CHAPTER VIEW (TIGHT SIDE-BY-SIDE TEXT WRAP) */}
+          {/* TIMELINE BOOK VIEW WITH INLINE EDITING */}
           {viewMode === "timeline" && (
             <div className="flex flex-col w-full max-w-2xl mx-auto px-4 font-serif text-stone-800">
               {chapters.length === 0 ? (
@@ -189,7 +198,6 @@ export function MemoryArchive({
                   </motion.button>
                 </div>
               ) : (
-                /* Reduced gap between chapters from space-y-40 down to space-y-16 */
                 <div className="space-y-16">
                   {chapters.map((chapter) => {
                     const chapterMemories = mockMemories.filter(m => 
@@ -199,7 +207,7 @@ export function MemoryArchive({
                     return (
                       <article key={chapter.id} className="flex flex-col space-y-6">
                         
-                        {/* CHAPTER HEADING & SUMMARY */}
+                        {/* CHAPTER HEADING */}
                         <div className="border-b border-stone-300 pb-4 group">
                           <div className="flex items-center justify-between">
                             {editingChapterId === chapter.id ? (
@@ -229,17 +237,10 @@ export function MemoryArchive({
                               </>
                             )}
                           </div>
-
-                          {chapter.summary && (
-                            <p className="font-serif italic text-stone-500 text-sm mt-2">
-                              {chapter.summary}
-                            </p>
-                          )}
                         </div>
 
-                        {/* TIGHT SIDE-BY-SIDE MEMORY STREAM */}
-                        {/* Reduced gap between paragraphs/memories from space-y-12 down to space-y-6 */}
-                        <div className="space-y-6">
+                        {/* MEMORY STREAM WITH HOVER INLINE EDITING */}
+                        <div className="space-y-8">
                           {chapterMemories.length === 0 ? (
                             <p className="text-stone-400 text-sm italic font-sans py-4 text-center border border-stone-200 border-dashed rounded-lg">
                               No memories recorded in this chapter yet.
@@ -247,27 +248,72 @@ export function MemoryArchive({
                           ) : (
                             chapterMemories.map((memory, mIdx) => {
                               const isEven = mIdx % 2 === 0;
+                              const isEditing = editingMemoryId === memory.id;
+                              const storyText = memory.ai_woven_text || memory.body_text || memory.content || memory.transcription || "";
 
                               return (
-                                <div key={memory.id} className="clearfix leading-[1.9] text-[17.5px] text-stone-800">
+                                <div key={memory.id} className="clearfix relative group leading-[1.9] text-[17.5px] text-stone-800">
                                   
-                                  {/* Tightly Integrated Inline Photograph */}
+                                  {/* Inline Photograph */}
                                   {memory.mediaUrl && (
                                     <figure className={`float-${isEven ? 'left mr-5' : 'right ml-5'} mt-1 mb-2 p-1.5 bg-white shadow-md border border-stone-200 rounded-sm transform ${isEven ? '-rotate-1' : 'rotate-1'} w-48 shrink-0`}>
                                       <div className="relative w-full aspect-4/3 bg-stone-100 overflow-hidden">
-                                        <img src={memory.mediaUrl} alt={memory.title || "Archival Photo"} className="object-cover w-full h-full" />
+                                        <Image 
+                                          src={memory.mediaUrl} 
+                                          alt={memory.title || "Archival Photo"} 
+                                          fill
+                                          className="object-cover"
+                                          unoptimized
+                                        />
                                       </div>
                                     </figure>
                                   )}
 
-                                  {/* Paragraph Content wrapping naturally alongside the image */}
-                                  <p className={`whitespace-pre-wrap book-text ${
-                                    mIdx === 0 && !memory.mediaUrl ? "first-letter:text-4xl first-letter:font-bold first-letter:mr-2.5 first-letter:float-left" : ""
-                                  }`}>
-                                    {memory.content || memory.transcription}
-                                  </p>
+                                  {/* INLINE EDITABLE NARRATIVE PARAGRAPH */}
+                                  {isEditing ? (
+                                    <div className="flex flex-col gap-3 font-sans bg-white p-4 border border-memory-primary rounded-xl shadow-md clear-both">
+                                      <textarea 
+                                        value={editWovenText}
+                                        onChange={(e) => setEditWovenText(e.target.value)}
+                                        rows={5}
+                                        className="w-full p-3 font-serif text-[16px] text-stone-900 border border-stone-300 rounded-lg outline-none focus:border-memory-primary resize-y"
+                                        autoFocus
+                                      />
+                                      <div className="flex justify-end gap-2">
+                                        <button 
+                                          onClick={() => setEditingMemoryId(null)}
+                                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-md cursor-pointer transition-all"
+                                        >
+                                          <X size={14} /> Cancel
+                                        </button>
+                                        <button 
+                                          onClick={() => handleSaveWovenText(memory.id)}
+                                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-memory-primary hover:bg-[#5a222a] rounded-md cursor-pointer transition-all"
+                                        >
+                                          <Check size={14} /> Save Changes
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="relative group/text">
+                                      <p className={`whitespace-pre-wrap book-text ${
+                                        mIdx === 0 && !memory.mediaUrl ? "first-letter:text-4xl first-letter:font-bold first-letter:mr-2.5 first-letter:float-left" : ""
+                                      }`}>
+                                        {storyText}
+                                      </p>
+                                      
+                                      {/* Subtle Hover Edit Button for the Story Paragraph */}
+                                      <button
+                                        onClick={() => { setEditingMemoryId(memory.id); setEditWovenText(storyText); }}
+                                        className="absolute -right-6 top-0 opacity-0 group-hover/text:opacity-100 transition-opacity p-1.5 text-stone-400 hover:text-memory-primary cursor-pointer font-sans"
+                                        title="Edit Narrative Paragraph"
+                                      >
+                                        <Edit2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
 
-                                  {/* Discreet inline audio note if present */}
+                                  {/* Audio Note */}
                                   {memory.audioUrl && (
                                     <div className="mt-2 inline-flex items-center gap-2.5 bg-[#FAF7F2] border border-stone-200 py-1 px-2.5 rounded-xl shadow-sm font-sans clear-both">
                                       <span className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Voice Note</span>
