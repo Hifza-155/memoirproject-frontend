@@ -1,30 +1,15 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("access_token") || localStorage.getItem("token")
-      : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-// Centralized wrapper to make sure every request sent to your
-// FastAPI backend is properly formatted, secure, and pointed to the right address
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  // endpoint looks like "/api/auth/login"
+  // We prepend "/api/proxy" to route it through our Next.js secure middleman
+  const res = await fetch(`/api/proxy${endpoint}`, {
     ...options,
     headers: {
-      ...getAuthHeaders(),
+      "Content-Type": "application/json",
       ...options.headers,
     },
   });
   return res;
 }
-
 interface ApiErrorDetail {
   loc?: (string | number)[];
   msg?: string;
@@ -365,15 +350,39 @@ export const api = {
     return json.data;
   },
 
+  updateShareLinkPassword: async (memoirId: string, password: string) => {
+    const res = await fetch(`/api/proxy/api/memoirs/${memoirId}/share-link`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) throw new Error("Failed to update share link password");
+    return res.json();
+  },
   // AI Organization & Chapters
   async generateTimeline(memoirId: string) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/organize`, {
       method: "POST",
     });
-    if (!res.ok) throw new Error("Failed to generate timeline");
+    if (!res.ok) throw new Error("Failed to trigger timeline generation");
+    // We return the envelope (success, message, job_status)
+    return await res.json();
+  },
+  async updateWovenText(
+    memoirId: string,
+    memoryId: string,
+    aiWovenText: string,
+  ) {
+    const res = await apiFetch(
+      `/api/memoirs/${memoirId}/memories/${memoryId}/woven-text`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ ai_woven_text: aiWovenText }),
+      },
+    );
+    if (!res.ok) throw new Error("Failed to update narrative text");
     return (await res.json()).data;
   },
-
   async getChapters(memoirId: string) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/chapters`, {
       method: "GET",
@@ -393,18 +402,13 @@ export const api = {
     if (!res.ok) throw new Error("Failed to rename chapter");
     return (await res.json()).data;
   },
-  
-  async moveMemory(memoryId: string, chapterId: string) {
-    const res = await apiFetch(`/api/memories/${memoryId}/move`, {
-      method: "PATCH",
-      body: JSON.stringify({ chapter_id: chapterId }),
-    });
-    if (!res.ok) throw new Error("Failed to move memory");
-    return (await res.json()).data;
-  },
 
   // Archive Chat
-  async askArchive(memoirId: string, message: string, history: Array<{ role: string; content: string }> = []) {
+  async askArchive(
+    memoirId: string,
+    message: string,
+    history: Array<{ role: string; content: string }> = [],
+  ) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/chat`, {
       method: "POST",
       body: JSON.stringify({ message, history }),
@@ -416,6 +420,6 @@ export const api = {
     }
 
     const data = await res.json();
-    return data; 
+    return data;
   },
 };
