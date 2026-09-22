@@ -160,7 +160,7 @@ export default function InviteFamilyFriends() {
             >
               <div className="relative h-full w-full">
                 <Image
-                  src="/invite family.jpg"
+                  src="/invite family.webp"
                   alt="A cherished family memory"
                   fill
                   className="object-cover"
