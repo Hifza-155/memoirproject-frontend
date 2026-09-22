@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PenLine, Mic, Camera, FileText, X, Image as ImageIcon, Square } from "lucide-react";
+import { PenLine, Mic, Camera, FileText, X, Image as ImageIcon } from "lucide-react";
+import { WrittenReflectionInput } from "./WrittenReflectionInput";
+import { AudioRecorderInput } from "./AudioRecorderInput";
+import { PhotoUploadInput } from "./PhotoUploadInput";
 
 interface MemoryInputSectionProps {
   activeInput: "none" | "text" | "audio" | "media" | "combined";
@@ -18,7 +21,6 @@ interface MemoryInputSectionProps {
   setInputContent: (val: string) => void;
   handleLocalSubmit: (e: React.FormEvent) => void;
   
-  // Media controls wired from useCaptureMemory
   photoFile: File | null;
   setPhotoFile: (file: File | null) => void;
   recording: boolean;
@@ -35,25 +37,10 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
     photoFile, setPhotoFile, recording, audioUrl, startRecording, stopRecording, clearRecording
   } = props;
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   return (
     <section id="overview" className="relative z-50 mb-16">
       <div className="relative">
         
-        {/* Hidden native input for photo upload */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.[0]) {
-              setPhotoFile(e.target.files[0]);
-            }
-          }}
-        />
-
         {activeInput === "none" && (
           <div className="flex flex-col items-center justify-center py-10 space-y-8">
             <div className="text-center space-y-2">
@@ -104,23 +91,18 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                 <span className="text-[12px] font-sans font-medium text-stone-500 group-hover:text-memory-primary transition-colors pb-1 text-center">Record audio &rarr;</span>
               </motion.button>
 
-              {/* 3. PHOTOGRAPH (Creative Polaroid Aesthetic) */}
+              {/* 3. PHOTOGRAPH */}
               <motion.button
                 type="button"
                 onClick={() => setActiveInput("media")}
                 whileHover={{ scale: 1.02, y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
                 whileTap={{ scale: 0.98 }}
-                // Classic Polaroid Shape: Tight padding on top/sides (p-3), thick padding on bottom (pb-8)
                 className="bg-[#FAFAFA] border-2 border-memory-primary p-3 pb-8 rounded-[3px] shadow-md flex flex-col justify-start h-40 text-left group relative overflow-hidden transform -rotate-2 cursor-pointer"
               >
-                {/* The "Film" Area */}
                 <div className="w-full flex-1 bg-stone-200 border border-stone-300 shadow-inner flex items-center justify-center relative overflow-hidden">
-                  {/* Subtle glossy glare effect over the dark film area */}
                   <div className="absolute inset-0 bg-linear-to-tr from-white/40 via-transparent to-black/5 pointer-events-none"></div>
                   <ImageIcon size={22} className="text-stone-400 group-hover:text-memory-primary transition-colors relative z-10" />
                 </div>
-                
-                {/* The Labels on the thick bottom lip of the Polaroid */}
                 <div className="mt-3 flex items-center justify-between w-full px-1">
                   <div className="flex items-center gap-2 text-memory-primary">
                     <Camera size={14} />
@@ -230,97 +212,30 @@ export function MemoryInputSection(props: MemoryInputSectionProps) {
                           Content Piece {isTextExpanded ? "(Expanded)" : "(Click to write)"}
                         </label>
 
-                        {(activeInput === "text" || activeInput === "combined") && (
-                          <div>
-                            {isTextExpanded ? (
-                              <textarea
-                                value={inputContent}
-                                onChange={(e) => setInputContent(e.target.value)}
-                                placeholder={activeInput === "combined" ? "Add reflection text..." : "Write your story here with care..."}
-                                rows={6}
-                                autoFocus
-                                className="w-full bg-stone-50/50 text-stone-800 font-sans text-[16px] leading-relaxed placeholder:text-stone-400 border border-stone-300 p-5 rounded-xl outline-none focus:border-memory-primary resize-none book-text mt-2"
-                              />
-                            ) : (
-                              <div className="py-2 text-stone-400 font-sans text-[16px] font-medium select-none truncate">
-                                {inputContent ? inputContent : "Click here to expand and write freely..."}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* Delegated Sub-Components */}
+                        <WrittenReflectionInput
+                          activeInput={activeInput}
+                          isTextExpanded={isTextExpanded}
+                          setIsTextExpanded={setIsTextExpanded}
+                          inputContent={inputContent}
+                          setInputContent={setInputContent}
+                        />
 
-                        {/* VOICE RECORDING SECTION */}
-                        {(activeInput === "audio" || activeInput === "combined") && (
-                          <div className="flex flex-col gap-3 py-2 bg-white" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-4">
-                              <button 
-                                type="button" 
-                                onClick={recording ? stopRecording : startRecording}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md shrink-0 transition-all ${
-                                  recording 
-                                    ? "bg-red-500 text-white animate-pulse" 
-                                    : "bg-memory-primary text-memory-light hover:bg-memory-primary/90"
-                                }`}
-                              >
-                                {recording ? <Square size={18} /> : <Mic size={18} />}
-                              </button>
-                              
-                              <span className="font-sans text-[15px] font-medium text-stone-600">
-                                {recording 
-                                  ? "Recording... click to stop" 
-                                  : audioUrl 
-                                  ? "Voice note captured" 
-                                  : activeInput === "combined" 
-                                  ? "Record voice note" 
-                                  : "Tap to record voice note"}
-                              </span>
-                            </div>
+                        <AudioRecorderInput
+                          activeInput={activeInput}
+                          recording={recording}
+                          audioUrl={audioUrl}
+                          startRecording={startRecording}
+                          stopRecording={stopRecording}
+                          clearRecording={clearRecording}
+                        />
 
-                            {/* Recorded Audio Preview */}
-                            {audioUrl && (
-                              <div className="flex items-center gap-3 bg-stone-50 p-2 rounded-xl border border-stone-200 w-fit mt-1">
-                                <audio src={audioUrl} controls className="h-8 max-w-60" />
-                                <button
-                                  type="button"
-                                  onClick={clearRecording}
-                                  className="text-stone-400 hover:text-red-500 p-1 transition-colors"
-                                  title="Delete recording"
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <PhotoUploadInput
+                          activeInput={activeInput}
+                          photoFile={photoFile}
+                          setPhotoFile={setPhotoFile}
+                        />
 
-                        {/* PHOTOGRAPH UPLOAD SECTION */}
-                        {(activeInput === "media" || activeInput === "combined") && (
-                          <div className="space-y-2 bg-white pt-2" onClick={(e) => e.stopPropagation()}>
-                            {!photoFile ? (
-                              <div 
-                                onClick={() => fileInputRef.current?.click()}
-                                className="relative border-2 border-dashed border-stone-300 rounded-xl bg-stone-50/50 flex items-center justify-center p-6 gap-3 cursor-pointer hover:bg-stone-100 transition-colors"
-                              >
-                                <Camera size={20} className="text-stone-500" />
-                                <span className="text-[14px] font-sans font-semibold text-stone-600">Attach photo plate</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between p-4 bg-stone-50 border border-stone-300 rounded-xl">
-                                <div className="flex items-center gap-3 truncate">
-                                  <ImageIcon size={20} className="text-memory-primary shrink-0" />
-                                  <span className="text-[14px] font-medium text-stone-700 truncate">{photoFile.name}</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setPhotoFile(null)}
-                                  className="text-stone-400 hover:text-red-500 p-1"
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     </div>
 
