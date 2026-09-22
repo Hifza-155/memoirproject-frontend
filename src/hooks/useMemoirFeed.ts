@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { api } from "@/lib/api/client";
 import { MemoryItem } from "@/features/dashboard/types"; 
 
@@ -24,7 +24,7 @@ interface BackendMemory {
   body_text?: string;
   occurred_start?: string;
   created_at?: string;
-  chapter_id?: string; // Added chapter_id mapping
+  chapter_id?: string; 
   media_assets?: BackendAsset[];
   memory_media?: Array<{ media_asset?: BackendAsset } | BackendAsset>;
 }
@@ -101,13 +101,12 @@ export function useMemoirFeed(memoirId: string) {
     }
   }, [memoirId]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchFeed(false);
-    }, 0);
-
-    return () => clearTimeout(timer);
+  // Wrap refreshFeed in useCallback so it doesn't trigger endless useEffects in the dashboard
+  const refreshFeed = useCallback(() => {
+    fetchFeed(true);
   }, [fetchFeed]);
 
-  return { memories, loading, error, refreshFeed: () => fetchFeed(true) };
+  // Expose the setMemories function so the dashboard can update state optimistically
+  return { memories, setMemories, loading, error, refreshFeed };
 }
+  

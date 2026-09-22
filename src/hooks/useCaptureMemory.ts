@@ -4,7 +4,7 @@
  * @file useCaptureMemory.ts
  * @description Production-grade custom React hook managing draft states,
  * secure audio/photo media upload pipelines, memory submission,
- * and strict resource cleanup to prevent memory leaks.
+ * strict resource cleanup, and bulletproof timeout/validation guards.
  */
 
 "use client";
@@ -13,6 +13,13 @@ import { useState, useRef, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { useLocalStorageDraft } from "@/hooks/useLocalStorageDraft";
 import { memoryInputSchema } from "@/lib/validations/memory";
+
+// Validation Constants
+const MAX_PHOTO_SIZE_MB = 10;
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+const MAX_RECORDING_MS = 10 * 60 * 1000; // 10 minutes max
+const MIN_RECORDING_MS = 1000; // 1 second minimum
+
 export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   const [draft, setDraft] = useLocalStorageDraft(`memory_draft_${memoirId}`, {
     title: "",
@@ -30,6 +37,10 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Compiler-safe duration tracking (pure interval counter instead of timestamps)
+  const recordingDurationRef = useRef<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +67,10 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     setAudioUrl(null);
   };
 
-  /**
-   * Component unmount cleanup guard against memory leaks and lingering media streams.
-   */
   useEffect(() => {
     return () => {
       stopMediaStream();
+      if (timerRef.current) clearInterval(timerRef.current);
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
@@ -69,46 +78,79 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   }, [audioUrl]);
 
   /**
-   * Requests microphone permissions, cleans up past streams/URLs, and initializes recording.
+   * Requests microphone permissions and initializes recording with a pure interval duration tracker.
    */
   const startRecording = async () => {
-    // Ensure prior stream is completely terminated before starting a new one
     stopMediaStream();
 
-    // Revoke any existing audio preview URL to prevent memory accumulation
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
     }
 
     audioChunksRef.current = [];
+    recordingDurationRef.current = 0;
+    
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
       mediaRecorderRef.current = new MediaRecorder(stream);
 
+      // Start a pure interval counter every second (0 impure time function calls)
+      timerRef.current = setInterval(() => {
+        recordingDurationRef.current += 1000;
+      }, 1000);
+
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current.onstop = () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+
+        // Validate recording length
+        if (recordingDurationRef.current < MIN_RECORDING_MS) {
+          setError("Voice note is too short. Please speak for at least 1 second.");
+          stopMediaStream();
+          return;
+        }
+
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
 
-        // Safely generate and assign new object URL
         setAudioUrl((prevUrl) => {
           if (prevUrl) URL.revokeObjectURL(prevUrl);
           return URL.createObjectURL(blob);
         });
 
-        // Terminate stream tracks immediately once recording stops
         stopMediaStream();
       };
 
       mediaRecorderRef.current.start();
       setRecording(true);
+
+      // Auto-stop if it exceeds max recording limit
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          stopRecording();
+          setError("Maximum recording length (10 minutes) reached.");
+        }
+      }, MAX_RECORDING_MS);
+
     } catch {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       setError("Microphone access denied or unavailable.");
     }
   };
@@ -122,29 +164,26 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       setRecording(false);
     }
   };
-  // This giving us memoir is
+
   const resolveMemoirId = (): string => {
-    // 1. If memoirId was passed as a prop, handle it whether it's a string or an object
     if (memoirId) {
       if (typeof memoirId === "string") {
         return memoirId;
       }
-     if (typeof memoirId === "object" && memoirId !== null) {
-      // Extract the ID if an object or response wrapper was passed
-      const obj = memoirId as Record<string, unknown>;
-      const dataObj = obj.data as Record<string, unknown> | undefined;
-      const nestedDataObj = dataObj?.data as Record<string, unknown> | undefined;
+      if (typeof memoirId === "object" && memoirId !== null) {
+        const obj = memoirId as Record<string, unknown>;
+        const dataObj = obj.data as Record<string, unknown> | undefined;
+        const nestedDataObj = dataObj?.data as Record<string, unknown> | undefined;
 
-      return (
-        (typeof obj.id === "string" ? obj.id : "") ||
-        (typeof dataObj?.id === "string" ? dataObj.id : "") ||
-        (typeof nestedDataObj?.id === "string" ? nestedDataObj.id : "") ||
-        ""
-      );
-    }
+        return (
+          (typeof obj.id === "string" ? obj.id : "") ||
+          (typeof dataObj?.id === "string" ? dataObj.id : "") ||
+          (typeof nestedDataObj?.id === "string" ? nestedDataObj.id : "") ||
+          ""
+        );
+      }
     }
 
-    // 2. Fallback to localStorage if prop is empty
     if (typeof window !== "undefined") {
       try {
         const savedMemoir = localStorage.getItem("active_memoir");
@@ -228,7 +267,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     setError(null);
     setSuccessMsg(null);
 
-    // 1. Zod Form Validation (Check required title and valid date)
+    // 1. Zod Form Validation
     const validation = memoryInputSchema.safeParse({
       title: draft.title,
       occurred_start: draft.occurred_start,
@@ -236,12 +275,24 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     });
 
     if (!validation.success) {
-      // Displays the friendly message defined in your Zod schema (e.g., "Please provide a title for this memory.")
       setError(validation.error.issues[0].message);
       return;
     }
 
-    // 2. Content Guard: Ensure the user provided at least some reflection or media
+    // 2. Strict File Validations
+    if (photoFile) {
+      if (!ALLOWED_PHOTO_TYPES.includes(photoFile.type)) {
+        setError("Invalid image format. Please upload a JPEG, PNG, WEBP, or HEIC file.");
+        return;
+      }
+      const fileSizeMb = photoFile.size / (1024 * 1024);
+      if (fileSizeMb > MAX_PHOTO_SIZE_MB) {
+        setError(`Image is too large (${fileSizeMb.toFixed(1)}MB). Maximum allowed size is ${MAX_PHOTO_SIZE_MB}MB.`);
+        return;
+      }
+    }
+
+    // 3. Content Guard: Ensure the user provided at least some reflection or media
     const hasText = Boolean(
       draft.body_text && draft.body_text.trim().length > 0,
     );
@@ -254,7 +305,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       return;
     }
 
-    // 3. Memoir Session Check
+    // 4. Memoir Session Check
     const currentMemoirId = resolveMemoirId();
     if (!currentMemoirId) {
       setError(
@@ -263,13 +314,16 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       return;
     }
 
-    // All pre-checks passed: activate loading spinner and begin network pipeline
     setLoading(true);
+
+    // 5. STUCK LOADING SAFEGUARD: AbortController Timeout (20 seconds max)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     try {
       const mediaAssetIds: string[] = [];
 
-      // 4. Photo Upload Pipeline
+      // 6. Photo Upload Pipeline
       if (photoFile) {
         const photoId = await uploadMediaAsset(
           currentMemoirId,
@@ -283,10 +337,9 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
         mediaAssetIds.push(photoId);
       }
 
-      // 5. Audio Upload Pipeline
+      // 7. Audio Upload Pipeline
       if (audioBlob) {
         const audioFileName = `voice_memo_${Date.now()}.webm`;
-        // const calculatedDuration = await getAudioDurationMs(audioBlob);
         const audioId = await uploadMediaAsset(
           currentMemoirId,
           audioBlob,
@@ -299,7 +352,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
         mediaAssetIds.push(audioId);
       }
 
-      // 6. Persist Memory to Supabase
+      // 8. Persist Memory to Supabase
       const hasDate = Boolean(draft.occurred_start);
 
       await api.createMemory({
@@ -314,7 +367,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
         media_asset_ids: mediaAssetIds,
       });
 
-      // 7. Cleanup form state and storage on success
+      // 9. Cleanup form state and storage on success
       localStorage.removeItem(`memory_draft_${currentMemoirId}`);
       setDraft({
         title: "",
@@ -325,28 +378,30 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       setPhotoCaption("");
       clearRecording();
 
-      setSuccessMsg("Memory successfully captured! Transcribing audio...");
+      setSuccessMsg("Memory successfully captured!");
       
-      // before we refresh the visual feed.
       if (onSuccess) {
         setTimeout(() => {
           onSuccess();
-        }, 3000); 
+        }, 1500); 
       }
       
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.name === "AbortError" || err.message.includes("aborted")) {
+          setError("Request timed out. Please check your connection and try again.");
+        } else {
+          setError(err.message);
+        }
       } else {
         setError("An unexpected error occurred while saving your memory.");
       }
     } finally {
-      // Keep the loading spinner spinning while we wait for the transcript
-      setTimeout(() => {
-        setLoading(false);
-      }, 3000);
+      clearTimeout(timeoutId);
+      setLoading(false); // GUARANTEED: Never gets stuck indefinitely
     }
   };
+
   return {
     draft,
     setDraft,

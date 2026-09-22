@@ -68,6 +68,7 @@ export interface MemoryCreatePayload {
   occurred_precision?: string | null;
   date_source?: string | null;
   media_asset_ids?: string[];
+  kind?: string;
 }
 
 export interface PresignedUrlPayload {
@@ -187,7 +188,7 @@ export const api = {
     return Array.isArray(data) ? data : data.data || [];
   },
 
-  // 2. FIX THIS: Remove the duplicate/crashing !res.ok block
+
   async createMemory(payload: MemoryCreatePayload) {
     const res = await apiFetch("/api/memories/", {
       method: "POST",
