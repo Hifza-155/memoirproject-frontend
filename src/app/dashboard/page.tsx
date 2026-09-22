@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { api } from "@/lib/api/client";
 import { useExportMemoir } from "@/hooks/useExportMemoir";
 
 // Modular Imports
-import { contributorNames } from "@/features/dashboard/data/mockData";
 import { BookCoverExperience } from "@/features/dashboard/components/BookCoverExperience";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
@@ -19,6 +17,7 @@ import { ShareModal } from "@/features/dashboard/components/ShareModal";
 // Custom Hooks
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
 import { useMemoirFeed } from "@/hooks/useMemoirFeed";
+import { useMemoirActions } from "@/hooks/useMemoirActions";
 
 export default function OwnerDashboard() {
   const [memoirId, setMemoirId] = useState<string>("");
@@ -33,20 +32,9 @@ export default function OwnerDashboard() {
 
   const [pdfFileName, setPdfFileName] = useState("My_Memoir");
   
-  // Cleaned up unused exportMessage and exportError
   const { triggerExport, isExporting } = useExportMemoir(memoirId);
-
   const [showContributors, setShowContributors] = useState(false);
-  const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [expandedStacks, setExpandedStacks] = useState<string[]>([]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [chapters, setChapters] = useState<any[]>([]);
-  const [isGeneratingChapters, setIsGeneratingChapters] = useState(false);
-
-  // Share Modal States
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [currentShareUrl, setCurrentShareUrl] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,32 +62,23 @@ export default function OwnerDashboard() {
 
           if (data.id) setMemoirId(data.id);
 
-          if (data.name) {
-            setName(data.name);
-          } else if (data.subject_name) {
-            setName(data.subject_name);
-          } else {
-            setName("My Memoir");
+          setName(data.subject_name || "My Memoir");
+
+          const dobYear = data.subject_born_on
+            ? new Date(data.subject_born_on).getFullYear().toString()
+            : "";
+
+          let dodYear = "";
+          if (data.subject_is_living) {
+            dodYear = "Present";
+          } else if (data.subject_died_on) {
+            dodYear = new Date(data.subject_died_on).getFullYear().toString();
           }
 
-          if (data.dates) {
-            setDates(data.dates);
+          if (dobYear) {
+            setDates(`${dobYear} — ${dodYear || "?"}`);
           } else {
-            const dobYear = data.dob
-              ? new Date(data.dob).getFullYear()
-              : data.subject_born_on
-                ? new Date(data.subject_born_on).getFullYear()
-                : "";
-
-            const dodYear = data.dod
-              ? new Date(data.dod).getFullYear()
-              : data.subject_died_on
-                ? new Date(data.subject_died_on).getFullYear()
-                : "Present";
-
-            if (dobYear) {
-              setDates(`${dobYear} — ${dodYear}`);
-            }
+            setDates("");
           }
         }
       } catch (e) {
@@ -118,18 +97,20 @@ export default function OwnerDashboard() {
     setMemories,
   } = useMemoirFeed(memoirId);
 
-  useEffect(() => {
-    if (!memoirId) return;
-    const fetchChapters = async () => {
-      try {
-        const data = await api.getChapters(memoirId);
-        if (data) setChapters(data);
-      } catch {
-        setChapters([]);
-      }
-    };
-    fetchChapters();
-  }, [memoirId]);
+  // Extracted business logic & actions hook
+  const {
+    chapters,
+    isGeneratingChapters,
+    isShareModalOpen,
+    setIsShareModalOpen,
+    currentShareUrl,
+    isLinkCopied,
+    handleOpenShareModal,
+    handleSavePasswordAndCopy,
+    handleGenerateTimeline,
+    handleRenameChapter,
+    handleUpdateWovenText,
+  } = useMemoirActions(memoirId, refreshFeed, setMemories);
 
   const {
     draft,
@@ -155,102 +136,6 @@ export default function OwnerDashboard() {
     setExpandedStacks((prev) =>
       prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind],
     );
-  };
-
-  const handleOpenShareModal = async () => {
-    if (!memoirId) return;
-    try {
-      const res = await api.createShareLink(memoirId);
-      const linkData = res.data || res;
-      if (linkData && linkData.url) {
-        setCurrentShareUrl(linkData.url);
-        setIsShareModalOpen(true);
-      }
-    } catch (error) {
-      console.error("Failed to generate share link:", error);
-    }
-  };
-
-  const handleSavePasswordAndCopy = async (password: string) => {
-    if (!memoirId) return;
-    try {
-      await api.updateShareLinkPassword(memoirId, password);
-
-      await navigator.clipboard.writeText(currentShareUrl);
-      setIsLinkCopied(true);
-      setTimeout(() => {
-        setIsLinkCopied(false);
-        setIsShareModalOpen(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Failed to save password or copy link:", error);
-    }
-  };
-
-  const handleGenerateTimeline = async () => {
-    if (!memoirId) return;
-    setIsGeneratingChapters(true);
-
-    try {
-      await api.generateTimeline(memoirId);
-
-      const pollInterval = setInterval(async () => {
-        try {
-          const freshChapters = await api.getChapters(memoirId);
-          if (freshChapters && freshChapters.length > 0) {
-            setChapters(freshChapters);
-            setIsGeneratingChapters(false);
-            clearInterval(pollInterval);
-            refreshFeed();
-          }
-        } catch (pollErr) {
-          // Ignore polling errors
-        }
-      }, 4000);
-
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        if (isGeneratingChapters) {
-          setIsGeneratingChapters(false);
-        }
-      }, 60000);
-    } catch (e) {
-      console.error("Failed to start timeline generation", e);
-      setIsGeneratingChapters(false);
-    }
-  };
-
-  const handleRenameChapter = async (chapterId: string, newTitle: string) => {
-    if (!memoirId) return;
-    try {
-      await api.renameChapter(memoirId, chapterId, newTitle);
-      setChapters((prev) =>
-        prev.map((ch) =>
-          ch.id === chapterId ? { ...ch, title: newTitle } : ch,
-        ),
-      );
-    } catch (e) {
-      console.error("Failed to rename chapter", e);
-    }
-  };
-
-  const handleUpdateWovenText = async (memoryId: string, newText: string) => {
-    if (!memoirId) return;
-
-    if (setMemories) {
-      setMemories((prev: any[]) =>
-        prev.map((m) =>
-          m.id === memoryId ? { ...m, ai_woven_text: newText } : m,
-        ),
-      );
-    }
-
-    try {
-      await api.updateWovenText(memoirId, memoryId, newText);
-      refreshFeed();
-    } catch (e) {
-      console.error("Failed to update narrative text", e);
-    }
   };
 
   return (
@@ -282,7 +167,9 @@ export default function OwnerDashboard() {
         <ContributorsOverlay
           showContributors={showContributors}
           setShowContributors={setShowContributors}
-          contributorNames={contributorNames}
+          contributors={Array.from(
+            new Set(memories.map((m) => m.author || "Owner")),
+          )}
         />
         <DashboardSidebar setShowContributors={setShowContributors} />
 

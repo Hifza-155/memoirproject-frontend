@@ -7,7 +7,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Lock, Copy, Check, KeyRound, Globe } from "lucide-react";
+import { X, Lock, Copy, Check, KeyRound} from "lucide-react";
 
 interface ShareModalProps {
   isOpen: boolean;

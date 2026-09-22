@@ -51,8 +51,6 @@ export function useAuth() {
           occurred_start: finalDate,
           occurred_end: finalDate,
           occurred_precision: "day",
-          
-          // @ts-expect-error - 'kind' is used by frontend UI grouping
           kind: "text",
         });
         localStorage.removeItem("onboarding_initial_memory");
@@ -120,8 +118,6 @@ export function useAuth() {
                   occurred_start: finalDate,
                   occurred_end: finalDate,
                   occurred_precision: "day",
-                  
-                  // @ts-expect-error - 'kind' is used by frontend UI grouping
                   kind: "text",
                 });
                 // Wipe it so it doesn't accidentally trigger again later
@@ -161,8 +157,6 @@ export function useAuth() {
                   occurred_start: finalDate,
                   occurred_end: finalDate,
                   occurred_precision: "day",
-                  
-                  // @ts-expect-error
                   kind: "text",
                 });
                 localStorage.removeItem("onboarding_initial_memory");

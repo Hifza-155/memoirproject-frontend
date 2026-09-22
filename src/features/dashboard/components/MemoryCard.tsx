@@ -3,11 +3,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Play, MoreHorizontal, Edit2, Trash2, FolderOutput } from "lucide-react";
+// Removed Edit2 and Trash2 since we are deleting those buttons
+import { Play, MoreHorizontal, FolderOutput } from "lucide-react";
 import { MemoryItem } from "../types";
 
 interface MemoryCardProps {
-  // Extending the type locally to resolve all TS property errors
   memory: MemoryItem & { 
     audioUrl?: string; 
     chapter_id?: string;
@@ -38,7 +38,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // DYNAMIC CONTAINER STYLES BASED ON MEMORY KIND
   const getContainerStyles = (kind: string) => {
     const base = "relative z-10 p-6 md:p-8 transition-all duration-300 shadow-[0_4px_16px_rgba(122,46,57,0.02)] hover:shadow-[0_8px_24px_rgba(122,46,57,0.06)] ";
     
@@ -65,10 +64,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
   return (
     <div className="relative group w-full">
       
-      {/* ========================================================
-          CREATIVE, DISTINCT BACKGROUND EFFECTS (DARK MAROON)
-      ======================================================== */}
-      
       {memory.kind === "text" && (
         <div className="absolute -inset-1.5 border-2 border-dashed border-[#3a0f18]/60 rounded-2xl transform rotate-1 transition-all duration-300 group-hover:rotate-2 group-hover:border-[#3a0f18]/80 z-0 pointer-events-none"></div>
       )}
@@ -88,10 +83,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
         </>
       )}
 
-
-      {/* ========================================================
-          MAIN ARTICLE CONTENT
-      ======================================================== */}
       <article className={getContainerStyles(memory.kind)}>
         <div 
           className={`absolute inset-0 opacity-[0.035] pointer-events-none ${getRadiusClass(memory.kind)}`}
@@ -105,69 +96,51 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
             </span>
           </div>
 
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setShowOptions(!showOptions)}
-              className="w-8 h-8 flex items-center justify-center text-[#7a2e39]/40 hover:text-[#7a2e39] transition-colors cursor-pointer md:opacity-0 md:group-hover:opacity-100"
-            >
-              <MoreHorizontal size={18} />
-            </button>
+          {/* NEW LOGIC: Only render the 3-dots menu if there are chapters available to move the memory into */}
+          {availableChapters && availableChapters.length > 0 && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setShowOptions(!showOptions)}
+                className="w-8 h-8 flex items-center justify-center text-[#7a2e39]/40 hover:text-[#7a2e39] transition-colors cursor-pointer md:opacity-0 md:group-hover:opacity-100"
+              >
+                <MoreHorizontal size={18} />
+              </button>
 
-            <AnimatePresence>
-              {showOptions && (
-                <motion.div 
-                  key="card-options"
-                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-1 w-44 bg-[#FAF7F2] border border-[#7a2e39]/20 rounded-xl shadow-xl py-1.5 z-20"
-                >
-                  <button
-                    type="button"
-                    onClick={() => { setShowOptions(false); onOptionSelect?.("edit", memory.id); }}
-                    className="w-full text-left px-4 py-2.5 text-[13px] font-sans font-medium text-stone-600 hover:bg-[#EFECE6] hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer"
+              <AnimatePresence>
+                {showOptions && (
+                  <motion.div 
+                    key="card-options"
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-1 w-44 bg-[#FAF7F2] border border-[#7a2e39]/20 rounded-xl shadow-xl py-2 z-20"
                   >
-                    <Edit2 size={14} /> Edit Detail
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowOptions(false); onOptionSelect?.("delete", memory.id); }}
-                    className="w-full text-left px-4 py-2.5 text-[13px] font-sans font-medium text-[#7a2e39] hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer mt-0.5"
-                  >
-                    <Trash2 size={14} /> Remove
-                  </button>
-
-                  {/* FR5: Move to Chapter Override */}
-                  {availableChapters && availableChapters.length > 0 && (
-                    <>
-                      <div className="h-px bg-stone-200 my-1 mx-2"></div>
-                      <div className="px-4 py-1.5 text-[10px] font-bold text-stone-400 uppercase tracking-wider">Move to Chapter</div>
-                      {availableChapters.map(chapter => (
-                        <button
-                          key={chapter.id}
-                          type="button"
-                          onClick={() => { setShowOptions(false); onOptionSelect?.("move", memory.id, chapter.id); }}
-                          className={`w-full text-left px-4 py-2 text-[12px] font-sans font-medium hover:bg-[#EFECE6] transition-colors flex items-center gap-2 cursor-pointer ${memory.chapter_id === chapter.id ? 'text-memory-primary bg-stone-100/50' : 'text-stone-600'}`}
-                        >
-                          <FolderOutput size={12} className="shrink-0" /> 
-                          <span className="truncate">{chapter.title}</span>
-                        </button>
-                      ))}
-                    </>
-                  )}
-
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    <div className="px-4 py-1 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                      Move to Chapter
+                    </div>
+                    {availableChapters.map(chapter => (
+                      <button
+                        key={chapter.id}
+                        type="button"
+                        onClick={() => { setShowOptions(false); onOptionSelect?.("move", memory.id, chapter.id); }}
+                        className={`w-full text-left px-4 py-2 text-[12px] font-sans font-medium hover:bg-[#EFECE6] transition-colors flex items-center gap-2 cursor-pointer ${memory.chapter_id === chapter.id ? 'text-memory-primary bg-stone-100/50' : 'text-stone-600'}`}
+                      >
+                        <FolderOutput size={12} className="shrink-0" /> 
+                        <span className="truncate">{chapter.title}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
-        {/* CONTENT BLOCKS */}
+        {/* CONTENT BLOCKS (Unchanged) */}
         <div className="relative z-10">
           
-          {/* 1. TEXT ONLY */}
           {memory.kind === "text" && (
             <div>
               {memory.title && <h4 className="font-sans font-bold text-xl text-stone-900 mb-3 leading-tight">{memory.title}</h4>}
@@ -179,7 +152,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
             </div>
           )}
 
-          {/* 2. COMBINED MEMORY */}
           {memory.kind === "combined" && (
             <div className="flex flex-col-reverse sm:flex-row gap-8 items-start justify-between">
               <div className="flex-1 w-full flex flex-col space-y-5">
@@ -230,7 +202,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
             </div>
           )}
 
-          {/* 3. PHOTO ONLY */}
           {memory.kind === "photo" && (
             <div className="flex flex-col sm:flex-row gap-6 items-start">
               {memory.mediaUrl && (
@@ -253,7 +224,6 @@ export function MemoryCard({ memory, onOptionSelect, onPlayAudio, availableChapt
             </div>
           )}
 
-          {/* 4. AUDIO ONLY */}
           {memory.kind === "audio" && (
             <div className="space-y-4">
               {memory.title && <h4 className="font-sans font-bold text-xl text-stone-900 mb-1">{memory.title}</h4>}

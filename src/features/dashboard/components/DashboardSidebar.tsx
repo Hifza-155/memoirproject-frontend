@@ -2,20 +2,44 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { destroySession } from "@/app/actions/auth";
 
 interface DashboardSidebarProps {
   setShowContributors: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    // 1. Wipe all local memoir and user data to protect privacy
+    localStorage.removeItem("active_memoir");
+    localStorage.removeItem("pending_memoir");
+    localStorage.removeItem("user_profile");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("onboarding_initial_memory");
+    localStorage.removeItem("onboarding_memory_date");
+    
+    // (Optional: You can leave "hasSeenBookCover" in localStorage so they don't 
+    // have to watch the 9-second intro again every time they log back in)
+
+    // 2. Destroy the HTTP-only secure cookie via Server Action
+    await destroySession();
+
+    // 3. Kick the user safely back to the login screen
+    router.push("/login");
+  };
+
   return (
-    <aside className="w-68 bg-memory-primary text-memory-light p-6 hidden lg:flex flex-col justify-start sticky top-0 h-screen z-20 shadow-[inset_-12px_0_25px_rgba(0,0,0,0.25)] border-r border-[#240d14]">
+    // Changed `justify-start` to `justify-between` to push the logout button to the bottom
+    <aside className="w-68 bg-memory-primary text-memory-light p-6 hidden lg:flex flex-col justify-between sticky top-0 h-screen z-20 shadow-[inset_-12px_0_25px_rgba(0,0,0,0.25)] border-r border-[#240d14]">
       <div>
         <div className="mb-10 pb-6">
           <span className="font-sans text-2xl tracking-wide text-white font-normal">Family Archive</span>
         </div>
 
-        {/* Restored Tactile Stacked Counter Artifact with rounded-sm and delicate text sizings */}
+        {/* Restored Tactile Stacked Counter Artifact */}
         <div className="mb-16 relative w-full h-24 items-center justify-center flex perspective-[1000px]">
           <div className="absolute inset-0 bg-[#E5DFD6] shadow-sm rounded-sm transform -rotate-3 translate-y-2 border border-stone-300" />
           <div className="absolute inset-0 bg-[#F8F5F1] shadow-sm rounded-sm transform rotate-2 translate-x-1 border border-stone-200" />
@@ -28,7 +52,7 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
           </div>
         </div>
 
-        {/* Restored Simple, Soft Staggered Navigation Blocks with original offsets (ml-16, ml-6) and py-3 */}
+        {/* Navigation Blocks */}
         <nav className="space-y-4 font-sans text-[13px] pt-8">
           <motion.a 
             href="#overview" 
@@ -58,6 +82,19 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
             Contributors
           </motion.button>
         </nav>
+      </div>
+
+      {/* NEW: Logout Button anchored to the bottom */}
+      <div className="mb-6 font-sans text-[13px]">
+        <motion.button 
+          type="button"
+          onClick={handleLogout}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-36 ml-10 text-center flex items-center justify-center text-stone-800 bg-white hover:bg-[#FAF7F2] px-4 py-3 rounded-sm shadow-sm transition-all border-l-2 border-stone-400 cursor-pointer transform rotate-2 hover:rotate-0"
+        >
+          Log Out
+        </motion.button>
       </div>
     </aside>
   );
