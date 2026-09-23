@@ -1,24 +1,4 @@
-<<<<<<< HEAD
-=======
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("access_token") ||
-        localStorage.getItem("token")
-      : null;
-
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-// Centralized wrapper to make sure every request sent to your
 // FastAPI backend is properly formatted, secure, and pointed to the right address
->>>>>>> main
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   // endpoint looks like "/api/auth/login"
   // We prepend "/api/proxy" to route it through our Next.js secure middleman
@@ -44,11 +24,7 @@ interface ApiErrorResponse {
 
 function parseErrorDetail(
   errData: ApiErrorResponse | null | undefined,
-<<<<<<< HEAD
-  defaultMessage: string,
-=======
   defaultMessage: string
->>>>>>> main
 ): string {
   if (!errData) return defaultMessage;
 
@@ -305,14 +281,10 @@ export const api = {
     if (!res.ok) {
       const errData: ApiErrorResponse = await res.json().catch(() => ({}));
       throw new Error(
-<<<<<<< HEAD
-        parseErrorDetail(errData, "Failed to register media metadata"),
-=======
         parseErrorDetail(
           errData,
           "Failed to register media metadata"
         )
->>>>>>> main
       );
     }
 
@@ -388,17 +360,6 @@ export const api = {
       throw new Error("No active memoir ID found.");
     }
 
-<<<<<<< HEAD
-    const res = await apiFetch(`/api/memoirs/${memoirId}/export`, {
-      method: "POST",
-    });
-
-    if (!res.ok) {
-      const errorBody = await res.text();
-      console.error("Backend export error response:", errorBody);
-      throw new Error(
-        `Failed to initiate PDF export: ${res.status} ${res.statusText}`,
-=======
     const res = await apiFetch(
       `/api/memoirs/${memoirId}/export`,
       {
@@ -416,7 +377,6 @@ export const api = {
 
       throw new Error(
         `Failed to initiate PDF export: ${res.status} ${res.statusText}`
->>>>>>> main
       );
     }
 
@@ -425,18 +385,12 @@ export const api = {
 
   // PDF Export Status Polling
   async getLatestExportStatus(memoirId: string) {
-<<<<<<< HEAD
-    const res = await apiFetch(`/api/memoirs/${memoirId}/export/latest`, {
-      method: "GET",
-    });
-=======
     const res = await apiFetch(
       `/api/memoirs/${memoirId}/export/latest`,
       {
         method: "GET",
       }
     );
->>>>>>> main
 
     if (!res.ok) {
       throw new Error("Failed to check export status.");
@@ -444,126 +398,12 @@ export const api = {
 
     return res.json();
   },
-<<<<<<< HEAD
-=======
-
->>>>>>> main
   // Search
   async searchMemories(memoirId: string, query: string) {
     const res = await apiFetch(
       `/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`,
       {
         method: "GET",
-<<<<<<< HEAD
-      },
-    );
-    if (!res.ok) throw new Error("Failed to search archive");
-    const json = await res.json();
-    return json.data || json;
-  },
-
-  // Share Link Generation
-  async createShareLink(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/share-link`, {
-      method: "POST",
-    });
-    if (!res.ok) {
-      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to create share link"));
-    }
-    const json = await res.json();
-    // Returns the exact ShareLinkResponse data from backend
-    return json.data || json;
-  },
-  async getSharedMemoir(token: string) {
-    const res = await apiFetch(`/api/share/${token}`, {
-      method: "GET",
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(
-        errData.detail ||
-          "Failed to load shared memoir. The link may be expired or invalid.",
-      );
-    }
-    const json = await res.json();
-    return json.data;
-  },
-
-  updateShareLinkPassword: async (memoirId: string, password: string) => {
-    const res = await fetch(`/api/proxy/api/memoirs/${memoirId}/share-link`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    if (!res.ok) throw new Error("Failed to update share link password");
-    return res.json();
-  },
-  // AI Organization & Chapters
-  async generateTimeline(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/organize`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error("Failed to trigger timeline generation");
-    // We return the envelope (success, message, job_status)
-    return await res.json();
-  },
-  async updateWovenText(
-    memoirId: string,
-    memoryId: string,
-    aiWovenText: string,
-  ) {
-    const res = await apiFetch(
-      `/api/memoirs/${memoirId}/memories/${memoryId}/woven-text`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ ai_woven_text: aiWovenText }),
-      },
-    );
-    if (!res.ok) throw new Error("Failed to update narrative text");
-    return (await res.json()).data;
-  },
-  async getChapters(memoirId: string) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/chapters`, {
-      method: "GET",
-    });
-    if (!res.ok) throw new Error("Failed to fetch chapters");
-    return (await res.json()).data;
-  },
-
-  async renameChapter(memoirId: string, chapterId: string, title: string) {
-    const res = await apiFetch(
-      `/api/memoirs/${memoirId}/chapters/${chapterId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ title }),
-      },
-    );
-    if (!res.ok) throw new Error("Failed to rename chapter");
-    return (await res.json()).data;
-  },
-
-  // Archive Chat
-  async askArchive(
-    memoirId: string,
-    message: string,
-    history: Array<{ role: string; content: string }> = [],
-  ) {
-    const res = await apiFetch(`/api/memoirs/${memoirId}/chat`, {
-      method: "POST",
-      body: JSON.stringify({ message, history }),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(parseErrorDetail(errData, "Failed to query archive"));
-    }
-
-    const data = await res.json();
-    return data;
-  },
-};
-=======
       }
     );
 
@@ -575,4 +415,3 @@ export const api = {
     return json.data || json;
   },
 };
->>>>>>> main
