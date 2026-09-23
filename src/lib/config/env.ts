@@ -1,12 +1,3 @@
-/**
- * Environment configuration — the frontend twin of the backend's `src/core/`.
- *
- * Environment variables are external data, so they get validated like any other
- * external data. Parsing happens at module load: if a variable is missing or
- * malformed, the app fails immediately with a readable message instead of
- * surfacing later as a mystery 404 or `undefined` in a URL.
- */
-
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -21,19 +12,17 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(10_000),
+
+  /** Supabase Configuration */
+  NEXT_PUBLIC_SUPABASE_URL: z.string("Must be a valid Supabase URL"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase Anon Key is required"),
 });
 
-/**
- * Each variable is read as a literal `process.env.X` member access.
- *
- * This is not stylistic. Next.js inlines `NEXT_PUBLIC_*` variables into the
- * client bundle by statically replacing exactly this expression at build time.
- * Passing `process.env` wholesale to `.parse()` would work on the server and
- * silently produce `undefined` in the browser.
- */
 const parsed = envSchema.safeParse({
   NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   NEXT_PUBLIC_API_TIMEOUT_MS: process.env.NEXT_PUBLIC_API_TIMEOUT_MS,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 });
 
 if (!parsed.success) {

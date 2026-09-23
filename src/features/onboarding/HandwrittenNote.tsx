@@ -1,0 +1,56 @@
+/**
+ * @file HandwrittenNote.tsx
+ * @description Component rendering a handwritten style note card for user Hafsa.
+ * Elevated to a premium, blank stationery look to distinguish it from the drafting phase.
+ */
+
+'use client';
+
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+
+export default function HandwrittenNote() {
+  return (
+    <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center justify-center px-6 py-16 relative z-10 font-sans selection:bg-memory-primary selection:text-white">
+      <div className="w-full max-w-90">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link
+            href="/memory-subject-selection"
+            aria-label="Go back"
+            className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
+          >
+            <ArrowLeft size={18} strokeWidth={1.7} />
+          </Link>
+        </div>
+
+        {/* Keepsake Note Card (Elevated from torn paper to premium stationery) */}
+        <div className="relative w-full bg-white border border-memory-border/50 shadow-2xl shadow-memory-primary/10 -rotate-1 transition-transform hover:rotate-0 duration-500 p-10 sm:p-12 rounded-3xl">
+          <div className="relative z-10 flex flex-col items-center text-center">
+            {/* Using the global font-caveat utility class */}
+            <h2 className="font-caveat text-[40px] font-bold text-memory-primary mb-4">
+              Dear Hafsa!
+            </h2>
+
+            <p className="font-caveat text-[28px] text-memory-primary leading-10">
+              Every family has a story worth keeping, the quiet mornings,
+              the faded photographs, and the voices you never want to lose.
+              We built this space to hold those precious pieces safe for you
+              and the ones you love.
+            </p>
+          </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-4 mt-6 w-full">
+          <Link
+            href="/unfold-memory"
+            className="flex-1 text-center bg-memory-primary text-white text-[16px] font-semibold py-4 rounded-2xl hover:bg-memory-maroon transition shadow-md"
+          >
+            Turn the Page 
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}

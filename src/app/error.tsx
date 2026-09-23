@@ -1,21 +1,6 @@
-"use client";
+'use client';
 
-/**
- * Route-level error boundary.
- *
- * Catches anything thrown while rendering a route — including an `ApiError`
- * raised by a server-path fetch. Error boundaries must be client components,
- * which is why this file carries the directive while the pages it protects
- * do not.
- *
- * Place additional `error.tsx` files in nested segments when a section of the
- * app should fail without taking the whole route with it.
- */
-
-import { useEffect } from "react";
-
-import { Button } from "@/components/ui/button";
-import { isApiError } from "@/lib/api/errors";
+import { useEffect } from 'react';
 
 export default function RouteError({
   error,
@@ -25,30 +10,32 @@ export default function RouteError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Replace with your logging service. Server-thrown errors reach the client
-    // with their message redacted and only `digest` intact — that digest is
-    // what correlates this UI with the full stack trace in the server logs.
+    // Logs the error to the console for debugging
     console.error(error);
   }, [error]);
 
-  const description = isApiError(error)
-    ? error.message
-    : "Something went wrong while loading this page.";
-
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col items-start gap-4 px-6 py-24">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {isApiError(error) && error.code === "network"
-          ? "Backend unavailable"
-          : "Something went wrong"}
+    <main className="mx-auto flex w-full max-w-md flex-col items-start gap-4 px-6 py-24 min-h-screen justify-center bg-[#faf8f5] text-[#381c24] font-sans">
+      <h1 className="text-2xl font-semibold tracking-tight font-serif">
+        Something went wrong
       </h1>
-      <p className="text-muted-foreground">{description}</p>
+      
+      <p className="text-[#78716c]">
+        {error.message || "An unexpected error occurred while loading this page."}
+      </p>
+
       {error.digest && (
-        <p className="font-mono text-xs text-muted-foreground">
+        <p className="font-mono text-xs text-[#78716c]/70">
           digest: {error.digest}
         </p>
       )}
-      <Button onClick={reset}>Try again</Button>
+
+      <button
+        onClick={reset}
+        className="mt-2 bg-[#381c24] text-white px-5 py-3 rounded-xl font-medium hover:bg-[#4a222a] transition shadow-md cursor-pointer"
+      >
+        Try again
+      </button>
     </main>
   );
 }
