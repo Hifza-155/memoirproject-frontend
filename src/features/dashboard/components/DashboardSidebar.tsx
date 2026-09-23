@@ -82,6 +82,19 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
             Contributors
           </motion.button>
         </nav>
+
+        {/* LIVE MEMOIR LINK */}
+        {memoirId && (
+          <div className="mt-6 pt-4 border-t border-memory-border">
+            <button
+              onClick={() => router.push("/final-memoir")}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm font-semibold bg-memory-primary text-memory-light hover:bg-memory-maroon transition-colors cursor-pointer shadow-sm flex items-center gap-2"
+            >
+              <span className="text-base">📖</span>
+              View Live Memoir
+            </button>
+          </div>
+        )}
       </div>
 
       {/* NEW: Logout Button anchored to the bottom */}

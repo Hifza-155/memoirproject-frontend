@@ -15,7 +15,6 @@ export default function HandwrittenNote() {
       <div className="relative w-full max-w-90 bg-white border border-memory-border/50 shadow-2xl shadow-memory-primary/10 -rotate-1 transition-transform hover:rotate-0 duration-500 p-10 sm:p-12 rounded-3xl">
         <div className="relative z-10 flex flex-col items-center text-center">
           {/* Using the global font-caveat utility class */}
-          {/* Using the global font-caveat utility class */}
           <h2 className="font-caveat text-[40px] font-bold text-memory-primary mb-4">
             A gentle beginning,
           </h2>

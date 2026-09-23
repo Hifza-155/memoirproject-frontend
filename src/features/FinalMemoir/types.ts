@@ -1,3 +1,9 @@
+export interface MemoryImage {
+  id: string;
+  url: string;
+  caption?: string;
+}
+
 export interface MemoryItem {
   id: string;
   author: string;
@@ -6,6 +12,7 @@ export interface MemoryItem {
   reactionsCount: number;
   imageUrl?: string;
   imageCaption?: string;
+  images?: MemoryImage[];
   chapter: string;
   chapterSubtitle?: string;
   date: string;

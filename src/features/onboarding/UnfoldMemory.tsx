@@ -6,7 +6,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 
 const PROMPTS = [
@@ -47,6 +49,7 @@ function HandwrittenPromptItem({
 
   useEffect(() => {
     if (!isStarted) return;
+
     let currentIndex = 0;
 
     const interval = setInterval(() => {
@@ -94,6 +97,7 @@ function HandwrittenPromptItem({
       style={{ pointerEvents: isStarted ? "auto" : "none" }}
     >
       <span>{displayedText}</span>
+
       {isStarted && !isComplete && (
         <span className="inline-block w-1.5 h-4 bg-memory-accent animate-pulse" />
       )}
@@ -103,6 +107,7 @@ function HandwrittenPromptItem({
 
 export default function UnfoldMemory() {
   const router = useRouter();
+
   const [story, setStory] = useState("");
   // NEW: State for the memory date
   const [memoryDate, setMemoryDate] = useState(""); 
@@ -127,6 +132,7 @@ export default function UnfoldMemory() {
       if (current.trim()) {
         return `${current}\n\n${prompt}: `;
       }
+
       return `${prompt}: `;
     });
   };
@@ -141,7 +147,7 @@ export default function UnfoldMemory() {
             onClick={() => router.back()}
             className="text-memory-muted hover:text-memory-primary text-[15px] font-medium transition inline-flex items-center gap-1 cursor-pointer"
           >
-            ←
+            <ArrowLeft size={18} strokeWidth={1.7} />
           </button>
         </div>
 
@@ -154,6 +160,7 @@ export default function UnfoldMemory() {
           <h1 className="text-3xl md:text-4xl text-memory-primary leading-snug mb-3">
             Hold onto a moment that matters.
           </h1>
+
           <p className="text-memory-muted text-[15px] md:text-base leading-relaxed">
             Start with a moment that still stays with you.
           </p>
@@ -250,7 +257,7 @@ export default function UnfoldMemory() {
                 : "bg-memory-border/70 text-memory-muted cursor-not-allowed shadow-none"
             }`}
           >
-            Continue
+            Keep This Memory
           </motion.button>
         </motion.div>
       </div>
