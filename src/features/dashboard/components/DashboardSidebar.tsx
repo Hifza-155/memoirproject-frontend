@@ -1,3 +1,8 @@
+/**
+ * @file DashboardSidebar.tsx
+ * @description Sidebar navigation component featuring the tactile stacked cards and logout functionality.
+ */
+
 "use client";
 
 import React from "react";
@@ -20,9 +25,6 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
     localStorage.removeItem("user_name");
     localStorage.removeItem("onboarding_initial_memory");
     localStorage.removeItem("onboarding_memory_date");
-    
-    // (Optional: You can leave "hasSeenBookCover" in localStorage so they don't 
-    // have to watch the 9-second intro again every time they log back in)
 
     // 2. Destroy the HTTP-only secure cookie via Server Action
     await destroySession();
@@ -32,7 +34,6 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
   };
 
   return (
-    // Changed `justify-start` to `justify-between` to push the logout button to the bottom
     <aside className="w-68 bg-memory-primary text-memory-light p-6 hidden lg:flex flex-col justify-between sticky top-0 h-screen z-20 shadow-[inset_-12px_0_25px_rgba(0,0,0,0.25)] border-r border-[#240d14]">
       <div>
         <div className="mb-10 pb-6">
@@ -82,22 +83,9 @@ export function DashboardSidebar({ setShowContributors }: DashboardSidebarProps)
             Contributors
           </motion.button>
         </nav>
-
-        {/* LIVE MEMOIR LINK */}
-        {memoirId && (
-          <div className="mt-6 pt-4 border-t border-memory-border">
-            <button
-              onClick={() => router.push("/final-memoir")}
-              className="w-full text-left px-4 py-3 rounded-xl text-sm font-semibold bg-memory-primary text-memory-light hover:bg-memory-maroon transition-colors cursor-pointer shadow-sm flex items-center gap-2"
-            >
-              <span className="text-base">📖</span>
-              View Live Memoir
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* NEW: Logout Button anchored to the bottom */}
+      {/* Logout Button anchored to the bottom */}
       <div className="mb-6 font-sans text-[13px]">
         <motion.button 
           type="button"
