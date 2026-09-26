@@ -19,6 +19,7 @@ export default function ScatteredMemories() {
             src="/TopLeftImage.webp"
             alt="Vintage family memory"
             fill
+            sizes="(max-width: 1024px) 192px, 256px"
             className="w-full h-full object-cover"
           />
         </div>
@@ -29,6 +30,7 @@ export default function ScatteredMemories() {
             src="/BottomRightImage.webp"
             alt="Nostalgic family memory"
             fill
+            sizes="(max-width: 1024px) 288px, 320px"
             className="w-full h-full object-cover"
           />
         </div>
