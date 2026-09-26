@@ -10,6 +10,7 @@ interface HeaderActionsSectionProps {
   setPdfFileName: (val: string) => void;
   triggerExport: (name: string) => void;
   isExporting: boolean;
+  onPublish: () => void; 
 }
 
 export function HeaderActionsSection({
@@ -19,6 +20,7 @@ export function HeaderActionsSection({
   setPdfFileName,
   triggerExport,
   isExporting,
+  onPublish, // Added to props
 }: HeaderActionsSectionProps) {
   return (
     <div className="flex items-center gap-4">
@@ -63,6 +65,7 @@ export function HeaderActionsSection({
       {/* Lock Button */}
       <motion.button 
         type="button"
+        onClick={onPublish} // ADDED CLICK HANDLER HERE
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="relative w-11 h-11 bg-memory-primary rounded-full flex items-center justify-center shadow-md cursor-pointer border border-[#240d14]/40 hover:bg-[#240d14] transition-colors"

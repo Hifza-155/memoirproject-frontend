@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation"; // 1. IMPORT ROUTER
 import { useExportMemoir } from "@/hooks/useExportMemoir";
 
 // Modular Imports
@@ -20,6 +21,8 @@ import { useMemoirFeed } from "@/hooks/useMemoirFeed";
 import { useMemoirActions } from "@/hooks/useMemoirActions";
 
 export default function OwnerDashboard() {
+  const router = useRouter(); // 2. INITIALIZE ROUTER
+  
   const [memoirId, setMemoirId] = useState<string>("");
   const [name, setName] = useState("");
   const [dates, setDates] = useState("");
@@ -138,6 +141,12 @@ export default function OwnerDashboard() {
     );
   };
 
+  // 3. CREATE THE PUBLISH HANDLER
+  const handlePublish = () => {
+    if (!memoirId) return;
+    router.push(`/memoirs/${memoirId}/published`);
+  };
+
   return (
     <BookCoverExperience userName={ownerName || "Author"}>
       <div className="min-h-screen bg-memory-bg text-stone-900 font-sans selection:bg-memory-primary/20 flex overflow-x-hidden relative">
@@ -185,6 +194,7 @@ export default function OwnerDashboard() {
             setPdfFileName={setPdfFileName}
             triggerExport={triggerExport}
             isExporting={isExporting}
+            onPublish={handlePublish} 
           />
 
           <div className="max-w-3xl mx-auto w-full px-6 pt-10">
