@@ -224,7 +224,6 @@ export const api = {
   },
 
   // Memory
-  // 1. ADD THIS: To check if the user has an active memoir during login
   async getUserMemoirs() {
     const res = await apiFetch("/api/memoirs/", {
       method: "GET",
@@ -248,7 +247,6 @@ export const api = {
     const data = await res.json();
     return Array.isArray(data) ? data : data.data || [];
   },
-
 
   async createMemory(payload: MemoryCreatePayload) {
     const res = await apiFetch("/api/memories/", {
@@ -561,6 +559,16 @@ export const api = {
 
     const data = await res.json();
     return data;
+  },
+  async publishMemoir(memoirId: string) {
+    const res = await apiFetch(`/api/memoirs/${memoirId}/publish`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const errData: ApiErrorResponse = await res.json().catch(() => ({}));
+      throw new Error(parseErrorDetail(errData, "Failed to publish memoir"));
+    }
+    return res.json();
   },
 };
 =======

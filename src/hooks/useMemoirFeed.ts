@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { api } from "@/lib/api/client";
-import { MemoryItem } from "@/features/dashboard/types"; 
+import { MemoryItem } from "@/features/dashboard/types";
 
 // 1. Strict TypeScript Interfaces to clear "@typescript-eslint/no-explicit-any"
 interface BackendAsset {
@@ -12,10 +12,12 @@ interface BackendAsset {
   url?: string;
   signed_url?: string;
   duration_ms?: number;
-  transcript?: {
-    display_text?: string;
-    raw_text?: string;
-  } | Array<{ display_text?: string; raw_text?: string; }>;
+  transcript?:
+    | {
+        display_text?: string;
+        raw_text?: string;
+      }
+    | Array<{ display_text?: string; raw_text?: string }>;
 }
 
 interface BackendMemory {
@@ -24,89 +26,127 @@ interface BackendMemory {
   body_text?: string;
   occurred_start?: string;
   created_at?: string;
-  chapter_id?: string; 
+  chapter_id?: string;
   media_assets?: BackendAsset[];
   memory_media?: Array<{ media_asset?: BackendAsset } | BackendAsset>;
 }
 
 export function useMemoirFeed(memoirId: string) {
   const [memories, setMemories] = useState<MemoryItem[]>([]);
-  
+
   // Initializes as true, preventing the need to synchronously call it in the effect
-  const [loading, setLoading] = useState<boolean>(true); 
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFeed = useCallback(async (isRefresh: boolean = false) => {
-    if (!memoirId) return;
-    
-    // Only trigger a new loading state if this is a manual refresh
-    if (isRefresh) {
-      setLoading(true);
-    }
-    
-    try {
-      const data: BackendMemory[] = await api.getMemoirFeed(memoirId);
-      
-      const normalizedMemories: MemoryItem[] = data.map((item: BackendMemory) => {
-        const mediaList: BackendAsset[] = item.media_assets || 
-                        (Array.isArray(item.memory_media) 
-                          ? item.memory_media.map((mm) => ('media_asset' in mm ? mm.media_asset : mm) as BackendAsset) 
-                          : []) || 
-                        [];
-        
-        const photoAsset = mediaList.find((m) => m.kind === 'photo' || m.kind === 'image' || m.mime_type?.includes('image'));
-        const audioAsset = mediaList.find((m) => m.kind === 'audio' || m.mime_type?.includes('audio'));
+  const fetchFeed = useCallback(
+    async (isRefresh: boolean = false) => {
+      if (!memoirId) return;
 
-        const hasText = Boolean(item.body_text && item.body_text.trim().length > 0);
-        const hasPhoto = Boolean(photoAsset);
-        const hasAudio = Boolean(audioAsset);
+      // Only trigger a new loading state if this is a manual refresh
+      if (isRefresh) {
+        setLoading(true);
+      }
 
-        let kind: 'text' | 'photo' | 'combined' | 'audio' = 'text';
-        const mediaCount = (hasText ? 1 : 0) + (hasPhoto ? 1 : 0) + (hasAudio ? 1 : 0);
-        
-        if (mediaCount > 1) {
-            kind = 'combined';
-        } else if (hasAudio) {
-            kind = 'audio';
-        } else if (hasPhoto) {
-            kind = 'photo';
-        }
+      try {
+        const data: BackendMemory[] = await api.getMemoirFeed(memoirId);
 
-        const getUrl = (asset?: BackendAsset) => asset ? (asset.playback_url || asset.url || asset.signed_url) : undefined;
-        
-        const transcriptObj = Array.isArray(audioAsset?.transcript) ? audioAsset?.transcript[0] : audioAsset?.transcript;
-        const transcriptText = transcriptObj?.display_text || transcriptObj?.raw_text || undefined;
+        const normalizedMemories: MemoryItem[] = data.map(
+          (item: BackendMemory) => {
+            const mediaList: BackendAsset[] =
+              item.media_assets ||
+              (Array.isArray(item.memory_media)
+                ? item.memory_media.map(
+                    (mm) =>
+                      ("media_asset" in mm
+                        ? mm.media_asset
+                        : mm) as BackendAsset,
+                  )
+                : []) ||
+              [];
 
-        return {
-          id: item.id,
-          title: item.title || "Untitled",
-          content: item.body_text || "", 
-          date: item.occurred_start || item.created_at?.split("T")[0] || "",
-          kind: kind,
-          author: "Owner",
-          chapter_id: item.chapter_id, // Attached chapter_id here
-          mediaUrl: getUrl(photoAsset), 
-          audioUrl: getUrl(audioAsset), 
-          transcription: transcriptText,
-          duration: audioAsset?.duration_ms ? `${Math.round(audioAsset.duration_ms / 1000)}s` : undefined,
-        };
-      });
+            const photoAsset = mediaList.find(
+              (m) =>
+                m.kind === "photo" ||
+                m.kind === "image" ||
+                m.mime_type?.includes("image"),
+            );
+            const audioAsset = mediaList.find(
+              (m) => m.kind === "audio" || m.mime_type?.includes("audio"),
+            );
 
-      setMemories(normalizedMemories);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load archive");
-    } finally {
-      setLoading(false);
-    }
-  }, [memoirId]);
+            const hasText = Boolean(
+              item.body_text && item.body_text.trim().length > 0,
+            );
+            const hasPhoto = Boolean(photoAsset);
+            const hasAudio = Boolean(audioAsset);
+
+            let kind: "text" | "photo" | "combined" | "audio" = "text";
+            const mediaCount =
+              (hasText ? 1 : 0) + (hasPhoto ? 1 : 0) + (hasAudio ? 1 : 0);
+
+            if (mediaCount > 1) {
+              kind = "combined";
+            } else if (hasAudio) {
+              kind = "audio";
+            } else if (hasPhoto) {
+              kind = "photo";
+            }
+
+            const getUrl = (asset?: BackendAsset) =>
+              asset
+                ? asset.playback_url || asset.url || asset.signed_url
+                : undefined;
+
+            const transcriptObj = Array.isArray(audioAsset?.transcript)
+              ? audioAsset?.transcript[0]
+              : audioAsset?.transcript;
+            const transcriptText =
+              transcriptObj?.display_text ||
+              transcriptObj?.raw_text ||
+              undefined;
+
+            return {
+              id: item.id,
+              title: item.title || "Untitled",
+              content: item.body_text || "",
+              date: item.occurred_start || item.created_at?.split("T")[0] || "",
+              kind: kind,
+              author: "Owner",
+              chapter_id: item.chapter_id, // Attached chapter_id here
+              mediaUrl: getUrl(photoAsset),
+              audioUrl: getUrl(audioAsset),
+              transcription: transcriptText,
+              duration: audioAsset?.duration_ms
+                ? `${Math.round(audioAsset.duration_ms / 1000)}s`
+                : undefined,
+            };
+          },
+        );
+
+        setMemories(normalizedMemories);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load archive");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [memoirId],
+  );
 
   // Wrap refreshFeed in useCallback so it doesn't trigger endless useEffects in the dashboard
   const refreshFeed = useCallback(() => {
     fetchFeed(true);
   }, [fetchFeed]);
 
+  // Trigger the initial fetch when the component mounts or memoirId changes
+  useEffect(() => {
+    const initFetch = async () => {
+      await fetchFeed();
+    };
+
+    initFetch();
+  }, [fetchFeed]);
   // Expose the setMemories function so the dashboard can update state optimistically
   return { memories, setMemories, loading, error, refreshFeed };
 }
-  
