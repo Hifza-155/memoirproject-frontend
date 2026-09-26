@@ -203,7 +203,7 @@ export default function MemoryMoment() {
         >
           <motion.button
             type="button"
-            onClick={() => router.push('/invite-family-friends')}
+            onClick={() => router.push('/pricing')}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             className="w-full max-w-70 md:max-w-[320px] py-3.5 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/15"
