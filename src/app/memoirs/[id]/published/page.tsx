@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams } from "next/navigation"; 
 import { api } from "@/lib/api/client";
 
 import MemoirHeader from "@/features/FinalMemoir/MemoirHeader";
@@ -10,30 +10,13 @@ import MemoryCard from "@/features/FinalMemoir/MemoryCard";
 import MemoirSidebar from "@/features/FinalMemoir/MemoirSidebar";
 import ScatteredGallery from "@/features/FinalMemoir/ScatteredGallery";
 
-import {
-  MemoryItem,
-  HeroPhoto,
-  MemoryImage,
-  ShortQuote,
-} from "@/features/FinalMemoir/types";
+import { MemoryItem, HeroPhoto, MemoryImage, ShortQuote } from "@/features/FinalMemoir/types";
 
-interface ReplyItem {
-  id: string;
-  author: string;
-  text: string;
-  time: string;
-}
-interface CommentItem {
-  id: string;
-  author: string;
-  text: string;
-  time: string;
-  replies?: ReplyItem[];
-}
+interface CommentItem { id: string; author: string; text: string; time: string; }
 
 interface ApiMediaAsset {
   id: string;
-  kind: string;
+  kind: string; 
   playback_url?: string;
   storage_key?: string;
   caption?: string;
@@ -43,7 +26,7 @@ interface ApiMemoryRecord {
   id: string;
   title?: string;
   body_text?: string;
-  ai_woven_text?: string;
+  ai_woven_text?: string; 
   occurred_start?: string;
   created_at: string;
   chapter_id?: string;
@@ -64,32 +47,23 @@ export default function FinalMemoirPage() {
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [activeView, setActiveView] = useState<"timeline" | "chapters">(
-    "chapters",
-  );
+  const [activeView, setActiveView] = useState<"timeline" | "chapters">("chapters");
   const [showScatteredView, setShowScatteredView] = useState(false);
-
+  
   const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>(
-    {},
-  );
   const [commentsMap] = useState<Record<string, CommentItem[]>>({});
-  const [reactions, setReactions] = useState<
-    Record<string, { count: number; reacted: boolean }>
-  >({});
-
+  const [reactions, setReactions] = useState<Record<string, { count: number; reacted: boolean }>>({});
+  
   // LIVE DATA STATES
   const [liveMemories, setLiveMemories] = useState<MemoryItem[]>([]);
   const [livePhotos, setLivePhotos] = useState<HeroPhoto[]>([]);
   const [liveChaptersList, setLiveChaptersList] = useState<string[]>([]);
   const [liveDecadesList, setLiveDecadesList] = useState<string[]>([]);
   const [liveShortQuotes, setLiveShortQuotes] = useState<ShortQuote[]>([]);
-
+  
   const [loadingFeed, setLoadingFeed] = useState<boolean>(true);
   const [subjectName, setSubjectName] = useState<string>("The Archive");
-  const [memoirDescription, setMemoirDescription] = useState<string>(
-    "Preserved memories and shared stories.",
-  );
+  const [memoirDescription, setMemoirDescription] = useState<string>("Preserved memories and shared stories.");
   const [dob, setDob] = useState<string>("");
   const [dod, setDod] = useState<string>("Present");
 
@@ -103,15 +77,11 @@ export default function FinalMemoirPage() {
     async function fetchLiveMemoirData() {
       try {
         setLoadingFeed(true);
-
+        
         // Use the actual API functions from your client.ts
         const [chaptersData, memoriesData] = await Promise.all([
-          api.getChapters(memoirId).catch(() => []) as Promise<
-            ApiChapterRecord[]
-          >,
-          api.getMemoirFeed(memoirId).catch(() => []) as Promise<
-            ApiMemoryRecord[]
-          >,
+          api.getChapters(memoirId).catch(() => []) as Promise<ApiChapterRecord[]>,
+          api.getMemoirFeed(memoirId).catch(() => []) as Promise<ApiMemoryRecord[]>
         ]);
 
         // Get basic memoir info from localStorage just like the Dashboard does
@@ -122,8 +92,7 @@ export default function FinalMemoirPage() {
             const data = parsed.data || parsed;
             if (data.subject_name) setSubjectName(data.subject_name);
             if (data.description) setMemoirDescription(data.description);
-            if (data.subject_born_on)
-              setDob(new Date(data.subject_born_on).getFullYear().toString());
+            if (data.subject_born_on) setDob(new Date(data.subject_born_on).getFullYear().toString());
             if (data.subject_died_on) {
               setDod(new Date(data.subject_died_on).getFullYear().toString());
             } else if (data.subject_is_living) {
@@ -134,11 +103,9 @@ export default function FinalMemoirPage() {
           console.error("Could not resolve memoir info from localStorage", e);
         }
 
-        const chapterMap: Record<string, { title: string; summary: string }> =
-          {};
+        const chapterMap: Record<string, { title: string; summary: string }> = {};
         const chapterOrderList: string[] = [];
 
-        // STRICT TYPING: using ApiChapterRecord
         if (Array.isArray(chaptersData)) {
           chaptersData.forEach((ch: ApiChapterRecord) => {
             chapterMap[ch.id] = { title: ch.title, summary: ch.summary || "" };
@@ -153,116 +120,87 @@ export default function FinalMemoirPage() {
           const shortQuotesExtracted: ShortQuote[] = [];
           const decadeSet = new Set<string>();
 
-          // STRICT TYPING: using ApiMemoryRecord
-          const mapped: MemoryItem[] = memoriesData.map(
-            (record: ApiMemoryRecord) => {
-              // STRICT TYPING: using ApiMediaAsset
-              const photoAssets =
-                record.media_assets?.filter(
-                  (m: ApiMediaAsset) => m.kind === "photo",
-                ) || [];
-              const audioAssets =
-                record.media_assets?.filter(
-                  (m: ApiMediaAsset) => m.kind === "audio",
-                ) || [];
+          const mapped: MemoryItem[] = memoriesData.map((record: ApiMemoryRecord) => {
+            const photoAssets = record.media_assets?.filter((m: ApiMediaAsset) => m.kind === "photo") || [];
+            const audioAssets = record.media_assets?.filter((m: ApiMediaAsset) => m.kind === "audio") || [];
 
-              const resolveMediaUrl = (asset: ApiMediaAsset): string => {
-                if (asset.playback_url) return asset.playback_url;
-                if (asset.storage_key) {
-                  const baseUrl =
-                    process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "") ||
-                    "";
-                  const cleanKey = asset.storage_key.replace(/^\/+/, "");
-                  return baseUrl
-                    ? `${baseUrl}/storage/v1/object/public/memoir-media/${cleanKey}`
-                    : "";
-                }
-                return "";
-              };
-
-              const images: MemoryImage[] = photoAssets
-                .map((asset: ApiMediaAsset) => ({
-                  id: asset.id,
-                  url: resolveMediaUrl(asset),
-                  caption: asset.caption || record.title || "Archive photo",
-                }))
-                .filter((img: MemoryImage) => Boolean(img.url));
-
-              const audioUrls = audioAssets
-                .map((a: ApiMediaAsset) => resolveMediaUrl(a))
-                .filter(Boolean);
-
-              images.forEach((img: MemoryImage) =>
-                photosExtracted.push({
-                  id: img.id,
-                  url: img.url,
-                  caption: img.caption,
-                }),
-              );
-
-              const rawDate = record.occurred_start || record.created_at;
-              if (rawDate) {
-                const year = new Date(rawDate).getFullYear();
-                if (!isNaN(year))
-                  decadeSet.add(`${Math.floor(year / 10) * 10}s`);
+            const resolveMediaUrl = (asset: ApiMediaAsset): string => {
+              if (asset.playback_url) return asset.playback_url;
+              if (asset.storage_key) {
+                const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "") || "";
+                const cleanKey = asset.storage_key.replace(/^\/+/, "");
+                return baseUrl ? `${baseUrl}/storage/v1/object/public/memoir-media/${cleanKey}` : "";
               }
+              return "";
+            };
 
-              const formattedDate = record.occurred_start
-                ? new Date(record.occurred_start).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
-                : new Date(record.created_at).toLocaleDateString();
+            const images: MemoryImage[] = photoAssets.map((asset: ApiMediaAsset) => ({
+              id: asset.id,
+              url: resolveMediaUrl(asset),
+              caption: asset.caption || record.title || "Archive photo",
+            })).filter((img: MemoryImage) => Boolean(img.url));
 
-              const assignedChapterInfo =
-                record.chapter_id && chapterMap[record.chapter_id]
-                  ? chapterMap[record.chapter_id]
-                  : { title: "Uncategorized Archives", summary: "" };
+            const audioUrls = audioAssets.map((a: ApiMediaAsset) => resolveMediaUrl(a)).filter(Boolean);
+            
+            images.forEach((img: MemoryImage) => {
+              photosExtracted.push({ 
+                id: img.id, 
+                url: img.url, 
+                caption: img.caption || record.title || "Archive photo" 
+              });
+            });
 
-              // STRICTLY USE AI TEXT IF AVAILABLE
-              const finalText = record.ai_woven_text || record.body_text || "";
+            const rawDate = record.occurred_start || record.created_at;
+            if (rawDate) {
+              const year = new Date(rawDate).getFullYear();
+              if (!isNaN(year)) decadeSet.add(`${Math.floor(year / 10) * 10}s`);
+            }
 
-              if (
-                images.length === 0 &&
-                audioUrls.length === 0 &&
-                finalText.length > 10
-              ) {
-                // Try to grab the first sentence, or cap it at 120 characters
-                const firstDot = finalText.indexOf(".");
-                let snippet = finalText;
+            const formattedDate = record.occurred_start
+              ? new Date(record.occurred_start).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+              : new Date(record.created_at).toLocaleDateString();
 
-                if (firstDot > 10 && firstDot < 120) {
-                  snippet = finalText.substring(0, firstDot + 1);
-                } else if (finalText.length > 120) {
-                  snippet = finalText.substring(0, 117).trim() + "...";
-                }
+            const assignedChapterInfo = record.chapter_id && chapterMap[record.chapter_id]
+                ? chapterMap[record.chapter_id]
+                : { title: "Uncategorized Archives", summary: "" };
 
-                shortQuotesExtracted.push({
-                  id: record.id,
-                  author: "Archive Snapshot",
-                  text: snippet,
-                });
+            const finalText = record.ai_woven_text || record.body_text || "";
+
+            // Smart Fleeting Thoughts Extractor
+            if (images.length === 0 && audioUrls.length === 0 && finalText.length > 10) {
+              const firstDot = finalText.indexOf('.');
+              let snippet = finalText;
+              
+              if (firstDot > 10 && firstDot < 120) {
+                snippet = finalText.substring(0, firstDot + 1);
+              } else if (finalText.length > 120) {
+                snippet = finalText.substring(0, 117).trim() + "...";
               }
+              
+              shortQuotesExtracted.push({ 
+                id: record.id, 
+                author: "Archive Snapshot", 
+                text: snippet 
+              });
+            }
 
-              return {
-                id: record.id,
-                author: "Family Member",
-                title: record.title || "",
-                text: finalText,
-                reactionsCount: 0,
-                images: images.length > 0 ? images : undefined,
-                audioUrls: audioUrls.length > 0 ? audioUrls : undefined,
-                chapter: assignedChapterInfo.title,
-                chapterSubtitle: assignedChapterInfo.summary,
-                date: formattedDate,
-              };
-            },
-          );
+            return {
+              id: record.id,
+              author: "Family Member",
+              title: record.title || "",
+              text: finalText,
+              reactionsCount: 0,
+              images: images.length > 0 ? images : undefined,
+              audioUrls: audioUrls.length > 0 ? audioUrls : undefined,
+              chapter: assignedChapterInfo.title,
+              chapterSubtitle: assignedChapterInfo.summary,
+              date: formattedDate,
+            };
+          });
 
           setLiveMemories(mapped);
           setLivePhotos(photosExtracted);
-          setLiveShortQuotes(shortQuotesExtracted.slice(0, 6));
+          setLiveShortQuotes(shortQuotesExtracted.slice(0, 6)); 
           setLiveDecadesList(Array.from(decadeSet).sort());
         }
       } catch (err) {
@@ -290,20 +228,13 @@ export default function FinalMemoirPage() {
     setReactions((prev) => {
       const current = prev[id] || { count: 0, reacted: false };
       const nextReacted = !current.reacted;
-      return {
-        ...prev,
-        [id]: {
-          count: nextReacted ? current.count + 1 : current.count - 1,
-          reacted: nextReacted,
-        },
-      };
+      return { ...prev, [id]: { count: nextReacted ? current.count + 1 : current.count - 1, reacted: nextReacted } };
     });
   };
 
-  const uniqueChapters =
-    liveChaptersList.length > 0
-      ? liveChaptersList
-      : Array.from(new Set(liveMemories.map((m) => m.chapter)));
+  const uniqueChapters = liveChaptersList.length > 0 
+    ? liveChaptersList 
+    : Array.from(new Set(liveMemories.map((m) => m.chapter)));
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-serif text-stone-900 selection:bg-memory-maroon/20">
@@ -314,7 +245,7 @@ export default function FinalMemoirPage() {
         name={subjectName}
         description={memoirDescription}
         dates={dob ? `${dob} — ${dod}` : ""}
-        heroPhotos={livePhotos}
+        heroPhotos={livePhotos} 
       />
 
       <div className="max-w-4xl mx-auto px-6 mb-8 flex flex-col gap-0.5 opacity-60">
@@ -326,9 +257,7 @@ export default function FinalMemoirPage() {
         <main className="flex-1 max-w-3xl">
           <div
             className="relative bg-[#FCFBF8] border border-stone-200/80 px-6 md:px-10 py-6 rounded-sm pb-16 shadow-[0_4px_24px_rgba(0,0,0,0.04),inset_0_0_60px_rgba(90,24,39,0.02)]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E")`,
-            }}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E")` }}
           >
             {loadingFeed ? (
               <div className="py-20 text-center text-stone-400 font-serif italic">
@@ -336,52 +265,19 @@ export default function FinalMemoirPage() {
               </div>
             ) : liveMemories.length === 0 ? (
               <div className="py-16 text-center text-stone-400 font-serif italic">
-                No entries found in this archive. Return to the dashboard to
-                organize memories.
+                No entries found in this archive. Return to the dashboard to organize memories.
               </div>
             ) : (
               uniqueChapters.map((chapterName, chapterIdx) => {
-                const chapterMemories = liveMemories.filter(
-                  (m) => m.chapter === chapterName,
-                );
+                const chapterMemories = liveMemories.filter((m) => m.chapter === chapterName);
                 if (chapterMemories.length === 0) return null;
 
                 const chapterSub = chapterMemories[0].chapterSubtitle;
-
-                // 1. COMBINE ALL TEXT IN THIS CHAPTER (Prioritizing ai_woven_text)
-                const combinedText = chapterMemories
-                  .map((m) => m.text?.trim())
-                  .filter(Boolean)
-                  .join("\n\n");
-
-                // 2. COMBINE ALL PHOTOS IN THIS CHAPTER
-                const combinedImages = chapterMemories.flatMap(
-                  (m) => m.images || [],
-                );
-
-                // 3. COMBINE ALL AUDIO IN THIS CHAPTER
-                const combinedAudio = chapterMemories.flatMap(
-                  (m) => m.audioUrls || [],
-                );
-
-                // 4. CREATE THE CHAPTER ANCHOR (For Comments/Reactions)
                 const chapterAnchorId = `chapter-${chapterIdx}`;
 
-                const combinedChapterCard: MemoryItem = {
-                  id: chapterAnchorId,
-                  author: "Archive Editor",
-                  text: combinedText,
-                  reactionsCount: 0,
-                  images:
-                    combinedImages.length > 0 ? combinedImages : undefined,
-                  audioUrls:
-                    combinedAudio.length > 0 ? combinedAudio : undefined,
-                  chapter: chapterName,
-                  date: chapterMemories[0].date,
-                };
-
                 return (
-                  <div key={chapterAnchorId} className="mb-16">
+                  <div key={chapterAnchorId} className="mb-20">
+                    
                     {/* Chapter Header */}
                     <div className="mb-8 mt-4 text-left relative flex flex-col">
                       <div className="w-full h-[2px] bg-stone-800 mb-3"></div>
@@ -395,29 +291,25 @@ export default function FinalMemoirPage() {
                       )}
                     </div>
 
-                    {/* Single Combined MemoryCard per Chapter */}
-                    <MemoryCard
-                      mem={combinedChapterCard}
-                      isHighlighted={false}
-                      currentReaction={
-                        reactions[chapterAnchorId] || {
-                          count: 0,
-                          reacted: false,
-                        }
-                      }
-                      handleToggleReaction={handleToggleReaction}
-                      isCommentsOpen={openCommentsId === chapterAnchorId}
-                      setOpenCommentsId={setOpenCommentsId}
-                      commentsList={commentsMap[chapterAnchorId] || []}
-                      commentInputValue={commentInputs[chapterAnchorId] || ""}
-                      setCommentInputValue={(val) =>
-                        setCommentInputs({
-                          ...commentInputs,
-                          [chapterAnchorId]: val,
-                        })
-                      }
-                      handlePostComment={async () => {}} // Stub
-                    />
+                    {/* Render INDIVIDUAL MemoryCards sequentially for proper audio & comment mapping */}
+                    <div className="flex flex-col">
+                      {chapterMemories.map((mem, memIdx) => (
+                        <MemoryCard
+                          key={mem.id}
+                          mem={mem}
+                          isHighlighted={memIdx === 0}
+                          currentReaction={reactions[mem.id] || { count: 0, reacted: false }}
+                          handleToggleReaction={handleToggleReaction}
+                          isCommentsOpen={openCommentsId === mem.id}
+                          setOpenCommentsId={setOpenCommentsId}
+                          commentsList={commentsMap[mem.id] || []}
+                          commentInputValue=""
+                          setCommentInputValue={() => {}}
+                          handlePostComment={async () => {}}
+                        />
+                      ))}
+                    </div>
+
                   </div>
                 );
               })
@@ -443,7 +335,7 @@ export default function FinalMemoirPage() {
         <MemoirSidebar
           activeView={activeView}
           setActiveView={setActiveView}
-          mockShortQuotes={liveShortQuotes}
+          mockShortQuotes={liveShortQuotes} 
           chapters={liveChaptersList}
           decades={liveDecadesList}
         />
