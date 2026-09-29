@@ -19,7 +19,7 @@ export default function Navbar() {
         </li>
 
         <li>
-          <Link href="/plans" className="hover:text-memory-muted transition">
+          <Link href="/pricing" className="hover:text-memory-muted transition">
             Plans
           </Link>
         </li>
