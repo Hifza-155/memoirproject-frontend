@@ -14,6 +14,7 @@ import { api } from "@/lib/api/client";
 // reusing your existing components
 import { BookCoverExperience } from "@/features/dashboard/components/BookCoverExperience";
 import { MemoryArchive } from "@/features/dashboard/components/MemoryArchive";
+import { normalizeMemory } from "@/lib/validations/memory";
 
 interface MemoirMemory {
   id: string;
@@ -332,7 +333,8 @@ export default function ContributorPage() {
             <MemoryArchive
               expandedStacks={expandedStacks}
               toggleStack={toggleStack}
-              mockMemories={memoirData?.memories || []}
+              mockMemories={(memoirData?.memories || []).map(normalizeMemory)}
+              memoirId={(memoirData?.id || memoirData?.memoir_id || "") as string}
             />
           </div>
         </main>

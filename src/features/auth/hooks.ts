@@ -162,7 +162,7 @@ export function useAuth() {
                 });
                 localStorage.removeItem("onboarding_initial_memory");
                 localStorage.removeItem("onboarding_memory_date");
-              } catch(e) {}
+              } catch {}
           }
         }
       } catch (memoirCheckError) {

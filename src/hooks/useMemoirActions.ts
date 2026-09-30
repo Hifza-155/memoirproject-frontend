@@ -103,7 +103,6 @@ export function useMemoirActions(
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateWovenText = async (memoryId: string, newText: string) => {
     if (!memoirId) return;
 
