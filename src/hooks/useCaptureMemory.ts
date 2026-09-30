@@ -41,6 +41,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
   // Compiler-safe duration tracking (pure interval counter instead of timestamps)
   const recordingDurationRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const maxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +97,11 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       timerRef.current = null;
     }
 
+    if (maxTimerRef.current) {
+      clearTimeout(maxTimerRef.current);
+      maxTimerRef.current = null;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -139,7 +145,7 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       setRecording(true);
 
       // Auto-stop if it exceeds max recording limit
-      setTimeout(() => {
+      maxTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
           stopRecording();
           setError("Maximum recording length (10 minutes) reached.");
@@ -159,7 +165,11 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
    * Halts active media recording streams.
    */
   const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
+    if (mediaRecorderRef.current?.state === "recording") {
+      if (maxTimerRef.current) {
+        clearTimeout(maxTimerRef.current);
+        maxTimerRef.current = null;
+      }
       mediaRecorderRef.current.stop();
       setRecording(false);
     }
