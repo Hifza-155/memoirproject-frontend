@@ -68,15 +68,23 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     setAudioUrl(null);
   };
 
+  // Revoke the object URL when it changes
   useEffect(() => {
     return () => {
-      stopMediaStream();
-      if (timerRef.current) clearInterval(timerRef.current);
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
     };
   }, [audioUrl]);
+
+  // Clean up recording resources on unmount
+  useEffect(() => {
+    return () => {
+      stopMediaStream();
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    };
+  }, []);
 
   /**
    * Requests microphone permissions and initializes recording with a pure interval duration tracker.
