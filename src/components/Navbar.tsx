@@ -1,12 +1,16 @@
 /**
  * @file Navbar.tsx
- * @description Component rendering the site navigation bar,
+ * @description Component rendering the site navigation bar.
  */
 
 import Logo from "./Logo";
 import Link from "next/link";
 
-export default function Navbar() {
+interface NavbarProps {
+  onOurStoryClick?: () => void;
+}
+
+export default function Navbar({ onOurStoryClick }: NavbarProps) {
   return (
     <nav className="flex items-center justify-between px-8 md:px-16 py-2 bg-memory-bg border-b border-memory-border">
       <Logo />
@@ -19,18 +23,22 @@ export default function Navbar() {
         </li>
 
         <li>
-          <Link href="/pricing" className="hover:text-memory-muted transition">
+          <Link
+            href="/pricing"
+            className="hover:text-memory-muted transition"
+          >
             Plans
           </Link>
         </li>
 
         <li>
-          <Link
-            href="/#our-story"
-            className="hover:text-memory-muted transition"
+          <button
+            type="button"
+            onClick={onOurStoryClick}
+            className="hover:text-memory-muted transition cursor-pointer"
           >
             Our Story
-          </Link>
+          </button>
         </li>
 
         <li>
