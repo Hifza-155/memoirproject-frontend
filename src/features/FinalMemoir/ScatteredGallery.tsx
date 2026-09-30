@@ -20,7 +20,8 @@ const scatterPositions = [
   { top: "85%", left: "45%", rotate: "-2deg" },
   { top: "60%", left: "15%", rotate: "3deg" },
   { top: "65%", left: "70%", rotate: "-6deg" },
-  { top: "25%", left: "25%", rotate: "1deg" },
+  { top: 
+    "25%", left: "25%", rotate: "1deg" },
   { top: "70%", left: "70%", rotate: "-1deg" },
 ];
 
