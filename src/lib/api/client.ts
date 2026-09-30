@@ -200,14 +200,6 @@ export const api = {
 
     return res.json();
   },
-  async deleteMemory(memoryId: string) {
-    const res = await apiFetch(`/api/memories/${memoryId}/`, {
-      method: "DELETE",
-    });
-    if (!res.ok) throw new Error("Failed to delete memory");
-    return res.json();
-  },
-
   // Presigned Url for object storage storing
   async getPresignedUrl(payload: PresignedUrlPayload) {
     const res = await apiFetch("/api/media/presigned-url", {
@@ -308,19 +300,6 @@ export const api = {
 
     return res.json();
   },
-  // Search
-  async searchMemories(memoirId: string, query: string) {
-    const res = await apiFetch(
-      `/api/memoirs/${memoirId}/search?q=${encodeURIComponent(query)}`,
-      {
-        method: "GET",
-      },
-    );
-    if (!res.ok) throw new Error("Failed to search archive");
-    const json = await res.json();
-    return json.data || json;
-  },
-
   // Share Link Generation
   async createShareLink(memoirId: string) {
     const res = await apiFetch(`/api/memoirs/${memoirId}/share-link`, {
