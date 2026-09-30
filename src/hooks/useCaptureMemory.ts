@@ -316,10 +316,6 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
 
     setLoading(true);
 
-    // 5. STUCK LOADING SAFEGUARD: AbortController Timeout (20 seconds max)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
-
     try {
       const mediaAssetIds: string[] = [];
 
@@ -388,16 +384,11 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
       
     } catch (err: unknown) {
       if (err instanceof Error) {
-        if (err.name === "AbortError" || err.message.includes("aborted")) {
-          setError("Request timed out. Please check your connection and try again.");
-        } else {
-          setError(err.message);
-        }
+        setError(err.message);
       } else {
         setError("An unexpected error occurred while saving your memory.");
       }
     } finally {
-      clearTimeout(timeoutId);
       setLoading(false); // GUARANTEED: Never gets stuck indefinitely
     }
   };
