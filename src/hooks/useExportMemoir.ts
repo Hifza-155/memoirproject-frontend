@@ -3,13 +3,23 @@
  * @description React hook for handling memoir PDF export requests, status polling, and direct browser attachment downloads.
  */
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { api } from "@/lib/api/client";
 
 export function useExportMemoir(memoirId: string) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const triggerExport = async (customFileName?: string) => {
     setIsExporting(true);
@@ -35,14 +45,15 @@ export function useExportMemoir(memoirId: string) {
       let attempts = 0;
       const maxAttempts = 15;
 
-      const pollInterval = setInterval(async () => {
+      pollIntervalRef.current = setInterval(async () => {
         attempts++;
 
         try {
           const data = await api.getLatestExportStatus(currentMemoirId);
 
           if (data.status === "ready" && data.download_url) {
-            clearInterval(pollInterval);
+            clearInterval(pollIntervalRef.current!);
+            pollIntervalRef.current = null;
 
             setIsExporting(false);
             setExportMessage(
@@ -68,7 +79,8 @@ export function useExportMemoir(memoirId: string) {
 
             window.URL.revokeObjectURL(blobUrl);
           } else if (data.status === "failed") {
-            clearInterval(pollInterval);
+            clearInterval(pollIntervalRef.current!);
+            pollIntervalRef.current = null;
 
             setIsExporting(false);
             setError(
@@ -78,7 +90,8 @@ export function useExportMemoir(memoirId: string) {
             );
             setExportMessage(null);
           } else if (attempts >= maxAttempts) {
-            clearInterval(pollInterval);
+            clearInterval(pollIntervalRef.current!);
+            pollIntervalRef.current = null;
 
             setIsExporting(false);
             setError("Export timed out. Please try again.");
