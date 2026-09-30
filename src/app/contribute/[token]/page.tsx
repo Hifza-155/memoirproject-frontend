@@ -282,7 +282,6 @@ export default function ContributorPage() {
                     occurred_start: new Date().toISOString().split("T")[0],
                     occurred_end: new Date().toISOString().split("T")[0],
                     occurred_precision: "day",
-                    // @ts-expect-error - 'kind' is used by frontend UI grouping
                     kind: "text",
                   });
 

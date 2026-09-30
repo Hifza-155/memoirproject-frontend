@@ -20,12 +20,8 @@ export function useExportMemoir(memoirId: string) {
       let currentMemoirId = memoirId;
 
       if (!currentMemoirId) {
-        const memoirResponse = await api.getMyMemoir();
-
-        currentMemoirId =
-          memoirResponse?.data?.id ||
-          memoirResponse?.id ||
-          "";
+        const memoirs = await api.getUserMemoirs();
+        currentMemoirId = memoirs[0]?.id || "";
       }
 
       if (!currentMemoirId) {
