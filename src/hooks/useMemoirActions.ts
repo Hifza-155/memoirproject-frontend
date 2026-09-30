@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api/client";
 import { Chapter } from "@/lib/validations/memory";
 
@@ -16,6 +16,16 @@ export function useMemoirActions(
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState("");
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timelineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      if (timelineTimeoutRef.current) clearTimeout(timelineTimeoutRef.current);
+    };
+  }, []);
 
   // Fetch chapters on mount or memoirId change
   useEffect(() => {
@@ -51,7 +61,7 @@ export function useMemoirActions(
       await api.updateShareLinkPassword(memoirId, password);
       await navigator.clipboard.writeText(currentShareUrl);
       setIsLinkCopied(true);
-      setTimeout(() => {
+      copiedTimerRef.current = setTimeout(() => {
         setIsLinkCopied(false);
         setIsShareModalOpen(false);
       }, 1500);
@@ -81,7 +91,7 @@ export function useMemoirActions(
         }
       }, 4000);
 
-      setTimeout(() => {
+      timelineTimeoutRef.current = setTimeout(() => {
         clearInterval(pollInterval);
         setIsGeneratingChapters(false);
       }, 60000);
