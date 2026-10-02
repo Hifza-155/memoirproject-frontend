@@ -18,6 +18,7 @@ import { ShareModal } from "@/features/dashboard/components/ShareModal";
 // Custom Hooks
 import { useCaptureMemory } from "@/hooks/useCaptureMemory";
 import { useMemoirFeed } from "@/hooks/useMemoirFeed";
+import { readStorage } from "@/lib/storage";
 import { useMemoirActions } from "@/hooks/useMemoirActions";
 
 export default function OwnerDashboard() {
@@ -42,47 +43,46 @@ export default function OwnerDashboard() {
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const storedUser =
-          localStorage.getItem("user_profile") ||
-          localStorage.getItem("user_name");
-        if (storedUser) {
-          try {
-            const userParsed = JSON.parse(storedUser);
-            setOwnerName(userParsed.name || userParsed.fullName || storedUser);
-          } catch {
-            setOwnerName(storedUser);
-          }
+        const user =
+          readStorage<{ name?: string; fullName?: string }>("user_profile") ??
+          readStorage<{ name?: string; fullName?: string }>("user_name");
+        if (user) {
+          setOwnerName(user.name || user.fullName || "");
         }
       } catch (e) {
         console.error("Failed to load user profile", e);
       }
 
       try {
-        const stored = localStorage.getItem("active_memoir");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const data = parsed.data || parsed;
+        const stored = readStorage<{
+          id?: string;
+          subject_name?: string;
+          subject_born_on?: string;
+          subject_is_living?: boolean;
+          subject_died_on?: string;
+          data?: Record<string, unknown>;
+        }>("active_memoir");
+        const data = (stored?.data as typeof stored | undefined) || stored;
 
-          if (data.id) setMemoirId(data.id);
+        if (data?.id) setMemoirId(data.id);
 
-          setName(data.subject_name || "My Memoir");
+        setName(data?.subject_name || "My Memoir");
 
-          const dobYear = data.subject_born_on
-            ? new Date(data.subject_born_on).getFullYear().toString()
-            : "";
+        const dobYear = data?.subject_born_on
+          ? new Date(data.subject_born_on).getFullYear().toString()
+          : "";
 
-          let dodYear = "";
-          if (data.subject_is_living) {
-            dodYear = "Present";
-          } else if (data.subject_died_on) {
-            dodYear = new Date(data.subject_died_on).getFullYear().toString();
-          }
+        let dodYear = "";
+        if (data?.subject_is_living) {
+          dodYear = "Present";
+        } else if (data?.subject_died_on) {
+          dodYear = new Date(data.subject_died_on).getFullYear().toString();
+        }
 
-          if (dobYear) {
-            setDates(`${dobYear} — ${dodYear || "?"}`);
-          } else {
-            setDates("");
-          }
+        if (dobYear) {
+          setDates(`${dobYear} — ${dodYear || "?"}`);
+        } else {
+          setDates("");
         }
       } catch (e) {
         console.error("Could not resolve active_memoir from localStorage", e);

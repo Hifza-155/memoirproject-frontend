@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { readStorage } from "@/lib/storage";
 import { HeaderTitleSection } from "./HeaderTitleSection";
 import { HeaderActionsSection } from "./HeaderActionsSection";
 
@@ -52,16 +53,9 @@ export function DashboardHeader({
     
     if (typeof window !== "undefined") {
       // FETCH JUST LIKE LOGIN HOOK SAVES IT
-      try {
-        const storedMemoirStr = localStorage.getItem("active_memoir");
-        if (storedMemoirStr) {
-          const storedMemoir = JSON.parse(storedMemoirStr);
-          if (storedMemoir && storedMemoir.id) {
-            return storedMemoir.id;
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse active_memoir from local storage", e);
+      const storedMemoir = readStorage<{ id?: string }>("active_memoir");
+      if (storedMemoir?.id) {
+        return storedMemoir.id;
       }
 
       // Fallback to URL extraction

@@ -11,6 +11,7 @@ import MemoirSidebar from "@/features/FinalMemoir/MemoirSidebar";
 import ScatteredGallery from "@/features/FinalMemoir/ScatteredGallery";
 
 import { MemoryItem, HeroPhoto, MemoryImage, ShortQuote } from "@/features/FinalMemoir/types";
+import { readStorage } from "@/lib/storage";
 
 interface CommentItem { id: string; author: string; text: string; time: string; }
 
@@ -85,22 +86,22 @@ export default function FinalMemoirPage() {
         ]);
 
         // Get basic memoir info from localStorage just like the Dashboard does
-        try {
-          const stored = localStorage.getItem("active_memoir");
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            const data = parsed.data || parsed;
-            if (data.subject_name) setSubjectName(data.subject_name);
-            if (data.description) setMemoirDescription(data.description);
-            if (data.subject_born_on) setDob(new Date(data.subject_born_on).getFullYear().toString());
-            if (data.subject_died_on) {
-              setDod(new Date(data.subject_died_on).getFullYear().toString());
-            } else if (data.subject_is_living) {
-              setDod("Present");
-            }
-          }
-        } catch (e) {
-          console.error("Could not resolve memoir info from localStorage", e);
+        const stored = readStorage<{
+          subject_name?: string;
+          description?: string;
+          subject_born_on?: string;
+          subject_died_on?: string;
+          subject_is_living?: boolean;
+          data?: Record<string, unknown>;
+        }>("active_memoir");
+        const data = (stored?.data as typeof stored | undefined) || stored;
+        if (data?.subject_name) setSubjectName(data.subject_name);
+        if (data?.description) setMemoirDescription(data.description);
+        if (data?.subject_born_on) setDob(new Date(data.subject_born_on).getFullYear().toString());
+        if (data?.subject_died_on) {
+          setDod(new Date(data.subject_died_on).getFullYear().toString());
+        } else if (data?.subject_is_living) {
+          setDod("Present");
         }
 
         const chapterMap: Record<string, { title: string; summary: string }> = {};

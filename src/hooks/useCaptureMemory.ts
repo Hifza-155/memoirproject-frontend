@@ -13,6 +13,7 @@ import { useState, useRef, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { useLocalStorageDraft } from "@/hooks/useLocalStorageDraft";
 import { memoryInputSchema } from "@/lib/validations/memory";
+import { readStorage } from "@/lib/storage";
 
 // Validation Constants
 const MAX_PHOTO_SIZE_MB = 10;
@@ -203,19 +204,15 @@ export function useCaptureMemory(memoirId: string, onSuccess?: () => void) {
     }
 
     if (typeof window !== "undefined") {
-      try {
-        const savedMemoir = localStorage.getItem("active_memoir");
-        if (savedMemoir) {
-          const parsed = JSON.parse(savedMemoir);
-          if (parsed && parsed.data && typeof parsed.data.id === "string") {
-            return parsed.data.id;
-          }
-          if (parsed && typeof parsed.id === "string") {
-            return parsed.id;
-          }
-        }
-      } catch (err) {
-        console.error("Failed to parse active memoir from localStorage", err);
+      const parsed = readStorage<{
+        id?: string;
+        data?: { id?: string };
+      }>("active_memoir");
+      if (parsed?.data && typeof parsed.data.id === "string") {
+        return parsed.data.id;
+      }
+      if (parsed && typeof parsed.id === "string") {
+        return parsed.id;
       }
     }
 

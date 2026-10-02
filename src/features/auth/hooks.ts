@@ -1,9 +1,10 @@
 // src/features/auth/hooks.ts
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api/client";
+import { api, MemoirCreatePayload } from "@/lib/api/client";
 import { LoginInput, SignupInput } from "./schemas";
 import { createSession } from "@/app/actions/auth";
+import { readStorage } from "@/lib/storage";
 
 export function useAuth() {
   const [loading, setLoading] = useState(false);
@@ -16,10 +17,9 @@ export function useAuth() {
     let activeMemoir = null;
 
     // STEP A: Create the Memoir if it's pending
-    const pendingMemoirData = localStorage.getItem("pending_memoir");
-    if (pendingMemoirData) {
+    const memoirPayload = readStorage<MemoirCreatePayload>("pending_memoir");
+    if (memoirPayload) {
       try {
-        const memoirPayload = JSON.parse(pendingMemoirData);
         const createdMemoir = await api.createMemoir(memoirPayload);
         activeMemoir = createdMemoir.data || createdMemoir;
         
@@ -30,8 +30,7 @@ export function useAuth() {
       }
     } else {
       // Fallback: If it was already created, grab it from storage
-      const stored = localStorage.getItem("active_memoir");
-      if (stored) activeMemoir = JSON.parse(stored);
+      activeMemoir = readStorage("active_memoir");
     }
 
     // STEP B: Create the initial memory if it exists
@@ -91,10 +90,10 @@ export function useAuth() {
         const memoirs = await api.getUserMemoirs();
 
         if (!memoirs || memoirs.length === 0) {
-          const pendingMemoirStr = localStorage.getItem("pending_memoir");
+          const pendingMemoir =
+            readStorage<MemoirCreatePayload>("pending_memoir");
 
-          if (pendingMemoirStr) {
-            const pendingMemoir = JSON.parse(pendingMemoirStr);
+          if (pendingMemoir) {
             const createdMemoir = await api.createMemoir(pendingMemoir);
             const activeMemoir = createdMemoir.data || createdMemoir;
 

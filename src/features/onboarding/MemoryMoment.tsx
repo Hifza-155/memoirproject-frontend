@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { readStorage } from '@/lib/storage';
 
 export default function MemoryMoment() {
   const router = useRouter();
@@ -32,12 +33,16 @@ export default function MemoryMoment() {
         let memoryText = "";
 
         // 1. Retrieve subject details from pending_memoir
-        const storedPending = localStorage.getItem("pending_memoir");
-        if (storedPending) {
-          const parsed = JSON.parse(storedPending);
+        const parsed = readStorage<{
+          subject_name?: string;
+          subject_born_on?: string;
+          subject_is_living?: boolean;
+          subject_died_on?: string;
+        }>("pending_memoir");
+        if (parsed) {
           if (parsed.subject_name) sName = parsed.subject_name;
           if (parsed.subject_born_on) dobYear = new Date(parsed.subject_born_on).getFullYear().toString();
-          
+
           if (parsed.subject_is_living) {
             dodYear = "Present";
           } else if (parsed.subject_died_on) {
@@ -47,25 +52,24 @@ export default function MemoryMoment() {
 
         // Fallback: Check active_memoir if pending_memoir is missing
         if (!sName) {
-          const storedActive = localStorage.getItem("active_memoir");
-          if (storedActive) {
-            const parsed = JSON.parse(storedActive);
-            const data = parsed.data || parsed;
-            if (data.name) sName = data.name;
-            if (data.dob) dobYear = new Date(data.dob).getFullYear().toString();
-            if (data.dod) dodYear = new Date(data.dod).getFullYear().toString();
-          }
+          const parsed = readStorage<{
+            data?: { name?: string; dob?: string; dod?: string };
+            name?: string;
+            dob?: string;
+            dod?: string;
+          }>("active_memoir");
+          const data = parsed?.data || parsed;
+          if (data?.name) sName = data.name;
+          if (data?.dob) dobYear = new Date(data.dob).getFullYear().toString();
+          if (data?.dod) dodYear = new Date(data.dod).getFullYear().toString();
         }
 
         // 2. Retrieve user / author name
-        const storedUser = localStorage.getItem("user_profile") || localStorage.getItem("user_name");
-        if (storedUser) {
-          try {
-            const userParsed = JSON.parse(storedUser);
-            author = userParsed.name || userParsed.fullName || storedUser;
-          } catch {
-            author = storedUser;
-          }
+        const user =
+          readStorage<{ name?: string; fullName?: string }>("user_profile") ??
+          readStorage<{ name?: string; fullName?: string }>("user_name");
+        if (user) {
+          author = user.name || user.fullName || "";
         }
 
         const onboardingMem = localStorage.getItem("onboarding_initial_memory");
