@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { User, KeyRound, ArrowRight, ShieldCheck } from "lucide-react";
-import { api } from "@/lib/api/client";
+import { api, parseErrorDetail } from "@/lib/api/client";
 
 // reusing your existing components
 import { BookCoverExperience } from "@/features/dashboard/components/BookCoverExperience";
@@ -103,7 +103,9 @@ export default function ContributorPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.detail || "Incorrect password or invalid access.");
+        throw new Error(
+          parseErrorDetail(json, "Incorrect password or invalid access."),
+        );
       }
 
       const verifiedData = json.data || json;

@@ -20,7 +20,7 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-function parseErrorDetail(
+export function parseErrorDetail(
   errData: ApiErrorResponse | null | undefined,
   defaultMessage: string,
 ): string {
