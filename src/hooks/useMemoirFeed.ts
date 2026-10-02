@@ -1,35 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { api } from "@/lib/api/client";
 import { MemoryItem } from "@/features/dashboard/types";
-
-// 1. Strict TypeScript Interfaces to clear "@typescript-eslint/no-explicit-any"
-interface BackendAsset {
-  kind?: string;
-  mime_type?: string;
-  playback_url?: string;
-  url?: string;
-  signed_url?: string;
-  duration_ms?: number;
-  transcript?:
-    | {
-        display_text?: string;
-        raw_text?: string;
-      }
-    | Array<{ display_text?: string; raw_text?: string }>;
-}
-
-interface BackendMemory {
-  id: string;
-  title?: string;
-  body_text?: string;
-  occurred_start?: string;
-  created_at?: string;
-  chapter_id?: string;
-  media_assets?: BackendAsset[];
-  memory_media?: Array<{ media_asset?: BackendAsset } | BackendAsset>;
-}
+import { normalizeMemory, BackendMemory } from "@/lib/validations/memory";
 
 export function useMemoirFeed(memoirId: string) {
   const [memories, setMemories] = useState<MemoryItem[]>([]);
@@ -37,6 +11,8 @@ export function useMemoirFeed(memoirId: string) {
   // Initializes as true, preventing the need to synchronously call it in the effect
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const activeMemoirIdRef = useRef(memoirId);
 
   const fetchFeed = useCallback(
     async (isRefresh: boolean = false) => {
@@ -50,85 +26,21 @@ export function useMemoirFeed(memoirId: string) {
       try {
         const data: BackendMemory[] = await api.getMemoirFeed(memoirId);
 
-        const normalizedMemories: MemoryItem[] = data.map(
-          (item: BackendMemory) => {
-            const mediaList: BackendAsset[] =
-              item.media_assets ||
-              (Array.isArray(item.memory_media)
-                ? item.memory_media.map(
-                    (mm) =>
-                      ("media_asset" in mm
-                        ? mm.media_asset
-                        : mm) as BackendAsset,
-                  )
-                : []) ||
-              [];
+        // Skip if the memoir changed while the request was in flight
+        if (activeMemoirIdRef.current !== memoirId) return;
 
-            const photoAsset = mediaList.find(
-              (m) =>
-                m.kind === "photo" ||
-                m.kind === "image" ||
-                m.mime_type?.includes("image"),
-            );
-            const audioAsset = mediaList.find(
-              (m) => m.kind === "audio" || m.mime_type?.includes("audio"),
-            );
-
-            const hasText = Boolean(
-              item.body_text && item.body_text.trim().length > 0,
-            );
-            const hasPhoto = Boolean(photoAsset);
-            const hasAudio = Boolean(audioAsset);
-
-            let kind: "text" | "photo" | "combined" | "audio" = "text";
-            const mediaCount =
-              (hasText ? 1 : 0) + (hasPhoto ? 1 : 0) + (hasAudio ? 1 : 0);
-
-            if (mediaCount > 1) {
-              kind = "combined";
-            } else if (hasAudio) {
-              kind = "audio";
-            } else if (hasPhoto) {
-              kind = "photo";
-            }
-
-            const getUrl = (asset?: BackendAsset) =>
-              asset
-                ? asset.playback_url || asset.url || asset.signed_url
-                : undefined;
-
-            const transcriptObj = Array.isArray(audioAsset?.transcript)
-              ? audioAsset?.transcript[0]
-              : audioAsset?.transcript;
-            const transcriptText =
-              transcriptObj?.display_text ||
-              transcriptObj?.raw_text ||
-              undefined;
-
-            return {
-              id: item.id,
-              title: item.title || "Untitled",
-              content: item.body_text || "",
-              date: item.occurred_start || item.created_at?.split("T")[0] || "",
-              kind: kind,
-              author: "Owner",
-              chapter_id: item.chapter_id, // Attached chapter_id here
-              mediaUrl: getUrl(photoAsset),
-              audioUrl: getUrl(audioAsset),
-              transcription: transcriptText,
-              duration: audioAsset?.duration_ms
-                ? `${Math.round(audioAsset.duration_ms / 1000)}s`
-                : undefined,
-            };
-          },
+        const normalizedMemories: MemoryItem[] = data.map((item) =>
+          normalizeMemory(item),
         );
 
+        if (!isMountedRef.current) return;
         setMemories(normalizedMemories);
         setError(null);
       } catch (err) {
+        if (!isMountedRef.current) return;
         setError(err instanceof Error ? err.message : "Failed to load archive");
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) setLoading(false);
       }
     },
     [memoirId],
@@ -138,6 +50,18 @@ export function useMemoirFeed(memoirId: string) {
   const refreshFeed = useCallback(() => {
     fetchFeed(true);
   }, [fetchFeed]);
+
+  // Track the latest memoirId so in-flight requests can detect they are stale
+  useEffect(() => {
+    activeMemoirIdRef.current = memoirId;
+  }, [memoirId]);
+
+  // Stop updating state once the hook has unmounted
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Trigger the initial fetch when the component mounts or memoirId changes
   useEffect(() => {
