@@ -14,17 +14,16 @@ export default function PricingFeatures() {
   return (
     <section className="min-h-screen bg-memory-bg text-memory-primary flex flex-col items-center px-6 py-8 md:py-12 relative z-10 font-sans selection:bg-memory-primary/20">
       <div className="w-full max-w-170 flex flex-col">
-        
+
         {/* Back Button */}
         <div className="w-full flex justify-start mb-8 relative z-30">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-memory-primary/70 hover:text-memory-primary transition cursor-pointer"
+            className="text-memory-primary/70 hover:text-memory-primary transition cursor-pointer"
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
-            <span className="text-sm font-medium">Back</span>
           </button>
         </div>
 
@@ -43,14 +42,15 @@ export default function PricingFeatures() {
         {/* Features + Pricing */}
         <div className="w-full bg-memory-bg border border-memory-border rounded-3xl overflow-hidden shadow-sm">
           <div className="grid md:grid-cols-[1.2fr_0.8fr]">
-            
+
             {/* Features */}
-            <div className="p-7 md:p-10 border-b md:border-b-0 md:border-r border-memory-border">
+            <div className="p-7 md:p-10 bg-memory-bg">
               <h2 className="text-xl md:text-2xl font-semibold text-memory-primary mb-7">
                 What&apos;s included
               </h2>
 
               <div className="space-y-5">
+
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 shrink-0">
                     <Check size={18} className="text-memory-accent" />
@@ -108,30 +108,31 @@ export default function PricingFeatures() {
                     </p>
                   </div>
                 </div>
+
               </div>
             </div>
 
             {/* Pricing */}
-            <div className="p-7 md:p-10 flex flex-col justify-center">
+            <div className="p-7 md:p-10 bg-memory-maroon text-white flex flex-col justify-center">
               <p className="text-memory-accent text-xs uppercase tracking-[0.25em] font-semibold mb-4">
                 One-time purchase
               </p>
 
-              <h2 className="text-2xl md:text-3xl font-semibold text-memory-primary mb-3">
+              <h2 className="text-2xl md:text-3xl font-semibold text-white mb-3">
                 Your Family Memoir
               </h2>
 
-              <p className="text-sm text-memory-primary/60 leading-relaxed mb-7">
+              <p className="text-sm text-white/75 leading-relaxed mb-7">
                 A complete memoir created from the memories, stories, voices,
                 and moments shared by your loved ones.
               </p>
 
               <div className="mb-7">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl md:text-6xl font-bold text-memory-primary">
+                  <span className="text-5xl md:text-6xl font-bold text-white">
                     $3
                   </span>
-                  <span className="text-sm text-memory-primary/50">
+                  <span className="text-sm text-white/70">
                     one-time
                   </span>
                 </div>
@@ -140,15 +141,16 @@ export default function PricingFeatures() {
               <button
                 type="button"
                 onClick={() => router.push('/login')}
-                className="w-full py-3.5 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md bg-memory-primary text-white hover:bg-memory-maroon shadow-memory-primary/15"
+                className="w-full py-3.5 rounded-2xl text-[16px] font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-md bg-white text-memory-maroon hover:bg-memory-accent hover:text-white"
               >
                 Continue
               </button>
 
-              <p className="text-center text-xs text-memory-primary/40 mt-4">
+              <p className="text-center text-xs text-white/55 mt-4">
                 No subscription. No recurring charges.
               </p>
             </div>
+
           </div>
         </div>
 
